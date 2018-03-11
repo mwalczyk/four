@@ -1,0 +1,9 @@
+[package]
+name = "four"
+version = "0.1.0"
+authors = ["michael <mwalczyk2@gmail.com>"]
+
+[dependencies]
+gl = "0.6.5"
+glutin = "0.10.1"
+cgmath = "0.15.0"
