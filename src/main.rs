@@ -18,7 +18,7 @@ use glutin::GlContext;
 use cgmath::{Point2, Point3, Vector3, Vector4, Matrix2, Matrix3, Matrix4, InnerSpace, Zero, Perspective, Transform};
 
 /// Takes a 4D cross product between `u`, `v`, and `w`.
-fn cross4(u: Vector4<f32>, v: Vector4<f32>, w: Vector4<f32>) -> Vector4<f32> {
+fn cross4(u: &Vector4<f32>, v: &Vector4<f32>, w: &Vector4<f32>) -> Vector4<f32> {
     let a = (v[0] * w[1]) - (v[1] * w[0]);
     let b = (v[0] * w[2]) - (v[2] * w[0]);
     let c = (v[0] * w[3]) - (v[3] * w[0]);
@@ -31,6 +31,15 @@ fn cross4(u: Vector4<f32>, v: Vector4<f32>, w: Vector4<f32>) -> Vector4<f32> {
                               (u[0] * e) - (u[1] * c) + (u[3] * a),
                              -(u[0] * d) + (u[1] * b) - (u[2] * a));
     result
+}
+
+fn lookat4(from: Vector4<f32>, to: Vector4<f32>, up: Vector4<f32>, over: Vector4<f32>) -> Matrix4<f32> {
+    let wd = (to - from).normalize();
+    let wa = cross4(&up, &over, &wd).normalize();
+    let wb = cross4(&over, &wd, &wa).normalize();
+    let wc = cross4(&wd, &wa, &wb);
+
+    Matrix4::from_cols(wa, wb, wc, wd)
 }
 
 fn lookat3(from: Point3<f32>, to: Point3<f32>, up: Vector3<f32>) -> Matrix3<f32> {
@@ -62,10 +71,10 @@ fn main() {
     // ...
 
     // 3D -> 2D projection
-    let from = Point3::new(0.0, 0.0, 3.0);
-    let to = Point3::new(0.0, 0.0, 0.0);
-    let up = Vector3::unit_y();
-    let lookat = lookat3(from, to, up);
+    let from3 = Point3::new(0.0, 0.0, 3.0);
+    let to3 = Point3::new(0.0, 0.0, 0.0);
+    let up3 = Vector3::unit_y();
+    let lookat3 = lookat3(from3, to3, up3);
 
     let mut points = vec![
         // base
@@ -90,10 +99,10 @@ fn main() {
 
     for pt in points.iter_mut() {
         // Transform from world space to eye space.
-        pt.x -= from.x;
-        pt.y -= from.y;
-        pt.z -= from.z;
-        *pt = lookat * (*pt);
+        pt.x -= from3.x;
+        pt.y -= from3.y;
+        pt.z -= from3.z;
+        *pt = lookat3 * (*pt);
 
         // To keep things simple, we simply divide by `z`
         // in the shader program below. A more flexible
@@ -105,6 +114,7 @@ fn main() {
     #version 430
     layout(location = 0) in vec3 position;
     void main() {
+        gl_PointSize = 4.0;
         gl_Position = vec4(position.xy, 0.0, position.z);
     }";
 
@@ -119,6 +129,8 @@ fn main() {
     let mut vao = 0;
     let mut vbo = 0;
     unsafe  {
+        gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
+
         // Create the OpenGL handles.
         gl::CreateVertexArrays(1, &mut vao);
         let vbo_size = (points.len() * mem::size_of::<Vector3<f32>>()) as GLsizeiptr;
