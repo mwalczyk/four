@@ -75,64 +75,63 @@ impl FourCamera {
     }
 }
 
-fn project(points: &Vec<Vector4<f32>>, cam: &FourCamera, t: f32) -> Vec<Vector4<f32>> {
+fn project(points: &Vec<f32>, cam: &FourCamera, t: f32) -> (Vec<f32>, Vec<f32>) {
     let mut projected = Vec::new();
+    let mut depth_cue = Vec::new();
+
     let four_view = cam.look_at;
 
     // Rotation in the ZW plane
-//    let rot = Matrix4::from_cols(
-//        Vector4::new(1.0, 0.0, 0.0, 0.0),
-//        Vector4::new(0.0, 1.0, 0.0, 0.0),
-//        Vector4::new(0.0, 0.0, t.cos(), t.sin()),
-//        Vector4::new(0.0, 0.0, -t.sin(), t.cos())
-//    );
+    let rot = Matrix4::from_cols(
+        Vector4::new(1.0, 0.0, 0.0, 0.0),
+        Vector4::new(0.0, 1.0, 0.0, 0.0),
+        Vector4::new(0.0, 0.0, t.cos(), t.sin()),
+        Vector4::new(0.0, 0.0, -t.sin(), t.cos())
+    );
 
     // Rotation in the YZ plane
-    let rot = Matrix4::from_cols(
+    let rot2 = Matrix4::from_cols(
         Vector4::new(1.0, 0.0, 0.0, 0.0),
         Vector4::new(0.0, t.cos(), -t.sin(), 0.0),
         Vector4::new(0.0, t.sin(), t.cos(), 0.0),
         Vector4::new(0.0, 0.0, 0.0, 1.0)
     );
 
-    for pt in points.iter() {
-        // perspective projection to 3D
-        if true {
-            let t = 1.0f32 / (std::f32::consts::PI/4.0 * 0.5f32).tan();
-            let mut v = *pt;// rot * (*pt);
-            v -= cam.from;
-            let s = t / v.dot(four_view.w);
+    for chunk in points.chunks(4) {
+        let pt = Vector4::new(chunk[0], chunk[1], chunk[2], chunk[3]);
 
-            projected.push(Vector4::new(
-                s * v.dot(four_view.x),
-                s * v.dot(four_view.y),
-                 s * v.dot(four_view.z),
-                1.0
-            ));
-        }
+        let t = 1.0f32 / (std::f32::consts::PI/4.0 * 0.5f32).tan();
+        let mut v = rot * rot2 * (pt);
+        v -= cam.from;
+        let s = t / v.dot(four_view.w);
 
-        // parallel projection to 3D
-        //*pt /= pt.w;
+        depth_cue.push(s);
+
+
+        projected.extend_from_slice(&[
+            s * v.dot(four_view.x),
+            s * v.dot(four_view.y),
+            s * v.dot(four_view.z),
+            1.0
+        ]);
     }
-    projected
+    (projected, depth_cue)
 }
 
-/// From: https://stackoverflow.com/questions/28258882/number-of-digits-common-between-2-binary-numbers
-fn common_bits(a: u32, b: u32) -> u32
+/// Modified from: https://stackoverflow.com/questions/28258882/number-of-digits-common-between-2-binary-numbers
+fn common_bits(a: u32, b: u32, bits: u32) -> u32
 {
-    if a == 0 {
+    if bits == 0 {
         return 0;
     }
-    if b == 0 {
-        return 0;
-    }
-    ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2)
+    ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2, bits - 1)
 }
 
 /// From: http://www.math.caltech.edu/~2014-15/2term/ma006b/05%20connectivity%201.pdf
-fn hypercube(d: u32) -> (Vec<f32>, Vec<u32>){
+fn hypercube() -> (Vec<f32>, Vec<u32>){
     // Two vertices are adjacent if they have `d - 1`
     // common coordinates.
+    let d = 4;
     let adj = d - 1;
     let num_verts = 2u32.pow(d);
     let num_edges = 2u32.pow(d - 1) * d;
@@ -146,26 +145,18 @@ fn hypercube(d: u32) -> (Vec<f32>, Vec<u32>){
 
         // Generate vertices.
         for bit in 0..d {
-            print!("{} ", num & 0b1);
-            vertices.push((num & 0b1) as f32);
+            vertices.insert(0,(num & 0b1) as f32 * 2.0 - 1.0);
             num = num >> 1;
         }
-        print!("\n");
 
         // Generate indices.
         for j in 0..num_verts {
-            if i != j && common_bits(i, j) == adj {
+            if i != j && common_bits(i, j, d) == adj {
                 indices.push(i);
                 indices.push(j);
             }
         }
     }
-
-    println!("Indices:");
-    println!("{:?}", indices);
-
-    println!("Vertices:");
-    println!("{:?}", vertices);
 
     (vertices, indices)
 }
@@ -180,31 +171,7 @@ fn main() {
     unsafe { gl_window.make_current() }.unwrap();
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
-    let (vertices, indices) = hypercube(4);
-
-    let mut points = vec![
-        // all positive
-        Vector4::new(1.0, 1.0, 1.0, 1.0),
-        // one negative
-        Vector4::new(-1.0, 1.0, 1.0, 1.0),
-        Vector4::new(1.0, -1.0, 1.0, 1.0),
-        Vector4::new(1.0, 1.0, -1.0, 1.0),
-        Vector4::new(1.0, 1.0, 1.0, -1.0),
-        // two negatives
-        Vector4::new(-1.0, -1.0, 1.0, 1.0),
-        Vector4::new(1.0, -1.0, -1.0, 1.0),
-        Vector4::new(1.0, 1.0, -1.0, -1.0),
-        Vector4::new(-1.0, 1.0, -1.0, 1.0),
-        Vector4::new(-1.0, 1.0, 1.0, -1.0),
-        Vector4::new(1.0, -1.0, 1.0, -1.0),
-        // three negatives
-        Vector4::new(-1.0, -1.0, -1.0, 1.0),
-        Vector4::new(1.0, -1.0, -1.0, -1.0),
-        Vector4::new(-1.0, 1.0, -1.0, -1.0),
-        Vector4::new(-1.0, -1.0, 1.0, -1.0),
-        // all negative
-        Vector4::new(-1.0, -1.0, -1.0, -1.0),
-    ];
+    let (vertices, indices) = hypercube();
 
 //    let mut four_cam = FourCamera::new(
 //        Vector4::new(4.0, 0.0, 0.0, 0.0),
@@ -220,7 +187,7 @@ fn main() {
     );
 
     let three_view = Matrix4::look_at(
-        Point3::new(3.0, 0.99, 1.82),
+        Point3::new(2.4, 0.99, 1.82),
         Point3::new(0.0, 0.0, 0.0),
         Vector3::unit_y(),
     );
@@ -238,8 +205,9 @@ fn main() {
     uniform mat4 u_three_projection;
 
     layout(location = 0) in vec4 position;
+    layout(location = 1) in float depth_cue;
 
-    out float z_depth;
+    out float depth;
 
     float linear_depth(float z, float n, float f)
     {
@@ -266,18 +234,18 @@ fn main() {
 
         // project 3D -> 2D
         gl_Position = u_three_projection * u_three_view * pos;
-        gl_PointSize = 8.0;
+        gl_PointSize = 6.0;
 
-        // pass data to fragment shader
-        z_depth = linear_depth(pos.z, 0.1, 1000.0);
+        // pass 4D depth to fragment shader
+        depth = depth_cue;
     }";
 
     static FS_SRC: &'static str = "
     #version 430
-    in float z_depth;
+    in float depth;
     layout(location = 0) out vec4 o_color;
     void main() {
-        o_color = vec4(vec3(z_depth + 0.1), 1.0);
+        o_color = vec4(vec3(pow(depth, 3.0), 0.0, 1.0), 1.0);
     }";
     let program = Program::new(VS_SRC.to_string(), FS_SRC.to_string()).unwrap();
     //program.uniform_4f("u_four_from", &four_cam.from);
@@ -288,20 +256,31 @@ fn main() {
 
     let mut vao = 0;
     let mut vbo = 0;
+    let mut vbo_depth = 0;
     let mut ebo = 0;
     unsafe {
         gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
 
         // Create the OpenGL handles.
         gl::CreateVertexArrays(1, &mut vao);
-        let vbo_size = (points.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
+        let vbo_size = (vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
         let attribute = 0;
         let bindpoint = 0;
         gl::CreateBuffers(1, &mut vbo);
         gl::NamedBufferData(
             vbo,
             vbo_size,
-            points.as_ptr() as *const GLvoid,
+            vertices.as_ptr() as *const GLvoid,
+            gl::STATIC_DRAW,
+        );
+
+        //
+        let vbo_depth_size = (vertices.len() / 4usize * mem::size_of::<f32>()) as GLsizeiptr;
+        gl::CreateBuffers(1, &mut vbo_depth);
+        gl::NamedBufferData(
+            vbo_depth,
+            vbo_depth_size,
+            ptr::null(),
             gl::STATIC_DRAW,
         );
 
@@ -316,10 +295,16 @@ fn main() {
 
         // Set up vertex attribute(s).
         let num_elements = 4;
-        gl::EnableVertexArrayAttrib(vao, attribute);
-        gl::VertexArrayAttribFormat(vao, attribute, num_elements, gl::FLOAT, gl::FALSE, 0);
-        gl::VertexArrayAttribBinding(vao, attribute, bindpoint);
-       // gl:VertexArrayElementBuffer(vao, ebo);
+        gl::EnableVertexArrayAttrib(vao, 0);
+        gl::EnableVertexArrayAttrib(vao, 1);
+
+        gl::VertexArrayAttribFormat(vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
+        gl::VertexArrayAttribFormat(vao, 1, 1, gl::FLOAT, gl::FALSE, 0);
+
+        gl::VertexArrayAttribBinding(vao, 0, bindpoint);
+        gl::VertexArrayAttribBinding(vao, 1, bindpoint + 1);
+
+        gl::VertexArrayElementBuffer(vao, ebo);
 
         // Link vertex buffers to vertex attributes, via bindpoints.
         let offset = 0;
@@ -328,7 +313,14 @@ fn main() {
             bindpoint,
             vbo,
             offset,
-            mem::size_of::<Vector4<f32>>() as i32,
+            (mem::size_of::<f32>() * num_elements as usize) as i32,
+        );
+        gl::VertexArrayVertexBuffer(
+            vao,
+            bindpoint + 1,
+            vbo_depth,
+            offset,
+            mem::size_of::<f32>() as i32,
         );
     }
 
@@ -349,22 +341,26 @@ fn main() {
         let milliseconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let ms = (milliseconds as f32) / 1000.0;
         //four_cam.from.z = 4.0 * ms.sin();
-        //four_cam.from.y = 4.0 * ms.cos();
-        four_cam.build_look_at();
+        //four_cam.up.x = ms.cos();
+        //four_cam.up.y = -ms.cos();
+        //four_cam.build_look_at();
 
         // Project the points from 4D -> 3D.
-        let projected = project(&points, &four_cam, ms);
+        let (projected, depth_cue) = project(&vertices, &four_cam, ms);
 
         // Update GPU buffer.
         unsafe {
-            let data_size = (projected.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
+            let data_size = (projected.len() * mem::size_of::<f32>()) as GLsizeiptr;
             gl::NamedBufferSubData(vbo, 0, data_size, projected.as_ptr() as *const GLvoid);
+            let data_size = (depth_cue.len() * mem::size_of::<f32>()) as GLsizeiptr;
+            gl::NamedBufferSubData(vbo_depth, 0, data_size, depth_cue.as_ptr() as *const GLvoid);
         }
 
         program.bind();
         unsafe {
             gl::BindVertexArray(vao);
-            gl::DrawArrays(gl::POINTS, 0, projected.len() as i32);
+            gl::DrawArrays(gl::POINTS, 0, (projected.len() / 4) as i32);
+            gl::DrawElements(gl::LINES, indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
         }
 
         gl_window.swap_buffers().unwrap();
