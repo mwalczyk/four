@@ -117,6 +117,59 @@ fn project(points: &Vec<Vector4<f32>>, cam: &FourCamera, t: f32) -> Vec<Vector4<
     projected
 }
 
+/// From: https://stackoverflow.com/questions/28258882/number-of-digits-common-between-2-binary-numbers
+fn common_bits(a: u32, b: u32) -> u32
+{
+    if a == 0 {
+        return 0;
+    }
+    if b == 0 {
+        return 0;
+    }
+    ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2)
+}
+
+/// From: http://www.math.caltech.edu/~2014-15/2term/ma006b/05%20connectivity%201.pdf
+fn hypercube(d: u32) -> (Vec<f32>, Vec<u32>){
+    // Two vertices are adjacent if they have `d - 1`
+    // common coordinates.
+    let adj = d - 1;
+    let num_verts = 2u32.pow(d);
+    let num_edges = 2u32.pow(d - 1) * d;
+    println!("Generating a hypercube with {} vertices and {} edges.", num_verts, num_edges);
+
+    let mut vertices = Vec::with_capacity(num_verts as usize);
+    let mut indices = Vec::with_capacity(num_edges as usize);
+
+    for i in 0..num_verts {
+        let mut num = i;
+
+        // Generate vertices.
+        for bit in 0..d {
+            print!("{} ", num & 0b1);
+            vertices.push((num & 0b1) as f32);
+            num = num >> 1;
+        }
+        print!("\n");
+
+        // Generate indices.
+        for j in 0..num_verts {
+            if i != j && common_bits(i, j) == adj {
+                indices.push(i);
+                indices.push(j);
+            }
+        }
+    }
+
+    println!("Indices:");
+    println!("{:?}", indices);
+
+    println!("Vertices:");
+    println!("{:?}", vertices);
+
+    (vertices, indices)
+}
+
 fn main() {
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
@@ -126,6 +179,8 @@ fn main() {
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
     unsafe { gl_window.make_current() }.unwrap();
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+
+    let (vertices, indices) = hypercube(4);
 
     let mut points = vec![
         // all positive
@@ -233,6 +288,7 @@ fn main() {
 
     let mut vao = 0;
     let mut vbo = 0;
+    let mut ebo = 0;
     unsafe {
         gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
 
@@ -249,11 +305,21 @@ fn main() {
             gl::STATIC_DRAW,
         );
 
+        let ebo_size = (indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
+        gl::CreateBuffers(1, &mut ebo);
+        gl::NamedBufferData(
+            ebo,
+            ebo_size,
+            indices.as_ptr() as *const GLvoid,
+            gl::STATIC_DRAW,
+        );
+
         // Set up vertex attribute(s).
         let num_elements = 4;
         gl::EnableVertexArrayAttrib(vao, attribute);
         gl::VertexArrayAttribFormat(vao, attribute, num_elements, gl::FLOAT, gl::FALSE, 0);
         gl::VertexArrayAttribBinding(vao, attribute, bindpoint);
+       // gl:VertexArrayElementBuffer(vao, ebo);
 
         // Link vertex buffers to vertex attributes, via bindpoints.
         let offset = 0;
