@@ -7,3 +7,4 @@ authors = ["michael <mwalczyk2@gmail.com>"]
 gl = "0.6.5"
 glutin = "0.10.1"
 cgmath = "0.15.0"
+image = "0.18.0"

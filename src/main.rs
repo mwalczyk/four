@@ -5,6 +5,7 @@
 extern crate cgmath;
 extern crate gl;
 extern crate glutin;
+extern crate image;
 
 mod program;
 
@@ -12,12 +13,14 @@ use program::Program;
 
 use std::mem;
 use std::ptr;
+use std::os::raw::c_void;
 use std::time::{Duration, SystemTime};
 
 use gl::types::*;
 use glutin::GlContext;
-use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, Transform, SquareMatrix,
-             Vector3, Vector4, Zero};
+use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, SquareMatrix,
+             Transform, Vector3, Vector4, Zero};
+use image::{GenericImage, ImageBuffer};
 
 fn clear() {
     unsafe {
@@ -31,7 +34,7 @@ struct FourCamera {
     to: Vector4<f32>,
     up: Vector4<f32>,
     over: Vector4<f32>,
-    look_at: Matrix4<f32>
+    look_at: Matrix4<f32>,
 }
 
 impl FourCamera {
@@ -41,7 +44,13 @@ impl FourCamera {
         up: Vector4<f32>,
         over: Vector4<f32>,
     ) -> FourCamera {
-        let mut cam = FourCamera { from, to, up, over, look_at: Matrix4::identity() };
+        let mut cam = FourCamera {
+            from,
+            to,
+            up,
+            over,
+            look_at: Matrix4::identity(),
+        };
         cam.build_look_at();
 
         cam
@@ -75,52 +84,99 @@ impl FourCamera {
     }
 }
 
+enum Plane {
+    XY,
+    YZ,
+    ZX,
+    XW,
+    YW,
+    ZW,
+}
+
+/// The 4D equivalent of a quaternion is known as a rotor.
+/// https://math.stackexchange.com/questions/1402362/rotation-in-4d
+fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
+    let c = angle.cos();
+    let s = angle.sin();
+
+    match plane {
+        Plane::XY => Matrix4::from_cols(
+            Vector4::new(c, -s, 0.0, 0.0),
+            Vector4::new(s, c, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::YZ => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, c, -s, 0.0),
+            Vector4::new(0.0, s, c, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::ZX => Matrix4::from_cols(
+            Vector4::new(c, 0.0, s, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(-s, 0.0, c, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::XW => Matrix4::from_cols(
+            Vector4::new(c, 0.0, 0.0, -s),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(s, 0.0, 0.0, c),
+        ),
+        Plane::YW => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, c, 0.0, s),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, -s, 0.0, c),
+        ),
+        Plane::ZW => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, c, s),
+            Vector4::new(0.0, 0.0, -s, c),
+        ),
+    }
+}
+
+fn get_double_rotation_matrox(alpha: f32, beta: f32) {
+
+}
+
+/// https://en.wikipedia.org/wiki/Plane_of_rotation#Four_dimensions
+fn get_isoclinic_rotation_matrix(alpha_beta: f32) {
+
+}
+
 fn project(points: &Vec<f32>, cam: &FourCamera, t: f32) -> (Vec<f32>, Vec<f32>) {
     let mut projected = Vec::new();
     let mut depth_cue = Vec::new();
 
     let four_view = cam.look_at;
-
-    // Rotation in the ZW plane
-    let rot = Matrix4::from_cols(
-        Vector4::new(1.0, 0.0, 0.0, 0.0),
-        Vector4::new(0.0, 1.0, 0.0, 0.0),
-        Vector4::new(0.0, 0.0, t.cos(), t.sin()),
-        Vector4::new(0.0, 0.0, -t.sin(), t.cos())
-    );
-
-    // Rotation in the YZ plane
-    let rot2 = Matrix4::from_cols(
-        Vector4::new(1.0, 0.0, 0.0, 0.0),
-        Vector4::new(0.0, t.cos(), -t.sin(), 0.0),
-        Vector4::new(0.0, t.sin(), t.cos(), 0.0),
-        Vector4::new(0.0, 0.0, 0.0, 1.0)
-    );
+    let rot_a = get_simple_rotation_matrix(Plane::ZW, t);
+    let rot_b = get_simple_rotation_matrix(Plane::YZ, t);
 
     for chunk in points.chunks(4) {
         let pt = Vector4::new(chunk[0], chunk[1], chunk[2], chunk[3]);
 
-        let t = 1.0f32 / (std::f32::consts::PI/4.0 * 0.5f32).tan();
-        let mut v = rot * rot2 * (pt);
-        v -= cam.from;
-        let s = t / v.dot(four_view.w);
+        let t = 1.0f32 / (std::f32::consts::PI / 4.0 * 0.5f32).tan();
+        let temp = (rot_a * rot_b * pt) - cam.from;
+        let s = t / temp.dot(four_view.w);
 
         depth_cue.push(s);
 
-
         projected.extend_from_slice(&[
-            s * v.dot(four_view.x),
-            s * v.dot(four_view.y),
-            s * v.dot(four_view.z),
-            1.0
+            s * temp.dot(four_view.x),
+            s * temp.dot(four_view.y),
+            s * temp.dot(four_view.z),
+            1.0,
         ]);
     }
     (projected, depth_cue)
 }
 
 /// Modified from: https://stackoverflow.com/questions/28258882/number-of-digits-common-between-2-binary-numbers
-fn common_bits(a: u32, b: u32, bits: u32) -> u32
-{
+fn common_bits(a: u32, b: u32, bits: u32) -> u32 {
     if bits == 0 {
         return 0;
     }
@@ -128,14 +184,17 @@ fn common_bits(a: u32, b: u32, bits: u32) -> u32
 }
 
 /// From: http://www.math.caltech.edu/~2014-15/2term/ma006b/05%20connectivity%201.pdf
-fn hypercube() -> (Vec<f32>, Vec<u32>){
+fn hypercube() -> (Vec<f32>, Vec<u32>) {
     // Two vertices are adjacent if they have `d - 1`
     // common coordinates.
     let d = 4;
     let adj = d - 1;
     let num_verts = 2u32.pow(d);
     let num_edges = 2u32.pow(d - 1) * d;
-    println!("Generating a hypercube with {} vertices and {} edges.", num_verts, num_edges);
+    println!(
+        "Generating a hypercube with {} vertices and {} edges.",
+        num_verts, num_edges
+    );
 
     let mut vertices = Vec::with_capacity(num_verts as usize);
     let mut indices = Vec::with_capacity(num_edges as usize);
@@ -145,7 +204,7 @@ fn hypercube() -> (Vec<f32>, Vec<u32>){
 
         // Generate vertices.
         for bit in 0..d {
-            vertices.insert(0,(num & 0b1) as f32 * 2.0 - 1.0);
+            vertices.insert(0, (num & 1) as f32 * 2.0 - 1.0);
             num = num >> 1;
         }
 
@@ -173,12 +232,12 @@ fn main() {
 
     let (vertices, indices) = hypercube();
 
-//    let mut four_cam = FourCamera::new(
-//        Vector4::new(4.0, 0.0, 0.0, 0.0),
-//        Vector4::zero(),
-//        Vector4::new(0.0, 1.0, 0.0, 0.0),
-//        Vector4::new(0.0, 0.0, 1.0, 0.0),
-//    );
+    //    let mut four_cam = FourCamera::new(
+    //        Vector4::new(4.0, 0.0, 0.0, 0.0),
+    //        Vector4::zero(),
+    //        Vector4::new(0.0, 1.0, 0.0, 0.0),
+    //        Vector4::new(0.0, 0.0, 1.0, 0.0),
+    //    );
     let mut four_cam = FourCamera::new(
         Vector4::new(2.83, 2.83, 0.01, 0.0),
         Vector4::zero(),
@@ -191,7 +250,8 @@ fn main() {
         Point3::new(0.0, 0.0, 0.0),
         Vector3::unit_y(),
     );
-    let three_projection = cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
+    let three_projection =
+        cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
 
     static VS_SRC: &'static str = "
     #version 430
@@ -253,71 +313,68 @@ fn main() {
     program.uniform_matrix_4f("u_three_view", &three_view);
     program.uniform_matrix_4f("u_three_projection", &three_projection);
 
-
     let mut vao = 0;
-    let mut vbo = 0;
+    let mut vbo_position = 0;
     let mut vbo_depth = 0;
     let mut ebo = 0;
     unsafe {
         gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
 
-        // Create the OpenGL handles.
+        // Create the vertex array object.
         gl::CreateVertexArrays(1, &mut vao);
-        let vbo_size = (vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
-        let attribute = 0;
-        let bindpoint = 0;
-        gl::CreateBuffers(1, &mut vbo);
+
+        let mut size = (vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
+
+        // Create the vertex buffer for holding position data.
+        gl::CreateBuffers(1, &mut vbo_position);
         gl::NamedBufferData(
-            vbo,
-            vbo_size,
+            vbo_position,
+            size,
             vertices.as_ptr() as *const GLvoid,
-            gl::STATIC_DRAW,
+            gl::DYNAMIC_DRAW,
         );
 
-        //
-        let vbo_depth_size = (vertices.len() / 4usize * mem::size_of::<f32>()) as GLsizeiptr;
+        // Create the vertex buffer for holding depth cue data.
+        size = (vertices.len() / 4usize * mem::size_of::<f32>()) as GLsizeiptr;
         gl::CreateBuffers(1, &mut vbo_depth);
-        gl::NamedBufferData(
-            vbo_depth,
-            vbo_depth_size,
-            ptr::null(),
-            gl::STATIC_DRAW,
-        );
+        gl::NamedBufferData(vbo_depth, size, ptr::null(), gl::DYNAMIC_DRAW);
 
-        let ebo_size = (indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
+        // Create the index buffer.
+        size = (indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
         gl::CreateBuffers(1, &mut ebo);
         gl::NamedBufferData(
             ebo,
-            ebo_size,
+            size,
             indices.as_ptr() as *const GLvoid,
             gl::STATIC_DRAW,
         );
 
-        // Set up vertex attribute(s).
-        let num_elements = 4;
+        // Set up vertex attributes.
+        let binding = 0;
+
         gl::EnableVertexArrayAttrib(vao, 0);
         gl::EnableVertexArrayAttrib(vao, 1);
 
         gl::VertexArrayAttribFormat(vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
         gl::VertexArrayAttribFormat(vao, 1, 1, gl::FLOAT, gl::FALSE, 0);
 
-        gl::VertexArrayAttribBinding(vao, 0, bindpoint);
-        gl::VertexArrayAttribBinding(vao, 1, bindpoint + 1);
+        gl::VertexArrayAttribBinding(vao, 0, binding);
+        gl::VertexArrayAttribBinding(vao, 1, binding + 1);
 
         gl::VertexArrayElementBuffer(vao, ebo);
 
-        // Link vertex buffers to vertex attributes, via bindpoints.
+        // Link vertex buffers to vertex attributes, via binding points.
         let offset = 0;
         gl::VertexArrayVertexBuffer(
             vao,
-            bindpoint,
-            vbo,
+            binding,
+            vbo_position,
             offset,
-            (mem::size_of::<f32>() * num_elements as usize) as i32,
+            (mem::size_of::<f32>() * 4 as usize) as i32,
         );
         gl::VertexArrayVertexBuffer(
             vao,
-            bindpoint + 1,
+            binding + 1,
             vbo_depth,
             offset,
             mem::size_of::<f32>() as i32,
@@ -325,6 +382,7 @@ fn main() {
     }
 
     let start = SystemTime::now();
+    let mut frame = 0;
     loop {
         events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
@@ -338,29 +396,67 @@ fn main() {
 
         // Retrieve the number of milliseconds since application launch.
         let elapsed = start.elapsed().unwrap();
-        let milliseconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
-        let ms = (milliseconds as f32) / 1000.0;
-        //four_cam.from.z = 4.0 * ms.sin();
-        //four_cam.up.x = ms.cos();
-        //four_cam.up.y = -ms.cos();
+        let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
+        let milliseconds = (seconds as f32) / 1000.0;
+        //four_cam.from.z = 4.0 * milliseconds.sin();
+        //four_cam.up.x = milliseconds.cos();
+        //four_cam.up.y = -milliseconds.cos();
         //four_cam.build_look_at();
 
         // Project the points from 4D -> 3D.
-        let (projected, depth_cue) = project(&vertices, &four_cam, ms);
+        let (projected, depth_cue) = project(&vertices, &four_cam, milliseconds);
 
         // Update GPU buffer.
         unsafe {
-            let data_size = (projected.len() * mem::size_of::<f32>()) as GLsizeiptr;
-            gl::NamedBufferSubData(vbo, 0, data_size, projected.as_ptr() as *const GLvoid);
-            let data_size = (depth_cue.len() * mem::size_of::<f32>()) as GLsizeiptr;
-            gl::NamedBufferSubData(vbo_depth, 0, data_size, depth_cue.as_ptr() as *const GLvoid);
+            let mut size = (projected.len() * mem::size_of::<f32>()) as GLsizeiptr;
+
+            gl::NamedBufferSubData(vbo_position, 0, size, projected.as_ptr() as *const GLvoid);
+
+            size = (depth_cue.len() * mem::size_of::<f32>()) as GLsizeiptr;
+
+            gl::NamedBufferSubData(vbo_depth, 0, size, depth_cue.as_ptr() as *const GLvoid);
         }
 
         program.bind();
         unsafe {
             gl::BindVertexArray(vao);
             gl::DrawArrays(gl::POINTS, 0, (projected.len() / 4) as i32);
-            gl::DrawElements(gl::LINES, indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawElements(
+                gl::LINES,
+                indices.len() as i32,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
+        }
+
+        // Save to disk
+        if false {
+            let len = 600 * 600 * 3;
+            let mut pixels: Vec<u8> = Vec::new();
+            pixels.reserve(len);
+
+            unsafe {
+                // We don't want any alignment padding on pixel rows.
+                gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
+                gl::ReadPixels(
+                    0,
+                    0,
+                    600,
+                    600,
+                    gl::RGB,
+                    gl::UNSIGNED_BYTE,
+                    pixels.as_mut_ptr() as *mut c_void,
+                );
+                pixels.set_len(len);
+            }
+            image::save_buffer(
+                format!("frame_{}.png", frame),
+                &pixels,
+                600,
+                600,
+                image::RGB(8),
+            ).unwrap();
+            frame += 1;
         }
 
         gl_window.swap_buffers().unwrap();
