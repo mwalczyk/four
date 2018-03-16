@@ -15,6 +15,9 @@ use std::mem;
 use std::ptr;
 use std::os::raw::c_void;
 use std::time::{Duration, SystemTime};
+use std::fs::File;
+use std::io::{BufReader, BufRead};
+use std::str;
 
 use gl::types::*;
 use glutin::GlContext;
@@ -24,7 +27,7 @@ use image::{GenericImage, ImageBuffer};
 
 fn clear() {
     unsafe {
-        gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+        gl::ClearColor(0.05, 0.0, 0.0, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
     }
 }
@@ -154,7 +157,7 @@ fn project(points: &Vec<f32>, cam: &FourCamera, t: f32) -> (Vec<f32>, Vec<f32>) 
 
     let four_view = cam.look_at;
     let rot_a = get_simple_rotation_matrix(Plane::ZW, t);
-    let rot_b = get_simple_rotation_matrix(Plane::YZ, t);
+    let rot_b = get_simple_rotation_matrix(Plane::XW, t);
 
     for chunk in points.chunks(4) {
         let pt = Vector4::new(chunk[0], chunk[1], chunk[2], chunk[3]);
@@ -183,6 +186,53 @@ fn common_bits(a: u32, b: u32, bits: u32) -> u32 {
     ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2, bits - 1)
 }
 
+fn load_shape() -> (Vec<f32>, Vec<u32>) {
+    let mut file = File::open("shapes/120cell.txt").unwrap();
+    let mut reader = BufReader::new(file);
+
+    // Load vertex data.
+
+    let mut entry_vertices = String::new();
+    reader.read_line(&mut entry_vertices);
+
+    let num_vertices: usize = entry_vertices.trim().parse().unwrap();
+    let mut vertices = Vec::with_capacity(num_vertices * 4);
+    println!("Loaded file with {} vertices", num_vertices);
+
+    for i in 0..num_vertices {
+        let mut line = String::new();
+        reader.read_line(&mut line);
+
+        for entry_coordinate in line.split_whitespace() {
+            let coordinate: f32 = entry_coordinate.trim().parse().unwrap();
+            vertices.push(coordinate);
+        }
+    }
+
+    // Load edge data.
+
+    let mut entry_edges = String::new();
+    reader.read_line(&mut entry_edges);
+
+    let num_edges: usize = entry_edges.trim().parse().unwrap();
+    let mut edges = Vec::with_capacity(num_edges * 2);
+    println!("Loaded file with {} edges", num_edges);
+
+    for i in 0..num_edges {
+        let mut line = String::new();
+        reader.read_line(&mut line);
+
+        for entry_index in line.split_whitespace() {
+            let index: u32 = entry_index.trim().parse().unwrap();
+            edges.push(index);
+        }
+    }
+
+    assert_eq!(vertices.len(), num_vertices * 4);
+    assert_eq!(edges.len(), num_edges * 2);
+
+    (vertices, edges)
+}
 /// From: http://www.math.caltech.edu/~2014-15/2term/ma006b/05%20connectivity%201.pdf
 fn hypercube() -> (Vec<f32>, Vec<u32>) {
     // Two vertices are adjacent if they have `d - 1`
@@ -230,7 +280,9 @@ fn main() {
     unsafe { gl_window.make_current() }.unwrap();
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
-    let (vertices, indices) = hypercube();
+    load_shape();
+
+    let (vertices, indices) = load_shape();// hypercube();
 
     //    let mut four_cam = FourCamera::new(
     //        Vector4::new(4.0, 0.0, 0.0, 0.0),
@@ -294,7 +346,7 @@ fn main() {
 
         // project 3D -> 2D
         gl_Position = u_three_projection * u_three_view * pos;
-        gl_PointSize = 6.0;
+        gl_PointSize = depth_cue * 4.0;//3.0;
 
         // pass 4D depth to fragment shader
         depth = depth_cue;
@@ -304,8 +356,19 @@ fn main() {
     #version 430
     in float depth;
     layout(location = 0) out vec4 o_color;
+
+    vec3 palette( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
+    {
+        return a + b*cos( 6.28318*(c*t+d) );
+    }
+
     void main() {
-        o_color = vec4(vec3(pow(depth, 3.0), 0.0, 1.0), 1.0);
+        vec3 c = palette(depth * 2.1 - 0.85,
+                         vec3(0.5, 0.50, 0.50),
+                         vec3(0.5, 0.50, 0.50),
+                         vec3(1.0, 1.00, 1.00),
+                         vec3(0.0, 0.10, 0.20));
+        o_color = vec4(c, 1.0);
     }";
     let program = Program::new(VS_SRC.to_string(), FS_SRC.to_string()).unwrap();
     //program.uniform_4f("u_four_from", &four_cam.from);
@@ -398,10 +461,15 @@ fn main() {
         let elapsed = start.elapsed().unwrap();
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
+
         //four_cam.from.z = 4.0 * milliseconds.sin();
-        //four_cam.up.x = milliseconds.cos();
-        //four_cam.up.y = -milliseconds.cos();
-        //four_cam.build_look_at();
+        let a = Vector4::new(2.83, 2.83, 0.01, 0.0);
+        let b = Vector4::new(4.0, 0.0, 0.0, 0.0);
+        let c = Vector4::new(-0.71, 0.71, 0.0, 0.0);
+        let d = Vector4::new(0.0, 1.0, 0.0, 0.0);
+        four_cam.from = a.lerp(b, milliseconds.cos() * 0.5 + 0.5);
+        four_cam.up = c.lerp(d, milliseconds.sin() * 0.5 + 0.5);
+        four_cam.build_look_at();
 
         // Project the points from 4D -> 3D.
         let (projected, depth_cue) = project(&vertices, &four_cam, milliseconds);
