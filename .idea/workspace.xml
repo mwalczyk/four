@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/src/polytope.rs" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/shaders/shader.vert" afterPath="$PROJECT_DIR$/shaders/shader.vert" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
@@ -13,45 +15,6 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
-              <entry file="file://$PROJECT_DIR$/../sdfperf/src/main.rs">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="366">
-                    <caret line="86" column="73" lean-forward="false" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="73" />
-                    <folding />
-                  </state>
-                </provider>
-              </entry>
-            </file>
-            <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/src/main.rs">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="901">
-                    <caret line="345" column="45" lean-forward="true" selection-start-line="345" selection-start-column="45" selection-end-line="345" selection-end-column="45" />
-                    <folding>
-                      <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-                      <element signature="e#1000#2382#0" expanded="false" />
-                      <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-                      <element signature="n#!!block;n#project#0" expanded="false" />
-                      <element signature="n#!!block;n#common_bits#0" expanded="false" />
-                      <element signature="n#!!block;n#load_shape#0" expanded="false" />
-                      <element signature="n#!!block;n#hypercube#0" expanded="false" />
-                      <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
@@ -65,17 +28,57 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="program.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/program.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="40" column="71" lean-forward="true" selection-start-line="40" selection-start-column="71" selection-end-line="40" selection-end-column="71" />
+            <state relative-caret-position="0">
+              <caret line="0" column="7" lean-forward="true" selection-start-line="0" selection-start-column="7" selection-end-line="0" selection-end-column="7" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-167">
+              <caret line="221" column="38" lean-forward="false" selection-start-line="221" selection-start-column="38" selection-end-line="221" selection-end-column="38" />
+              <folding>
+                <element signature="n#!!block;n#FourCamera#0" expanded="false" />
+                <element signature="e#1038#2420#0" expanded="false" />
+                <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
+                <element signature="n#!!block;n#common_bits#0" expanded="false" />
+                <element signature="n#!!block;n#hypercube#0" expanded="false" />
+                <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+                <element signature="n#!!block;n#save_frame#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
+              <folding>
+                <element signature="e#2444#2445#0" expanded="true" />
+                <element signature="e#2473#2474#0" expanded="true" />
+                <element signature="e#2519#2520#0" expanded="true" />
+                <element signature="e#2547#2548#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -87,6 +90,7 @@
         <option value="$PROJECT_DIR$/shapes/120cell.txt" />
         <option value="$PROJECT_DIR$/../sdfperf/src/main.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/polytope.rs" />
       </list>
     </option>
   </component>
@@ -112,6 +116,7 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -129,7 +134,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -246,8 +250,8 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cargo" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37350705" sideWeight="0.17604166" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37350705" sideWeight="0.82395834" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2388708" sideWeight="0.17916666" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2388708" sideWeight="0.8208333" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -272,6 +276,22 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="162">
+          <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/program.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="40" column="71" lean-forward="true" selection-start-line="40" selection-start-column="71" selection-end-line="40" selection-end-column="71" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Cargo.toml">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="8" column="16" lean-forward="false" selection-start-line="8" selection-start-column="16" selection-end-line="8" selection-end-column="16" />
           <folding />
@@ -292,13 +312,12 @@
           <caret line="364" column="17" lean-forward="true" selection-start-line="364" selection-start-column="17" selection-end-line="364" selection-end-column="17" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -325,13 +344,12 @@
           <caret line="31" column="19" lean-forward="true" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -342,13 +360,12 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -373,13 +390,12 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -412,13 +428,12 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -451,13 +466,12 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -510,7 +524,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="434">
           <caret line="591" column="7" lean-forward="false" selection-start-line="591" selection-start-column="7" selection-end-line="591" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -518,31 +531,42 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="366">
           <caret line="86" column="73" lean-forward="false" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="73" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="40" column="71" lean-forward="true" selection-start-line="40" selection-start-column="71" selection-end-line="40" selection-end-column="71" />
+        <state relative-caret-position="0">
+          <caret line="0" column="7" lean-forward="true" selection-start-line="0" selection-start-column="7" selection-end-line="0" selection-end-column="7" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
+          <folding>
+            <element signature="e#2444#2445#0" expanded="true" />
+            <element signature="e#2473#2474#0" expanded="true" />
+            <element signature="e#2519#2520#0" expanded="true" />
+            <element signature="e#2547#2548#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="901">
-          <caret line="345" column="45" lean-forward="true" selection-start-line="345" selection-start-column="45" selection-end-line="345" selection-end-column="45" />
+        <state relative-caret-position="-167">
+          <caret line="221" column="38" lean-forward="false" selection-start-line="221" selection-start-column="38" selection-end-line="221" selection-end-column="38" />
           <folding>
             <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1000#2382#0" expanded="false" />
+            <element signature="e#1038#2420#0" expanded="false" />
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" expanded="false" />
-            <element signature="n#!!block;n#project#0" expanded="false" />
             <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#load_shape#0" expanded="false" />
             <element signature="n#!!block;n#hypercube#0" expanded="false" />
             <element signature="n#!!block;n#load_shaders#0" expanded="false" />
+            <element signature="n#!!block;n#save_frame#0" expanded="false" />
           </folding>
         </state>
       </provider>

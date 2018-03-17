@@ -2,7 +2,10 @@
 
 #define pi 3.1415926535897932384626433832795
 
+uniform float u_time;
+
 uniform mat4 u_four_view;
+uniform vec4 u_four_from;
 uniform mat4 u_four_projection;
 uniform mat4 u_three_view;
 uniform mat4 u_three_projection;
@@ -29,23 +32,22 @@ float sigmoid(float x)
 }
 
 void main() {
+    vec4 p = position;
+
     // project 4D -> 3D
-    if (false)
-    {
-        // vec4 pos = position;
-        // float t = 1.0 / tan(pi * 0.25 * 0.5);
-        // vec4 v = pos - u_four_from;
-        // float s = t / dot(v, u_four_view[3]);
-        // pos.x = s * dot(v, u_four_view[0]);
-        // pos.y = s * dot(v, u_four_view[1]);
-        // pos.z = s * dot(v, u_four_view[2]);
-        // pos.w = 1.0;
-    }
+    float t = 1.0 / tan(pi * 0.25 * 0.5);
+    vec4 v = p - u_four_from;
+    float s = t / dot(v, u_four_view[3]);
+
+    p.x = s * dot(v, u_four_view[0]);
+    p.y = s * dot(v, u_four_view[1]);
+    p.z = s * dot(v, u_four_view[2]);
+    p.w = 1.0;
 
     // project 3D -> 2D
-    gl_Position = u_three_projection * u_three_view * position;
-    gl_PointSize = depth_cue * 4.0;
+    gl_Position = u_three_projection * u_three_view * p;
+    gl_PointSize = s * 4.0;
 
     // pass 4D depth to fragment shader
-    vs_out.depth = sigmoid(depth_cue);
+    vs_out.depth = sigmoid(s);
 }

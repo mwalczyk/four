@@ -9,8 +9,10 @@ extern crate gl;
 extern crate glutin;
 extern crate image;
 
+mod polytope;
 mod program;
 
+use polytope::Polytope;
 use program::Program;
 
 use std::mem;
@@ -165,34 +167,6 @@ fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
-fn project(points: &Vec<f32>, cam: &FourCamera, t: f32) -> (Vec<f32>, Vec<f32>) {
-    let mut projected = Vec::new();
-    let mut depth_cue = Vec::new();
-
-    let four_view = cam.look_at;
-    //let rot_a = get_simple_rotation_matrix(Plane::YW, t);
-    //let rot_b = get_simple_rotation_matrix(Plane::XW, t);
-    let rot = get_double_rotation_matrix(t, t);
-
-    for chunk in points.chunks(4) {
-        let pt = Vector4::new(chunk[0], chunk[1], chunk[2], chunk[3]);
-
-        let t = 1.0f32 / (std::f32::consts::PI / 4.0 * 0.5f32).tan();
-        let temp = rot * (pt) - cam.from;
-        let s = t / temp.dot(four_view.w);
-
-        depth_cue.push(s);
-
-        projected.extend_from_slice(&[
-            s * temp.dot(four_view.x),
-            s * temp.dot(four_view.y),
-            s * temp.dot(four_view.z),
-            1.0,
-        ]);
-    }
-    (projected, depth_cue)
-}
-
 /// Counts the number of bits that `a` and `b` have in common. Processes
 /// at least `bits`.
 ///
@@ -202,62 +176,6 @@ fn common_bits(a: u32, b: u32, bits: u32) -> u32 {
         return 0;
     }
     ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2, bits - 1)
-}
-
-/// Loads the shape file at the specified `path` and returns a tuple of vectors.
-/// The first vector will contain the vertex data and the second vector will
-/// contain the edge indices.
-fn load_shape(path: &Path) -> (Vec<f32>, Vec<u32>) {
-    let file = File::open(path).unwrap();
-    let mut reader = BufReader::new(file);
-    let mut number_of_entries = 0usize;
-    let mut entry_count = String::new();
-
-    // Load vertex data (4 entries per vertex).
-    reader.read_line(&mut entry_count);
-    number_of_entries = entry_count.trim().parse().unwrap();
-    let mut vertices = Vec::with_capacity(number_of_entries * 4);
-
-    for _ in 0..number_of_entries {
-        let mut line = String::new();
-        reader.read_line(&mut line);
-
-        for entry in line.split_whitespace() {
-            let data: f32 = entry.trim().parse().unwrap();
-            vertices.push(data);
-        }
-    }
-    entry_count.clear();
-
-    // Load edge data (2 entries per edge).
-    reader.read_line(&mut entry_count);
-    number_of_entries = entry_count.trim().parse().unwrap();
-    let mut edges = Vec::with_capacity(number_of_entries * 2);
-
-    for _ in 0..number_of_entries {
-        let mut line = String::new();
-        reader.read_line(&mut line);
-
-        for entry in line.split_whitespace() {
-            let data: u32 = entry.trim().parse().unwrap();
-            edges.push(data);
-        }
-    }
-
-    // TODO:
-    //    for entry in &reader.lines().take(num_vertices) {
-    //        for coordinate in entry.unwrap().split_whitespace() {
-    //            vertices.push(coordinate.trim().parse().unwrap());
-    //        }
-    //    }
-
-    println!(
-        "Loaded file with {} vertices and {} edges",
-        vertices.len(),
-        edges.len()
-    );
-
-    (vertices, edges)
 }
 
 /// Generates a hypercube procedurally and returns a tuple of vectors.
@@ -352,8 +270,7 @@ fn main() {
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
     // Set up the 4D shape(s).
-    let shape_path = Path::new("shapes/120cell.txt");
-    let (vertices, indices) = load_shape(&shape_path);
+    let polytope = Polytope::from_file(Path::new("shapes/120cell.txt"));
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
@@ -377,78 +294,8 @@ fn main() {
     );
 
     program.bind();
-    program.uniform_4f("u_four_from", &four_cam.from);
-    program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
     program.uniform_matrix_4f("u_three_view", &three_view);
     program.uniform_matrix_4f("u_three_projection", &three_projection);
-
-    let mut vao = 0;
-    let mut vbo_position = 0;
-    let mut vbo_depth = 0;
-    let mut ebo = 0;
-    unsafe {
-        gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
-
-        // Create the vertex array object.
-        gl::CreateVertexArrays(1, &mut vao);
-
-        let mut size = (vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
-
-        // Create the vertex buffer for holding position data.
-        gl::CreateBuffers(1, &mut vbo_position);
-        gl::NamedBufferData(
-            vbo_position,
-            size,
-            vertices.as_ptr() as *const GLvoid,
-            gl::DYNAMIC_DRAW,
-        );
-
-        // Create the vertex buffer for holding depth cue data.
-        size = (vertices.len() / 4usize * mem::size_of::<f32>()) as GLsizeiptr;
-        gl::CreateBuffers(1, &mut vbo_depth);
-        gl::NamedBufferData(vbo_depth, size, ptr::null(), gl::DYNAMIC_DRAW);
-
-        // Create the index buffer.
-        size = (indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
-        gl::CreateBuffers(1, &mut ebo);
-        gl::NamedBufferData(
-            ebo,
-            size,
-            indices.as_ptr() as *const GLvoid,
-            gl::STATIC_DRAW,
-        );
-
-        // Set up vertex attributes.
-        let binding = 0;
-
-        gl::EnableVertexArrayAttrib(vao, 0);
-        gl::EnableVertexArrayAttrib(vao, 1);
-
-        gl::VertexArrayAttribFormat(vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
-        gl::VertexArrayAttribFormat(vao, 1, 1, gl::FLOAT, gl::FALSE, 0);
-
-        gl::VertexArrayAttribBinding(vao, 0, binding);
-        gl::VertexArrayAttribBinding(vao, 1, binding + 1);
-
-        gl::VertexArrayElementBuffer(vao, ebo);
-
-        // Link vertex buffers to vertex attributes, via binding points.
-        let offset = 0;
-        gl::VertexArrayVertexBuffer(
-            vao,
-            binding,
-            vbo_position,
-            offset,
-            (mem::size_of::<f32>() * 4 as usize) as i32,
-        );
-        gl::VertexArrayVertexBuffer(
-            vao,
-            binding + 1,
-            vbo_depth,
-            offset,
-            mem::size_of::<f32>() as i32,
-        );
-    }
 
     let start = SystemTime::now();
     let mut cursor = Vector2::zero();
@@ -488,33 +335,13 @@ fn main() {
         four_cam.from = a.lerp(b, cursor.x);
         four_cam.over = c.lerp(d, cursor.y);
         four_cam.build_look_at();
-
-        // Project the points from 4D -> 3D.
-        let (projected, depth_cue) = project(&vertices, &four_cam, milliseconds);
-
-        // Update GPU-side buffers.
-        unsafe {
-            let mut size = (projected.len() * mem::size_of::<f32>()) as GLsizeiptr;
-
-            gl::NamedBufferSubData(vbo_position, 0, size, projected.as_ptr() as *const GLvoid);
-
-            size = (depth_cue.len() * mem::size_of::<f32>()) as GLsizeiptr;
-
-            gl::NamedBufferSubData(vbo_depth, 0, size, depth_cue.as_ptr() as *const GLvoid);
-        }
+        program.uniform_1f("u_time", milliseconds);
+        program.uniform_4f("u_four_from", &four_cam.from);
+        program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
 
         clear();
 
-        unsafe {
-            gl::BindVertexArray(vao);
-            gl::DrawArrays(gl::POINTS, 0, (projected.len() / 4) as i32);
-            gl::DrawElements(
-                gl::LINES,
-                indices.len() as i32,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-            );
-        }
+        polytope.draw();
 
         gl_window.swap_buffers().unwrap();
     }
