@@ -12,20 +12,18 @@ extern crate image;
 mod polytope;
 mod program;
 
-use polytope::Polytope;
+use polytope::{Plane, Polytope};
 use program::Program;
 
-use std::mem;
-use std::ptr;
-use std::os::raw::c_void;
-use std::time::{Duration, SystemTime};
-use std::fs::File;
-use std::path::Path;
+use std::ffi::OsStr;
+use std::fs::{self, File};
 use std::io::prelude::*;
 use std::io::{BufRead, BufReader};
+use std::os::raw::c_void;
+use std::path::Path;
 use std::str;
+use std::time::{Duration, SystemTime};
 
-use gl::types::*;
 use glutin::GlContext;
 use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, SquareMatrix,
              Transform, Vector2, Vector3, Vector4, Zero};
@@ -91,80 +89,6 @@ impl FourCamera {
 
         self.look_at = Matrix4::from_cols(wa, wb, wc, wd);
     }
-}
-
-enum Plane {
-    XY,
-    YZ,
-    ZX,
-    XW,
-    YW,
-    ZW,
-}
-
-/// The 4D equivalent of a quaternion is known as a rotor.
-/// https://math.stackexchange.com/questions/1402362/rotation-in-4d
-fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
-    let c = angle.cos();
-    let s = angle.sin();
-
-    match plane {
-        Plane::XY => Matrix4::from_cols(
-            Vector4::new(c, -s, 0.0, 0.0),
-            Vector4::new(s, c, 0.0, 0.0),
-            Vector4::new(0.0, 0.0, 1.0, 0.0),
-            Vector4::new(0.0, 0.0, 0.0, 1.0),
-        ),
-        Plane::YZ => Matrix4::from_cols(
-            Vector4::new(1.0, 0.0, 0.0, 0.0),
-            Vector4::new(0.0, c, -s, 0.0),
-            Vector4::new(0.0, s, c, 0.0),
-            Vector4::new(0.0, 0.0, 0.0, 1.0),
-        ),
-        Plane::ZX => Matrix4::from_cols(
-            Vector4::new(c, 0.0, s, 0.0),
-            Vector4::new(0.0, 1.0, 0.0, 0.0),
-            Vector4::new(-s, 0.0, c, 0.0),
-            Vector4::new(0.0, 0.0, 0.0, 1.0),
-        ),
-        Plane::XW => Matrix4::from_cols(
-            Vector4::new(c, 0.0, 0.0, -s),
-            Vector4::new(0.0, 1.0, 0.0, 0.0),
-            Vector4::new(0.0, 0.0, 1.0, 0.0),
-            Vector4::new(s, 0.0, 0.0, c),
-        ),
-        Plane::YW => Matrix4::from_cols(
-            Vector4::new(1.0, 0.0, 0.0, 0.0),
-            Vector4::new(0.0, c, 0.0, s),
-            Vector4::new(0.0, 0.0, 1.0, 0.0),
-            Vector4::new(0.0, -s, 0.0, c),
-        ),
-        Plane::ZW => Matrix4::from_cols(
-            Vector4::new(1.0, 0.0, 0.0, 0.0),
-            Vector4::new(0.0, 1.0, 0.0, 0.0),
-            Vector4::new(0.0, 0.0, c, s),
-            Vector4::new(0.0, 0.0, -s, c),
-        ),
-    }
-}
-
-/// Returns a "double rotation" matrix, which represents two planes of rotation.
-/// The only fixed point is the origin. If `alpha` and `beta` are equal and non-zero,
-/// then the rotation is called an isoclinic rotation.
-///
-/// Reference: `https://en.wikipedia.org/wiki/Plane_of_rotation#Double_rotations`
-fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
-    let ca = alpha.cos();
-    let sa = alpha.sin();
-    let cb = beta.cos();
-    let sb = beta.sin();
-
-    Matrix4::from_cols(
-        Vector4::new(ca, sa, 0.0, 0.0),
-        Vector4::new(-sa, ca, 0.0, 0.0),
-        Vector4::new(0.0, 0.0, cb, sb),
-        Vector4::new(0.0, 0.0, -sb, cb),
-    )
 }
 
 /// Counts the number of bits that `a` and `b` have in common. Processes
@@ -259,6 +183,21 @@ fn save_frame(path: &Path, w: u32, h: u32) {
     image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
 }
 
+fn load_shapes() -> Vec<Polytope> {
+    let mut polytopes = Vec::new();
+
+    for entry in fs::read_dir("shapes").unwrap() {
+        let path = entry.unwrap().path();
+        let file = path.file_stem().unwrap();
+        let ext = path.extension();
+
+        if ext == Some(OsStr::new("txt")) {
+            polytopes.push(Polytope::from_file(Path::new(&path)));
+        }
+    }
+    polytopes
+}
+
 fn main() {
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
@@ -270,7 +209,7 @@ fn main() {
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
     // Set up the 4D shape(s).
-    let polytope = Polytope::from_file(Path::new("shapes/120cell.txt"));
+    let polytopes = load_shapes();
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
@@ -299,6 +238,7 @@ fn main() {
 
     let start = SystemTime::now();
     let mut cursor = Vector2::zero();
+    let mut draw_index = 0;
 
     loop {
         events_loop.poll_events(|event| match event {
@@ -311,9 +251,21 @@ fn main() {
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
                     if let glutin::ElementState::Pressed = input.state {
                         if let Some(key) = input.virtual_keycode {
-                            if let glutin::VirtualKeyCode::S = key {
-                                let path = Path::new("frame.png");
-                                save_frame(path, 600, 600);
+                            match key {
+                                glutin::VirtualKeyCode::S => {
+                                    let path = Path::new("frame.png");
+                                    save_frame(path, 600, 600);
+                                }
+                                glutin::VirtualKeyCode::O => {
+                                    if draw_index > 0 {
+                                        draw_index -= 1;
+                                    }
+                                }
+                                glutin::VirtualKeyCode::P => {
+                                    draw_index += 1;
+                                    draw_index = draw_index.min(polytopes.len() - 1);
+                                }
+                                _ => ()
                             }
                         }
                     }
@@ -335,13 +287,16 @@ fn main() {
         four_cam.from = a.lerp(b, cursor.x);
         four_cam.over = c.lerp(d, cursor.y);
         four_cam.build_look_at();
+        let rota = polytope::get_simple_rotation_matrix(Plane::ZW, milliseconds);
+        let rotb = polytope::get_simple_rotation_matrix(Plane::YW, milliseconds);
         program.uniform_1f("u_time", milliseconds);
         program.uniform_4f("u_four_from", &four_cam.from);
         program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
+        program.uniform_matrix_4f("u_four_rotation", &(rota * rotb));
 
         clear();
 
-        polytope.draw();
+        polytopes[draw_index].draw();
 
         gl_window.swap_buffers().unwrap();
     }

@@ -7,6 +7,7 @@ uniform float u_time;
 uniform mat4 u_four_view;
 uniform vec4 u_four_from;
 uniform mat4 u_four_projection;
+uniform mat4 u_four_rotation;
 uniform mat4 u_three_view;
 uniform mat4 u_three_projection;
 
@@ -36,12 +37,12 @@ void main() {
 
     // project 4D -> 3D
     float t = 1.0 / tan(pi * 0.25 * 0.5);
-    vec4 v = p - u_four_from;
-    float s = t / dot(v, u_four_view[3]);
+    vec4 temp = (u_four_rotation * p) - u_four_from;
+    float s = t / dot(temp, u_four_view[3]);
 
-    p.x = s * dot(v, u_four_view[0]);
-    p.y = s * dot(v, u_four_view[1]);
-    p.z = s * dot(v, u_four_view[2]);
+    p.x = s * dot(temp, u_four_view[0]);
+    p.y = s * dot(temp, u_four_view[1]);
+    p.z = s * dot(temp, u_four_view[2]);
     p.w = 1.0;
 
     // project 3D -> 2D

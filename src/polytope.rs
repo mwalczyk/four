@@ -5,8 +5,83 @@ use std::mem;
 use std::ptr;
 use std::os::raw::c_void;
 
+use cgmath::{self, Matrix4, Vector4};
 use gl;
 use gl::types::*;
+
+pub enum Plane {
+    XY,
+    YZ,
+    ZX,
+    XW,
+    YW,
+    ZW,
+}
+
+/// The 4D equivalent of a quaternion is known as a rotor.
+/// https://math.stackexchange.com/questions/1402362/rotation-in-4d
+pub fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
+    let c = angle.cos();
+    let s = angle.sin();
+
+    match plane {
+        Plane::XY => Matrix4::from_cols(
+            Vector4::new(c, -s, 0.0, 0.0),
+            Vector4::new(s, c, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::YZ => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, c, -s, 0.0),
+            Vector4::new(0.0, s, c, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::ZX => Matrix4::from_cols(
+            Vector4::new(c, 0.0, s, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(-s, 0.0, c, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ),
+        Plane::XW => Matrix4::from_cols(
+            Vector4::new(c, 0.0, 0.0, -s),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(s, 0.0, 0.0, c),
+        ),
+        Plane::YW => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, c, 0.0, s),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, -s, 0.0, c),
+        ),
+        Plane::ZW => Matrix4::from_cols(
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, c, s),
+            Vector4::new(0.0, 0.0, -s, c),
+        ),
+    }
+}
+
+/// Returns a "double rotation" matrix, which represents two planes of rotation.
+/// The only fixed point is the origin. If `alpha` and `beta` are equal and non-zero,
+/// then the rotation is called an isoclinic rotation.
+///
+/// Reference: `https://en.wikipedia.org/wiki/Plane_of_rotation#Double_rotations`
+pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
+    let ca = alpha.cos();
+    let sa = alpha.sin();
+    let cb = beta.cos();
+    let sb = beta.sin();
+
+    Matrix4::from_cols(
+        Vector4::new(ca, sa, 0.0, 0.0),
+        Vector4::new(-sa, ca, 0.0, 0.0),
+        Vector4::new(0.0, 0.0, cb, sb),
+        Vector4::new(0.0, 0.0, -sb, cb),
+    )
+}
 
 pub struct Polytope {
     vertices: Vec<f32>,
