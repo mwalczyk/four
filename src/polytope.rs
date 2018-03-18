@@ -159,7 +159,7 @@ impl Polytope {
             indices,
             vao: 0,
             vbo: 0,
-            ebo: 0
+            ebo: 0,
         };
 
         polytope.init_render_objects();

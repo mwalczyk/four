@@ -8,6 +8,8 @@ uniform mat4 u_four_view;
 uniform vec4 u_four_from;
 uniform mat4 u_four_projection;
 uniform mat4 u_four_rotation;
+
+uniform mat4 u_three_rotation;
 uniform mat4 u_three_view;
 uniform mat4 u_three_projection;
 
@@ -46,7 +48,7 @@ void main() {
     p.w = 1.0;
 
     // project 3D -> 2D
-    gl_Position = u_three_projection * u_three_view * p;
+    gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
     gl_PointSize = s * 4.0;
 
     // pass 4D depth to fragment shader

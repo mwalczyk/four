@@ -3,8 +3,12 @@
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/shaders/shader.frag" afterPath="$PROJECT_DIR$/shaders/shader.frag" />
       <change beforePath="$PROJECT_DIR$/shaders/shader.vert" afterPath="$PROJECT_DIR$/shaders/shader.vert" />
+      <change beforePath="$PROJECT_DIR$/shapes/120cell.txt" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/shapes/16cell.txt" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/shapes/24cell.txt" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/shapes/5cell.txt" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/shapes/600cell.txt" afterPath="" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
       <change beforePath="$PROJECT_DIR$/src/polytope.rs" afterPath="$PROJECT_DIR$/src/polytope.rs" />
     </list>
@@ -18,14 +22,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.6030356">
+    <splitter split-orientation="horizontal" split-proportion="0.5750146">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
           <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/program.rs">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="200">
-                  <caret line="10" column="25" lean-forward="true" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
+                  <caret line="10" column="25" lean-forward="false" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
                   <folding />
                 </state>
               </provider>
@@ -34,17 +38,9 @@
           <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="635">
-                  <caret line="290" column="63" lean-forward="false" selection-start-line="290" selection-start-column="63" selection-end-line="290" selection-end-column="63" />
-                  <folding>
-                    <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-                    <element signature="e#1030#2412#0" expanded="false" />
-                    <element signature="n#!!block;n#common_bits#0" expanded="false" />
-                    <element signature="n#!!block;n#hypercube#0" expanded="false" />
-                    <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-                    <element signature="n#!!block;n#save_frame#0" expanded="false" />
-                    <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-                  </folding>
+                <state relative-caret-position="383">
+                  <caret line="263" column="42" lean-forward="false" selection-start-line="263" selection-start-column="42" selection-end-line="263" selection-end-column="42" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -52,16 +48,10 @@
           <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/polytope.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="180">
-                  <caret line="15" column="7" lean-forward="true" selection-start-line="15" selection-start-column="7" selection-end-line="15" selection-end-column="7" />
+                <state relative-caret-position="2080">
+                  <caret line="104" column="17" lean-forward="false" selection-start-line="104" selection-start-column="17" selection-end-line="104" selection-end-column="17" />
                   <folding>
-                    <element signature="e#3207#4842#0" expanded="false" />
-                    <element signature="e#4888#4889#0" expanded="true" />
-                    <element signature="e#4917#4918#0" expanded="true" />
-                    <element signature="e#4963#4964#0" expanded="true" />
-                    <element signature="e#4991#4992#0" expanded="true" />
-                    <element signature="e#5017#5351#0" expanded="false" />
-                    <element signature="e#5391#6988#0" expanded="false" />
+                    <element signature="e#3207#4843#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -70,12 +60,12 @@
         </leaf>
       </split-first>
       <split-second>
-        <leaf>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="shader.vert" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="374">
-                  <caret line="34" column="13" lean-forward="true" selection-start-line="34" selection-start-column="13" selection-end-line="34" selection-end-column="13" />
+                <state relative-caret-position="220">
+                  <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -85,7 +75,7 @@
             <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="420">
-                  <caret line="21" column="47" lean-forward="true" selection-start-line="21" selection-start-column="47" selection-end-line="21" selection-end-column="47" />
+                  <caret line="21" column="47" lean-forward="false" selection-start-line="21" selection-start-column="47" selection-end-line="21" selection-end-column="47" />
                   <folding />
                 </state>
               </provider>
@@ -139,7 +129,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -161,8 +153,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -212,7 +202,7 @@
       <envs />
     </configuration>
     <configuration name="fmt" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="STABLE" />
+      <option name="channel" value="NIGHTLY" />
       <option name="command" value="fmt" />
       <option name="nocapture" value="true" />
       <option name="backtrace" value="SHORT" />
@@ -279,8 +269,8 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cargo" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23864837" sideWeight="0.1855228" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23864837" sideWeight="0.8144772" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23864837" sideWeight="0.18873994" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23864837" sideWeight="0.81126004" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -303,11 +293,44 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2080">
+          <caret line="104" column="17" lean-forward="false" selection-start-line="104" selection-start-column="17" selection-end-line="104" selection-end-column="17" />
+          <folding>
+            <element signature="e#3207#4843#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5540">
+          <caret line="277" column="42" lean-forward="true" selection-start-line="277" selection-start-column="42" selection-end-line="277" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="21" column="47" lean-forward="false" selection-start-line="21" selection-start-column="47" selection-end-line="21" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -323,15 +346,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3540">
           <caret line="177" column="69" lean-forward="true" selection-start-line="177" selection-start-column="69" selection-end-line="177" selection-end-column="69" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -340,13 +355,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4842#0" expanded="false" />
-            <element signature="e#4888#4889#0" expanded="true" />
-            <element signature="e#4917#4918#0" expanded="true" />
-            <element signature="e#4963#4964#0" expanded="true" />
-            <element signature="e#4991#4992#0" expanded="true" />
-            <element signature="e#5017#5351#0" expanded="false" />
-            <element signature="e#5391#6988#0" expanded="false" />
+            <element signature="e#3207#4843#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -363,7 +372,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -380,13 +388,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4842#0" expanded="false" />
-            <element signature="e#4888#4889#0" expanded="true" />
-            <element signature="e#4917#4918#0" expanded="true" />
-            <element signature="e#4963#4964#0" expanded="true" />
-            <element signature="e#4991#4992#0" expanded="true" />
-            <element signature="e#5017#5351#0" expanded="false" />
-            <element signature="e#5391#6988#0" expanded="false" />
+            <element signature="e#3207#4843#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -395,15 +397,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3700">
           <caret line="185" column="37" lean-forward="false" selection-start-line="185" selection-start-column="37" selection-end-line="185" selection-end-column="37" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -411,7 +405,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -428,13 +421,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4842#0" expanded="false" />
-            <element signature="e#4888#4889#0" expanded="true" />
-            <element signature="e#4917#4918#0" expanded="true" />
-            <element signature="e#4963#4964#0" expanded="true" />
-            <element signature="e#4991#4992#0" expanded="true" />
-            <element signature="e#5017#5351#0" expanded="false" />
-            <element signature="e#5391#6988#0" expanded="false" />
+            <element signature="e#3207#4843#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -443,15 +430,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4420">
           <caret line="221" column="37" lean-forward="true" selection-start-line="221" selection-start-column="37" selection-end-line="221" selection-end-column="37" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -459,7 +438,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
           <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -475,7 +453,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="8" column="16" lean-forward="false" selection-start-line="8" selection-start-column="16" selection-end-line="8" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -491,15 +468,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6552">
           <caret line="364" column="17" lean-forward="true" selection-start-line="364" selection-start-column="17" selection-end-line="364" selection-end-column="17" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -507,7 +476,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="160">
           <caret line="8" column="16" lean-forward="true" selection-start-line="8" selection-start-column="16" selection-end-line="8" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -523,15 +491,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="620">
           <caret line="31" column="19" lean-forward="true" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -539,15 +499,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -569,15 +521,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -607,15 +551,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -645,15 +581,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -697,7 +625,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="9" column="16" lean-forward="false" selection-start-line="9" selection-start-column="16" selection-end-line="9" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -705,13 +632,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="434">
           <caret line="591" column="7" lean-forward="false" selection-start-line="591" selection-start-column="7" selection-end-line="591" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../sdfperf/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="86" column="73" lean-forward="false" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="73" />
         </state>
       </provider>
     </entry>
@@ -723,59 +643,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="21" column="47" lean-forward="true" selection-start-line="21" selection-start-column="47" selection-end-line="21" selection-end-column="47" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="200">
-          <caret line="10" column="25" lean-forward="true" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
+          <caret line="10" column="25" lean-forward="false" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/polytope.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="15" column="7" lean-forward="true" selection-start-line="15" selection-start-column="7" selection-end-line="15" selection-end-column="7" />
+        <state relative-caret-position="2080">
+          <caret line="104" column="17" lean-forward="false" selection-start-line="104" selection-start-column="17" selection-end-line="104" selection-end-column="17" />
           <folding>
-            <element signature="e#3207#4842#0" expanded="false" />
-            <element signature="e#4888#4889#0" expanded="true" />
-            <element signature="e#4917#4918#0" expanded="true" />
-            <element signature="e#4963#4964#0" expanded="true" />
-            <element signature="e#4991#4992#0" expanded="true" />
-            <element signature="e#5017#5351#0" expanded="false" />
-            <element signature="e#5391#6988#0" expanded="false" />
+            <element signature="e#3207#4843#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="21" column="47" lean-forward="false" selection-start-line="21" selection-start-column="47" selection-end-line="21" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../sdfperf/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="894">
+          <caret line="92" column="57" lean-forward="true" selection-start-line="92" selection-start-column="57" selection-end-line="92" selection-end-column="57" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="34" column="13" lean-forward="true" selection-start-line="34" selection-start-column="13" selection-end-line="34" selection-end-column="13" />
+        <state relative-caret-position="220">
+          <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="635">
-          <caret line="290" column="63" lean-forward="false" selection-start-line="290" selection-start-column="63" selection-end-line="290" selection-end-column="63" />
-          <folding>
-            <element signature="n#!!block;n#FourCamera#0" expanded="false" />
-            <element signature="e#1030#2412#0" expanded="false" />
-            <element signature="n#!!block;n#common_bits#0" expanded="false" />
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+        <state relative-caret-position="383">
+          <caret line="263" column="42" lean-forward="false" selection-start-line="263" selection-start-column="42" selection-end-line="263" selection-end-column="42" />
+          <folding />
         </state>
       </provider>
     </entry>

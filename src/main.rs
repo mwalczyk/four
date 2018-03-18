@@ -25,8 +25,8 @@ use std::str;
 use std::time::{Duration, SystemTime};
 
 use glutin::GlContext;
-use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, SquareMatrix,
-             Transform, Vector2, Vector3, Vector4, Zero};
+use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, Rotation,
+             SquareMatrix, Transform, Vector2, Vector3, Vector4, Zero};
 use image::{GenericImage, ImageBuffer};
 
 fn clear() {
@@ -213,19 +213,23 @@ fn main() {
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
-        Vector4::new(2.83, 2.83, 0.01, 0.0),
+        Vector4::new(4.0, 0.0, 0.0, 0.0),
         Vector4::zero(),
-        Vector4::new(-0.71, 0.71, 0.0, 0.0),
-        Vector4::new(0.0, 0.0, 1.0, 0.02),
+        Vector4::new(0.0, 1.0, 0.0, 0.0),
+        Vector4::new(0.0, 0.0, 1.0, 0.0),
     );
 
+    let mut four_rotation = Matrix4::identity();
+
     let three_view = Matrix4::look_at(
-        Point3::new(2.4, 0.99, 1.82),
+        Point3::new(2.5, 0.0, 0.0),
         Point3::new(0.0, 0.0, 0.0),
         Vector3::unit_y(),
     );
     let three_projection =
         cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
+
+    let mut three_rotation = Matrix4::identity();
 
     let program = load_shaders(
         Path::new("shaders/shader.vert"),
@@ -237,7 +241,12 @@ fn main() {
     program.uniform_matrix_4f("u_three_projection", &three_projection);
 
     let start = SystemTime::now();
-    let mut cursor = Vector2::zero();
+    let mut cursor_prev = Vector2::zero();
+    let mut cursor_curr = Vector2::zero();
+    let mut cursor_pressed = Vector2::zero();
+    let mut mouse_pressed = false;
+    let mut shift_pressed = false;
+    let mut alt_pressed = false;
     let mut draw_index = 0;
 
     loop {
@@ -245,13 +254,48 @@ fn main() {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::Closed => (),
                 glutin::WindowEvent::MouseMoved { position, .. } => {
-                    cursor.x = position.0 as f32 / 600.0;
-                    cursor.y = position.1 as f32 / 600.0;
+                    cursor_prev = cursor_curr;
+                    cursor_curr.x = position.0 as f32 / 600.0;
+                    cursor_curr.y = position.1 as f32 / 600.0;
+                    if mouse_pressed {
+                        let delta = cursor_curr - cursor_prev;
+
+                        if shift_pressed {
+                            // 4D rotation
+                            if alt_pressed {
+                                let rot_xy =
+                                    polytope::get_simple_rotation_matrix(Plane::XY, delta.x);
+                                let rot_zw =
+                                    polytope::get_simple_rotation_matrix(Plane::ZW, delta.y);
+                                four_rotation = rot_xy * rot_zw * four_rotation;
+                            } else {
+                                let rot_xw =
+                                    polytope::get_simple_rotation_matrix(Plane::XW, delta.x);
+                                let rot_yw =
+                                    polytope::get_simple_rotation_matrix(Plane::YW, delta.y);
+                                four_rotation = rot_xw * rot_yw * four_rotation;
+                            }
+
+                        } else {
+                            // 3D rotation
+                            let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));
+                            let rot_yz = Matrix4::from_angle_z(cgmath::Rad(delta.y));
+                            three_rotation = rot_yz * rot_xz * three_rotation;
+                        }
+                    }
+                }
+                glutin::WindowEvent::MouseInput { state, button, .. } => {
+                    if let glutin::ElementState::Pressed = state {
+                        cursor_pressed = cursor_curr;
+                        mouse_pressed = true;
+                    } else {
+                        mouse_pressed = false;
+                    }
                 }
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
-                    if let glutin::ElementState::Pressed = input.state {
-                        if let Some(key) = input.virtual_keycode {
-                            match key {
+                    if let Some(key) = input.virtual_keycode {
+                        match input.state {
+                            glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
                                     save_frame(path, 600, 600);
@@ -265,8 +309,23 @@ fn main() {
                                     draw_index += 1;
                                     draw_index = draw_index.min(polytopes.len() - 1);
                                 }
-                                _ => ()
-                            }
+                                glutin::VirtualKeyCode::LShift => {
+                                    shift_pressed = true;
+                                }
+                                glutin::VirtualKeyCode::LAlt => {
+                                    alt_pressed = true;
+                                }
+                                _ => (),
+                            },
+                            glutin::ElementState::Released => match key {
+                                glutin::VirtualKeyCode::LShift => {
+                                    shift_pressed = false;
+                                }
+                                glutin::VirtualKeyCode::LAlt => {
+                                    alt_pressed = false;
+                                }
+                                _ => (),
+                            },
                         }
                     }
                 }
@@ -280,19 +339,22 @@ fn main() {
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
 
-        let a = Vector4::new(0.0, 0.0, 0.0, 3.0);
-        let b = Vector4::new(0.0, 0.0, 0.0, 4.0);
-        let c = Vector4::new(1.0, 0.0, 0.0, 0.0);
-        let d = Vector4::new(0.0, 0.0, 1.0, 0.0);
-        four_cam.from = a.lerp(b, cursor.x);
-        four_cam.over = c.lerp(d, cursor.y);
-        four_cam.build_look_at();
-        let rota = polytope::get_simple_rotation_matrix(Plane::ZW, milliseconds);
-        let rotb = polytope::get_simple_rotation_matrix(Plane::YW, milliseconds);
+        //let a = Vector4::new(0.0, 0.0, 0.0, 3.0);
+        //let b = Vector4::new(0.0, 0.0, 0.0, 4.0);
+        //let c = Vector4::new(1.0, 0.0, 0.0, 0.0);
+        //let d = Vector4::new(0.0, 0.0, 1.0, 0.0);
+        //four_cam.from = a.lerp(b, cursor.x);
+        //four_cam.over = c.lerp(d, cursor.y);
+        //four_cam.build_look_at();
+        //let rota = polytope::get_simple_rotation_matrix(Plane::ZW, milliseconds);
+        //let rotb = polytope::get_simple_rotation_matrix(Plane::YW, milliseconds);
         program.uniform_1f("u_time", milliseconds);
+
+        program.uniform_matrix_4f("u_four_rotation", &four_rotation);
         program.uniform_4f("u_four_from", &four_cam.from);
         program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
-        program.uniform_matrix_4f("u_four_rotation", &(rota * rotb));
+
+        program.uniform_matrix_4f("u_three_rotation", &three_rotation);
 
         clear();
 
