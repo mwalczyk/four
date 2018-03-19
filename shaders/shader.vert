@@ -4,17 +4,18 @@
 
 uniform float u_time;
 
-uniform mat4 u_four_view;
+// we have this here in order to avoid 5x5 matrices
 uniform vec4 u_four_from;
-uniform mat4 u_four_projection;
+
 uniform mat4 u_four_rotation;
+uniform mat4 u_four_view;
+uniform mat4 u_four_projection;
 
 uniform mat4 u_three_rotation;
 uniform mat4 u_three_view;
 uniform mat4 u_three_projection;
 
 layout(location = 0) in vec4 position;
-layout(location = 1) in float depth_cue;
 
 out VS_OUT 
 {
