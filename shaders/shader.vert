@@ -35,22 +35,20 @@ float sigmoid(float x)
 }
 
 void main() {
-    vec4 p = position;
 
     // project 4D -> 3D
-    float t = 1.0 / tan(pi * 0.25 * 0.5);
-    vec4 temp = (u_four_rotation * p) - u_four_from;
-    float s = t / dot(temp, u_four_view[3]);
+    vec4 p = u_four_rotation * position;
+    p = p - u_four_from;
+    p = u_four_view * p;
+    float depth_cue = p.w;
 
-    p.x = s * dot(temp, u_four_view[0]);
-    p.y = s * dot(temp, u_four_view[1]);
-    p.z = s * dot(temp, u_four_view[2]);
-    p.w = 1.0;
+    p = u_four_projection * p;
+    p /= p.w;
 
     // project 3D -> 2D
     gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
-    gl_PointSize = s * 4.0;
+    gl_PointSize = depth_cue * 4.0;
 
     // pass 4D depth to fragment shader
-    vs_out.depth = sigmoid(s);
+    vs_out.depth = sigmoid(depth_cue);
 }

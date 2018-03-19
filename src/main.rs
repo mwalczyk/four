@@ -42,6 +42,7 @@ struct FourCamera {
     up: Vector4<f32>,
     over: Vector4<f32>,
     look_at: Matrix4<f32>,
+    projection: Matrix4<f32>
 }
 
 impl FourCamera {
@@ -57,8 +58,10 @@ impl FourCamera {
             up,
             over,
             look_at: Matrix4::identity(),
+            projection: Matrix4::identity()
         };
         cam.build_look_at();
+        cam.build_projection();
 
         cam
     }
@@ -88,6 +91,12 @@ impl FourCamera {
         let wc = self.cross(&wd, &wa, &wb);
 
         self.look_at = Matrix4::from_cols(wa, wb, wc, wd);
+    }
+
+    fn build_projection(&mut self) {
+        let t = 1.0 / (std::f32::consts::FRAC_PI_4 * 0.5).tan();
+
+        self.projection = Matrix4::from_diagonal(Vector4::new(t, t, t, t));
     }
 }
 
@@ -199,9 +208,12 @@ fn load_shapes() -> Vec<Polytope> {
 }
 
 fn main() {
+    const WIDTH: u32 = 600;
+    const HEIGHT: u32 = 600;
+
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
-        .with_dimensions(600, 600)
+        .with_dimensions(WIDTH, HEIGHT)
         .with_title("four");
     let context = glutin::ContextBuilder::new().with_multisampling(8);
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
@@ -213,14 +225,14 @@ fn main() {
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
-        Vector4::new(4.0, 0.0, 0.0, 0.0),
+        Vector4::new(3.0, 0.0, 0.0, 0.0),
         Vector4::zero(),
         Vector4::new(0.0, 1.0, 0.0, 0.0),
         Vector4::new(0.0, 0.0, 1.0, 0.0),
     );
-
     let mut four_rotation = Matrix4::identity();
 
+    let mut three_rotation = Matrix4::identity();
     let three_view = Matrix4::look_at(
         Point3::new(2.5, 0.0, 0.0),
         Point3::new(0.0, 0.0, 0.0),
@@ -229,16 +241,12 @@ fn main() {
     let three_projection =
         cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
 
-    let mut three_rotation = Matrix4::identity();
-
     let program = load_shaders(
         Path::new("shaders/shader.vert"),
         Path::new("shaders/shader.frag"),
     );
 
     program.bind();
-    program.uniform_matrix_4f("u_three_view", &three_view);
-    program.uniform_matrix_4f("u_three_projection", &three_projection);
 
     let start = SystemTime::now();
     let mut cursor_prev = Vector2::zero();
@@ -255,8 +263,8 @@ fn main() {
                 glutin::WindowEvent::Closed => (),
                 glutin::WindowEvent::MouseMoved { position, .. } => {
                     cursor_prev = cursor_curr;
-                    cursor_curr.x = position.0 as f32 / 600.0;
-                    cursor_curr.y = position.1 as f32 / 600.0;
+                    cursor_curr.x = position.0 as f32 / WIDTH as f32;
+                    cursor_curr.y = position.1 as f32 / HEIGHT as f32;
                     if mouse_pressed {
                         let delta = cursor_curr - cursor_prev;
 
@@ -298,7 +306,7 @@ fn main() {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
-                                    save_frame(path, 600, 600);
+                                    save_frame(path, WIDTH, HEIGHT);
                                 }
                                 glutin::VirtualKeyCode::O => {
                                     if draw_index > 0 {
@@ -339,22 +347,18 @@ fn main() {
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
 
-        //let a = Vector4::new(0.0, 0.0, 0.0, 3.0);
-        //let b = Vector4::new(0.0, 0.0, 0.0, 4.0);
-        //let c = Vector4::new(1.0, 0.0, 0.0, 0.0);
-        //let d = Vector4::new(0.0, 0.0, 1.0, 0.0);
-        //four_cam.from = a.lerp(b, cursor.x);
-        //four_cam.over = c.lerp(d, cursor.y);
-        //four_cam.build_look_at();
-        //let rota = polytope::get_simple_rotation_matrix(Plane::ZW, milliseconds);
-        //let rotb = polytope::get_simple_rotation_matrix(Plane::YW, milliseconds);
         program.uniform_1f("u_time", milliseconds);
 
-        program.uniform_matrix_4f("u_four_rotation", &four_rotation);
+        // Uniforms for 4D -> 3D projection.
         program.uniform_4f("u_four_from", &four_cam.from);
+        program.uniform_matrix_4f("u_four_rotation", &four_rotation);
         program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
+        program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
 
+        // Uniforms for 3D -> 2D projection.
         program.uniform_matrix_4f("u_three_rotation", &three_rotation);
+        program.uniform_matrix_4f("u_three_view", &three_view);
+        program.uniform_matrix_4f("u_three_projection", &three_projection);
 
         clear();
 
