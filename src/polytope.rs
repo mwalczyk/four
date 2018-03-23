@@ -5,7 +5,7 @@ use std::mem;
 use std::ptr;
 use std::os::raw::c_void;
 
-use cgmath::{self, Matrix4, Vector4};
+use cgmath::{self, InnerSpace, Matrix4, Vector4};
 use gl;
 use gl::types::*;
 
@@ -235,6 +235,28 @@ impl Polytope {
                 offset,
                 (mem::size_of::<f32>() * 4 as usize) as i32,
             );
+        }
+    }
+
+    fn slice(&self) {
+        let hyperplane_normal = Vector4::new(1.0, 1.0, 1.0, 1.0);
+        let hyperplane_displacement = 0.0;
+
+        let side = |p: Vector4<f32>, n: Vector4<f32>, d: f32| -> f32 { n.dot(p) + d };
+
+        let mut points_of_intersection = Vec::new();
+
+        for pair in self.indices.chunks(2) {
+            let p0 = self.vertices[pair[0] as usize];
+            let p1 = self.vertices[pair[1] as usize];
+
+            let u = -side(p0) / (side(p1) - side(p0));
+
+            if u >= 0.0 && u <= 1.0 {
+                let intersection = p0 + (p1 - p0) * u;
+
+                points_of_intersection.push(intersection);
+            }
         }
     }
 }

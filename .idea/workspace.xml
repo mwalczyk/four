@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/shaders/shader.vert" afterPath="$PROJECT_DIR$/shaders/shader.vert" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/shaders/shader.frag" afterPath="$PROJECT_DIR$/shaders/shader.frag" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
+      <change beforePath="$PROJECT_DIR$/src/polytope.rs" afterPath="$PROJECT_DIR$/src/polytope.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -14,76 +17,43 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5014594">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-          <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/program.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="200">
-                  <caret line="10" column="25" lean-forward="false" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/main.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="115">
-                  <caret line="287" column="42" lean-forward="false" selection-start-line="287" selection-start-column="42" selection-end-line="287" selection-end-column="42" />
-                  <folding>
-                    <element signature="n#!!block;n#hypercube#0" expanded="false" />
-                    <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-                    <element signature="n#!!block;n#save_frame#0" expanded="false" />
-                    <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/polytope.rs">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="109">
-                  <caret line="108" column="23" lean-forward="true" selection-start-line="108" selection-start-column="23" selection-end-line="108" selection-end-column="23" />
-                  <folding>
-                    <element signature="e#3207#4843#0" expanded="false" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="294">
-                  <caret line="40" column="10" lean-forward="true" selection-start-line="40" selection-start-column="10" selection-end-line="40" selection-end-column="10" />
-                  <folding>
-                    <element signature="n#!!block;n#linear_depth#0" expanded="false" />
-                    <element signature="n#!!block;n#sigmoid#0" expanded="false" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="shader.frag" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="480">
-                  <caret line="24" column="41" lean-forward="false" selection-start-line="24" selection-start-column="41" selection-end-line="24" selection-end-column="41" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
+      <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/program.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="10" column="25" lean-forward="false" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-756">
+              <caret line="222" column="30" lean-forward="true" selection-start-line="222" selection-start-column="30" selection-end-line="222" selection-end-column="30" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="88">
+              <caret line="236" column="2" lean-forward="true" selection-start-line="236" selection-start-column="2" selection-end-line="236" selection-end-column="2" />
+              <folding>
+                <element signature="e#4901#4902#0" expanded="true" />
+                <element signature="e#4930#4931#0" expanded="true" />
+                <element signature="e#4976#4977#0" expanded="true" />
+                <element signature="e#5004#5005#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -101,18 +71,17 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/shapes/120cell.txt" />
         <option value="$PROJECT_DIR$/../sdfperf/src/main.rs" />
-        <option value="$PROJECT_DIR$/src/polytope.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
-        <option value="$PROJECT_DIR$/shaders/shader.frag" />
         <option value="$PROJECT_DIR$/shaders/shader.vert" />
+        <option value="$PROJECT_DIR$/shaders/shader.frag" />
+        <option value="$PROJECT_DIR$/src/polytope.rs" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="348" />
-    <option name="y" value="-24" />
-    <option name="width" value="933" />
-    <option name="height" value="1055" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="960" />
+    <option name="width" value="960" />
+    <option name="height" value="1046" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -130,7 +99,6 @@
     </navigator>
     <panes>
       <pane id="PackagesPane" />
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -146,17 +114,13 @@
             <path>
               <item name="four" type="b2602c69:ProjectViewProjectNode" />
               <item name="four" type="462c0819:PsiDirectoryNode" />
-              <item name="shapes" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="four" type="b2602c69:ProjectViewProjectNode" />
-              <item name="four" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -177,7 +141,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.run">
+  <component name="RunManager" selected="Cargo Command.fmt">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="HTML_USED" value="false" />
       <option name="WIDTH" value="400" />
@@ -206,6 +170,14 @@
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
     </configuration>
+    <configuration name="check" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="NIGHTLY" />
+      <option name="command" value="check" />
+      <option name="nocapture" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+    </configuration>
     <configuration name="fmt" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="NIGHTLY" />
       <option name="command" value="fmt" />
@@ -229,12 +201,6 @@
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
     </configuration>
-    <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
-      <module name="" />
-      <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
-      <option name="PROGRAM_PARAMETERS" />
-      <predefined_log_file id="idea.log" enabled="true" />
-    </configuration>
     <configuration name="&lt;template&gt;" type="JUnit" default="true" selected="false">
       <option name="MAIN_CLASS_NAME" />
       <option name="VM_PARAMETERS" value="-ea" />
@@ -247,9 +213,16 @@
       <option name="PARAMETERS" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
     </configuration>
-    <list size="2">
+    <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
+      <module name="" />
+      <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
+      <option name="PROGRAM_PARAMETERS" />
+      <predefined_log_file id="idea.log" enabled="true" />
+    </configuration>
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="Cargo Command.run" />
-      <item index="1" class="java.lang.String" itemvalue="Cargo Command.fmt" />
+      <item index="1" class="java.lang.String" itemvalue="Cargo Command.check" />
+      <item index="2" class="java.lang.String" itemvalue="Cargo Command.fmt" />
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false">
@@ -266,24 +239,25 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="55" y="25" width="1865" height="1055" extended-state="6" />
+    <frame x="960" y="0" width="960" height="1046" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.08150134" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1656051" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cargo" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23864837" sideWeight="0.1919571" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23864837" sideWeight="0.8080429" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24252492" sideWeight="0.20169851" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24252492" sideWeight="0.79830146" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -302,7 +276,10 @@
         <state relative-caret-position="2080">
           <caret line="104" column="17" lean-forward="false" selection-start-line="104" selection-start-column="17" selection-end-line="104" selection-end-column="17" />
           <folding>
-            <element signature="e#3207#4843#0" expanded="false" />
+            <element signature="e#4901#4902#0" expanded="true" />
+            <element signature="e#4930#4931#0" expanded="true" />
+            <element signature="e#4976#4977#0" expanded="true" />
+            <element signature="e#5004#5005#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -311,12 +288,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="5540">
           <caret line="277" column="42" lean-forward="true" selection-start-line="277" selection-start-column="42" selection-end-line="277" selection-end-column="42" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -324,10 +296,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#linear_depth#0" expanded="false" />
-            <element signature="n#!!block;n#sigmoid#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -358,12 +327,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3540">
           <caret line="177" column="69" lean-forward="true" selection-start-line="177" selection-start-column="69" selection-end-line="177" selection-end-column="69" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -372,7 +336,10 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4843#0" expanded="false" />
+            <element signature="e#4901#4902#0" expanded="true" />
+            <element signature="e#4930#4931#0" expanded="true" />
+            <element signature="e#4976#4977#0" expanded="true" />
+            <element signature="e#5004#5005#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -405,7 +372,10 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4843#0" expanded="false" />
+            <element signature="e#4901#4902#0" expanded="true" />
+            <element signature="e#4930#4931#0" expanded="true" />
+            <element signature="e#4976#4977#0" expanded="true" />
+            <element signature="e#5004#5005#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -414,12 +384,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3700">
           <caret line="185" column="37" lean-forward="false" selection-start-line="185" selection-start-column="37" selection-end-line="185" selection-end-column="37" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -443,7 +408,10 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <element signature="e#3207#4843#0" expanded="false" />
+            <element signature="e#4901#4902#0" expanded="true" />
+            <element signature="e#4930#4931#0" expanded="true" />
+            <element signature="e#4976#4977#0" expanded="true" />
+            <element signature="e#5004#5005#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -452,12 +420,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4420">
           <caret line="221" column="37" lean-forward="true" selection-start-line="221" selection-start-column="37" selection-end-line="221" selection-end-column="37" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -495,12 +458,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6552">
           <caret line="364" column="17" lean-forward="true" selection-start-line="364" selection-start-column="17" selection-end-line="364" selection-end-column="17" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -523,12 +481,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="620">
           <caret line="31" column="19" lean-forward="true" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -536,12 +489,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -563,12 +511,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -598,12 +541,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -633,12 +571,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -695,7 +628,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
+        <state relative-caret-position="180">
           <caret line="10" column="25" lean-forward="false" selection-start-line="10" selection-start-column="25" selection-end-line="10" selection-end-column="25" />
           <folding />
         </state>
@@ -708,44 +641,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="287" column="42" lean-forward="false" selection-start-line="287" selection-start-column="42" selection-end-line="287" selection-end-column="42" />
-          <folding>
-            <element signature="n#!!block;n#hypercube#0" expanded="false" />
-            <element signature="n#!!block;n#load_shaders#0" expanded="false" />
-            <element signature="n#!!block;n#save_frame#0" expanded="false" />
-            <element signature="n#!!block;n#load_shapes#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="109">
-          <caret line="108" column="23" lean-forward="true" selection-start-line="108" selection-start-column="23" selection-end-line="108" selection-end-column="23" />
-          <folding>
-            <element signature="e#3207#4843#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="24" column="41" lean-forward="false" selection-start-line="24" selection-start-column="41" selection-end-line="24" selection-end-column="41" />
+        <state relative-caret-position="306">
+          <caret line="17" column="36" lean-forward="false" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="294">
-          <caret line="40" column="10" lean-forward="true" selection-start-line="40" selection-start-column="10" selection-end-line="40" selection-end-column="10" />
+        <state relative-caret-position="130">
+          <caret line="29" column="18" lean-forward="false" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-756">
+          <caret line="222" column="30" lean-forward="true" selection-start-line="222" selection-start-column="30" selection-end-line="222" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="88">
+          <caret line="236" column="2" lean-forward="true" selection-start-line="236" selection-start-column="2" selection-end-line="236" selection-end-column="2" />
           <folding>
-            <element signature="n#!!block;n#linear_depth#0" expanded="false" />
-            <element signature="n#!!block;n#sigmoid#0" expanded="false" />
+            <element signature="e#4901#4902#0" expanded="true" />
+            <element signature="e#4930#4931#0" expanded="true" />
+            <element signature="e#4976#4977#0" expanded="true" />
+            <element signature="e#5004#5005#0" expanded="true" />
           </folding>
         </state>
       </provider>

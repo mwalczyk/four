@@ -42,7 +42,7 @@ struct FourCamera {
     up: Vector4<f32>,
     over: Vector4<f32>,
     look_at: Matrix4<f32>,
-    projection: Matrix4<f32>
+    projection: Matrix4<f32>,
 }
 
 impl FourCamera {
@@ -58,7 +58,7 @@ impl FourCamera {
             up,
             over,
             look_at: Matrix4::identity(),
-            projection: Matrix4::identity()
+            projection: Matrix4::identity(),
         };
         cam.build_look_at();
         cam.build_projection();
@@ -283,7 +283,6 @@ fn main() {
                                     polytope::get_simple_rotation_matrix(Plane::YW, delta.y);
                                 four_rotation = rot_xw * rot_yw * four_rotation;
                             }
-
                         } else {
                             // 3D rotation
                             let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));
