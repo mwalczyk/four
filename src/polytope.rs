@@ -85,7 +85,11 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
 
 pub struct Polytope {
     vertices: Vec<f32>,
-    indices: Vec<u32>,
+    edges: Vec<u32>,
+    faces: Vec<u32>,
+    solids: Vec<u32>,
+    edges_per_face: u32,
+    faces_per_solid: u32,
     vao: u32,
     vbo: u32,
     ebo: u32,
@@ -136,7 +140,7 @@ impl Polytope {
         // Load edge data (2 entries per edge).
         reader.read_line(&mut entry_count);
         number_of_entries = entry_count.trim().parse().unwrap();
-        let mut indices = Vec::with_capacity(number_of_entries * 2);
+        let mut edges = Vec::with_capacity(number_of_entries * 2);
 
         for _ in 0..number_of_entries {
             let mut line = String::new();
@@ -144,19 +148,57 @@ impl Polytope {
 
             for entry in line.split_whitespace() {
                 let data: u32 = entry.trim().parse().unwrap();
-                indices.push(data);
+                edges.push(data);
+            }
+        }
+        entry_count.clear();
+
+        // Load face data (4 entries per face).
+        reader.read_line(&mut entry_count);
+        number_of_entries = entry_count.trim().parse().unwrap();
+        let mut faces = Vec::with_capacity(number_of_entries * 4);
+
+        for _ in 0..number_of_entries {
+            let mut line = String::new();
+            reader.read_line(&mut line);
+
+            for entry in line.split_whitespace() {
+                let data: u32 = entry.trim().parse().unwrap();
+                faces.push(data);
+            }
+        }
+        entry_count.clear();
+
+        // Load solid data (6 entries per solid).
+        reader.read_line(&mut entry_count);
+        number_of_entries = entry_count.trim().parse().unwrap();
+        let mut solids = Vec::with_capacity(number_of_entries * 6);
+
+        for _ in 0..number_of_entries {
+            let mut line = String::new();
+            reader.read_line(&mut line);
+
+            for entry in line.split_whitespace() {
+                let data: u32 = entry.trim().parse().unwrap();
+                solids.push(data);
             }
         }
 
         println!(
-            "Loaded file with {} vertices and {} edges",
+            "Loaded file with {} vertices, {} edges, {} faces, and {} solids",
             vertices.len() / 4,
-            indices.len() / 2
+            edges.len() / 2,
+            faces.len() / 4,
+            solids.len() / 6
         );
 
         let mut polytope = Polytope {
             vertices,
-            indices,
+            edges,
+            faces,
+            solids,
+            edges_per_face: 4,
+            faces_per_solid: 6,
             vao: 0,
             vbo: 0,
             ebo: 0,
@@ -166,23 +208,32 @@ impl Polytope {
         polytope
     }
 
+    pub fn get_vertex(&self, index: usize) -> Vector4<f32> {
+        Vector4::new(
+            self.vertices[index],
+            self.vertices[index + 1],
+            self.vertices[index + 2],
+            self.vertices[index + 3],
+        )
+    }
+
     pub fn get_vertices(&self) -> &Vec<f32> {
         &self.vertices
     }
 
-    pub fn get_indices(&self) -> &Vec<u32> {
-        &self.indices
+    pub fn get_edges(&self) -> &Vec<u32> {
+        &self.edges
     }
 
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
 
-            gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
+            //gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
 
             gl::DrawElements(
                 gl::LINES,
-                self.indices.len() as i32,
+                self.edges.len() as i32,
                 gl::UNSIGNED_INT,
                 ptr::null(),
             );
@@ -208,12 +259,12 @@ impl Polytope {
             );
 
             // Create the index buffer.
-            size = (self.indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
+            size = (self.edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
             gl::CreateBuffers(1, &mut self.ebo);
             gl::NamedBufferData(
                 self.ebo,
                 size,
-                self.indices.as_ptr() as *const GLvoid,
+                self.edges.as_ptr() as *const GLvoid,
                 gl::STATIC_DRAW,
             );
 
@@ -238,25 +289,102 @@ impl Polytope {
         }
     }
 
-    fn slice(&self) {
-        let hyperplane_normal = Vector4::new(1.0, 1.0, 1.0, 1.0);
-        let hyperplane_displacement = 0.0;
+    pub fn intersect_solid(&self) {
+        // for each face index in solid:
+        //      for each edge index in face:
+        //          compute edge intersection with hyperplane
+        //
+        // compute proper ordering (based on signed angle?)
+        //
+        // return slice with proper vertices and edge indices
+    }
 
+    pub fn slice(&self, n: Vector4<f32>, d: f32) -> Slice {
         let side = |p: Vector4<f32>, n: Vector4<f32>, d: f32| -> f32 { n.dot(p) + d };
 
         let mut points_of_intersection = Vec::new();
 
-        for pair in self.indices.chunks(2) {
-            let p0 = self.vertices[pair[0] as usize];
-            let p1 = self.vertices[pair[1] as usize];
+        for pair in self.edges.chunks(2) {
+            let p0 = self.get_vertex(pair[0] as usize);
+            let p1 = self.get_vertex(pair[1] as usize);
 
-            let u = -side(p0) / (side(p1) - side(p0));
+            let u = -side(p0, n, d)
+                / (side(p1, n, d)
+                    - side(p0, n, d));
 
             if u >= 0.0 && u <= 1.0 {
                 let intersection = p0 + (p1 - p0) * u;
 
                 points_of_intersection.push(intersection);
             }
+        }
+
+        let mut vertices = Vec::new();
+        for point in points_of_intersection.iter() {
+            vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+        }
+
+        Slice::new(vertices)
+    }
+}
+
+pub struct Slice {
+    vertices: Vec<f32>,
+    vao: u32,
+    vbo: u32,
+}
+
+impl Slice {
+    pub fn new(vertices: Vec<f32>) -> Slice {
+        let mut slice = Slice {
+            vertices,
+            vao: 0,
+            vbo: 0,
+        };
+
+        slice.init_render_objects();
+        slice
+    }
+
+    fn init_render_objects(&mut self) {
+        unsafe {
+            // Create the vertex array object.
+            gl::CreateVertexArrays(1, &mut self.vao);
+
+            let mut size = (self.vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
+
+            // Create the vertex buffer for holding position data.
+            gl::CreateBuffers(1, &mut self.vbo);
+            gl::NamedBufferData(
+                self.vbo,
+                size,
+                self.vertices.as_ptr() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            // Set up vertex attributes.
+            let binding = 0;
+
+            gl::EnableVertexArrayAttrib(self.vao, 0);
+            gl::VertexArrayAttribFormat(self.vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribBinding(self.vao, 0, binding);
+
+            // Link vertex buffers to vertex attributes, via binding points.
+            let offset = 0;
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                binding,
+                self.vbo,
+                offset,
+                (mem::size_of::<f32>() * 4 as usize) as i32,
+            );
+        }
+    }
+
+    pub fn draw(&self) {
+        unsafe {
+            gl::BindVertexArray(self.vao);
+            gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
         }
     }
 }

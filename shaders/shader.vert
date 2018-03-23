@@ -48,7 +48,7 @@ void main() {
 
     // project 3D -> 2D
     gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
-    gl_PointSize = depth_cue * 4.0;
+    gl_PointSize = 8.0;//depth_cue * 4.0;
 
     // pass 4D depth to fragment shader
     vs_out.depth = sigmoid(depth_cue);
