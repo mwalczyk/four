@@ -24,9 +24,9 @@ use std::path::Path;
 use std::str;
 use std::time::{Duration, SystemTime};
 
-use glutin::GlContext;
 use cgmath::{InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, Rotation,
              SquareMatrix, Transform, Vector2, Vector3, Vector4, Zero};
+use glutin::GlContext;
 use image::{GenericImage, ImageBuffer};
 
 fn clear() {
@@ -192,21 +192,6 @@ fn save_frame(path: &Path, w: u32, h: u32) {
     image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
 }
 
-fn load_shapes() -> Vec<Polytope> {
-    let mut polytopes = Vec::new();
-
-    for entry in fs::read_dir("shapes").unwrap() {
-        let path = entry.unwrap().path();
-        let file = path.file_stem().unwrap();
-        let ext = path.extension();
-
-        if ext == Some(OsStr::new("txt")) {
-            polytopes.push(Polytope::from_file(Path::new(&path)));
-        }
-    }
-    polytopes
-}
-
 fn main() {
     const WIDTH: u32 = 600;
     const HEIGHT: u32 = 600;
@@ -363,9 +348,25 @@ fn main() {
 
         polytopes[draw_index].draw();
 
+        println!("ms: {}", milliseconds.cos());
         let mut slice = polytopes[0].slice(Vector4::new(1.0, 1.0, 1.0, 1.0), milliseconds.cos());
         slice.draw();
 
         gl_window.swap_buffers().unwrap();
     }
+}
+
+fn load_shapes() -> Vec<Polytope> {
+    let mut polytopes = Vec::new();
+
+    for entry in fs::read_dir("shapes").unwrap() {
+        let path = entry.unwrap().path();
+        let file = path.file_stem().unwrap();
+        let ext = path.extension();
+
+        if ext == Some(OsStr::new("txt")) {
+            polytopes.push(Polytope::from_file(Path::new(&path)));
+        }
+    }
+    polytopes
 }

@@ -1,9 +1,9 @@
 use std::fs::File;
-use std::path::Path;
 use std::io::{BufRead, BufReader};
 use std::mem;
-use std::ptr;
 use std::os::raw::c_void;
+use std::path::Path;
+use std::ptr;
 
 use cgmath::{self, InnerSpace, Matrix4, Vector4};
 use gl;
@@ -88,6 +88,7 @@ pub struct Polytope {
     edges: Vec<u32>,
     faces: Vec<u32>,
     solids: Vec<u32>,
+    vertices_per_edge: u32,
     edges_per_face: u32,
     faces_per_solid: u32,
     vao: u32,
@@ -197,6 +198,7 @@ impl Polytope {
             edges,
             faces,
             solids,
+            vertices_per_edge: 2,
             edges_per_face: 4,
             faces_per_solid: 6,
             vao: 0,
@@ -289,34 +291,87 @@ impl Polytope {
         }
     }
 
-    pub fn intersect_solid(&self) {
-        // for each face index in solid:
-        //      for each edge index in face:
-        //          compute edge intersection with hyperplane
-        //
-        // compute proper ordering (based on signed angle?)
-        //
-        // return slice with proper vertices and edge indices
-    }
-
+    /// Pseudo-code:
+    ///
+    /// create `hyperplane`
+    /// create new list of `points`
+    ///
+    /// for each `solid` in `polytope`
+    ///     for each `face` in `solid`
+    ///         for each `edge` in `face`
+    ///             compute intersection between `edge` and `hyperplane`
+    ///             if VALID add to `points`
+    ///
+    ///     compute proper ordering of `points` (based on signed angle)
+    ///
+    /// Returns a slice with the proper vertices and edge indices.
     pub fn slice(&self, n: Vector4<f32>, d: f32) -> Slice {
-        let side = |p: Vector4<f32>, n: Vector4<f32>, d: f32| -> f32 { n.dot(p) + d };
+        let side = |p: Vector4<f32>| -> f32 { n.dot(p) + d };
 
         let mut points_of_intersection = Vec::new();
 
-        for pair in self.edges.chunks(2) {
-            let p0 = self.get_vertex(pair[0] as usize);
-            let p1 = self.get_vertex(pair[1] as usize);
+        let debug = false;
+        for (solid, faces) in self.solids
+            .chunks(self.faces_per_solid as usize)
+            .enumerate()
+        {
+            // Each solid has `faces_per_solid` indices, corresponding to entries
+            // in this polytope's `faces` list. For example, the first solid in a
+            // hypercube contains the following face indices: [0  1  2  3  4  5].
+            let mut intersections_found = 0;
+            let mut examined_edges = Vec::new();
+            for face in faces {
+                if debug {
+                    println!("  face: {}", face);
+                }
 
-            let u = -side(p0, n, d)
-                / (side(p1, n, d)
-                    - side(p0, n, d));
+                // Each face has `edges_per_face` indices, corresponding to entries
+                // in this polytope's `edges` list. For example, the first face in a
+                // hypercube contains the following edge indices: [0  1  2  3].
+                let idx_face_s = (*face * self.edges_per_face) as usize;
+                let idx_face_e = (*face * self.edges_per_face + self.edges_per_face) as usize;
+                let edges = &self.faces[idx_face_s..idx_face_e];
 
-            if u >= 0.0 && u <= 1.0 {
-                let intersection = p0 + (p1 - p0) * u;
+                if debug {
+                    println!("      edges for this face: {:?}", edges);
+                }
+                for edge in edges {
+                    // The faces that make up this solid will have shared edges, so
+                    // we want to make sure that we calculate an intersection *once*
+                    // per unique edge.
+                    if !examined_edges.contains(edge) {
+                        // Grab the pair of vertex indices corresponding to this edge.
+                        let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
+                        let idx_edge_e = (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
+                        let pair = &self.edges[idx_edge_s..idx_edge_e];
 
-                points_of_intersection.push(intersection);
+                        if debug {
+                            println!("      edge: {:?}", pair);
+                        }
+                        // Grab the two vertices that form this edge.
+                        let p0 = self.get_vertex(pair[0] as usize);
+                        let p1 = self.get_vertex(pair[1] as usize);
+
+                        // Calculate whether or not there was an intersection between this
+                        // edge and the 4-dimensional hyperplane.
+                        let u = -side(p0) / (side(p1) - side(p0));
+                        if u >= 0.0 && u <= 1.0 {
+                            // Calculate the point of intersection in 4D.
+                            let intersection = p0 + (p1 - p0) * u;
+                            points_of_intersection.push(intersection);
+
+                            intersections_found += 1;
+                        }
+
+                        examined_edges.push(*edge);
+                    }
+                }
             }
+
+//            println!(
+//                "{} intersections found for solid {}",
+//                intersections_found, solid
+//            );
         }
 
         let mut vertices = Vec::new();

@@ -16,7 +16,7 @@ vec3 palette(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)
 
 void main() {
     vec3 c = palette(fs_in.depth * 4.0 - 0.85,
-                     vec3(0.50, 0.50, 0.50),
+                     vec3(0.50, 0.70, 0.50),
                      vec3(0.50, 0.50, 0.50),
                      vec3(1.00, 1.00, 1.00),
                      vec3(0.00, 0.10, 0.20));

@@ -36,8 +36,8 @@ float sigmoid(float x)
 }
 
 void main() {
-
     // project 4D -> 3D
+
     vec4 p = u_four_rotation * position;
     p = p - u_four_from;
     p = u_four_view * p;

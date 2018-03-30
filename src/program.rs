@@ -4,9 +4,9 @@ use gl::types::*;
 use cgmath;
 use cgmath::{Array, Matrix, Matrix4, Vector2, Vector3, Vector4};
 
+use std::ffi::CString;
 use std::ptr;
 use std::str;
-use std::ffi::CString;
 
 pub struct UniformEntry {
     name: String,
