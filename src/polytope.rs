@@ -352,26 +352,34 @@ impl Polytope {
                         let p0 = self.get_vertex(pair[0] as usize);
                         let p1 = self.get_vertex(pair[1] as usize);
 
-                        // Calculate whether or not there was an intersection between this
-                        // edge and the 4-dimensional hyperplane.
-                        let u = -side(p0) / (side(p1) - side(p0));
-                        if u >= 0.0 && u <= 1.0 {
-                            // Calculate the point of intersection in 4D.
-                            let intersection = p0 + (p1 - p0) * u;
-                            points_of_intersection.push(intersection);
+                        let side0 = p0.w - d;
+                        let side1 = p1.w - d;
 
+                        if (p0.w > d && p1.w < d) || (p0.w < d && p1.w > d) {
                             intersections_found += 1;
+                            points_of_intersection.push(Vector4::new(0.0, 0.0, 0.0, 0.0));
                         }
 
+                        // Calculate whether or not there was an intersection between this
+                        // edge and the 4-dimensional hyperplane.
+//                        let u = -side(p0) / (side(p1) - side(p0));
+//                        if u >= 0.0 && u <= 1.0 {
+//                            // Calculate the point of intersection in 4D.
+//                            let intersection = p0 + (p1 - p0) * u;
+//                            points_of_intersection.push(intersection);
+//
+//                            intersections_found += 1;
+//                        }
+//
                         examined_edges.push(*edge);
                     }
                 }
             }
 
-//            println!(
-//                "{} intersections found for solid {}",
-//                intersections_found, solid
-//            );
+            println!(
+                "{} intersections found for solid {}",
+                intersections_found, solid
+            );
         }
 
         let mut vertices = Vec::new();

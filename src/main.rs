@@ -348,7 +348,6 @@ fn main() {
 
         polytopes[draw_index].draw();
 
-        println!("ms: {}", milliseconds.cos());
         let mut slice = polytopes[0].slice(Vector4::new(1.0, 1.0, 1.0, 1.0), milliseconds.cos());
         slice.draw();
 
