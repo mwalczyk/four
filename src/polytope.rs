@@ -357,11 +357,6 @@ impl Polytope {
                             println!("          vertex 1: {:?}", p1);
                         }
 
-//                        if side(p0) * side(p1) < 0.0 {
-//                            intersections_found += 1;
-//                            points_of_intersection.push(Vector4::new(0.0, 0.0, 0.0, 0.0));
-//                        }
-
                         // Calculate whether or not there was an intersection between this
                         // edge and the 4-dimensional hyperplane.
                         let u = -side(p0) / (side(p1) - side(p0));
@@ -378,17 +373,17 @@ impl Polytope {
                 }
             }
 
-            println!(
-                "{} intersections found for solid {}",
-                intersections_found, solid
-            );
+//            println!(
+//                "{} intersections found for solid {}",
+//                intersections_found, solid
+//            );
         }
 
         let mut vertices = Vec::new();
         for point in points_of_intersection.iter() {
             vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
         }
-        println!("-------------------------------");
+        //println!("-------------------------------");
 
         Slice::new(vertices)
     }

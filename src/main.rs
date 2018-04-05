@@ -348,7 +348,7 @@ fn main() {
 
         polytopes[draw_index].draw();
 
-        let mut slice = polytopes[0].slice(Vector4::new(1.0, 1.0, 1.0, 1.0), milliseconds.cos() * 2.5);
+        let mut slice = polytopes[0].slice(Vector4::new(1.0, 1.0, 1.0, 1.0), (cursor_curr.x * 2.0 - 1.0) * 2.5);
         slice.draw();
 
         gl_window.swap_buffers().unwrap();
