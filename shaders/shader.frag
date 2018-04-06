@@ -29,5 +29,5 @@ void main() {
 
 
     vec3 color = vec3(fs_in.depth);
-    o_color = vec4(c, 1.0);
+    o_color = vec4(max(vec3(0.8), c), 1.0);
 }

@@ -12,7 +12,7 @@ extern crate image;
 mod polytope;
 mod program;
 
-use polytope::{Plane, Polytope};
+use polytope::{cross, Plane, Polytope};
 use program::Program;
 
 use std::ffi::OsStr;
@@ -66,29 +66,11 @@ impl FourCamera {
         cam
     }
 
-    /// Takes a 4D cross product between `u`, `v`, and `w`.
-    fn cross(&self, u: &Vector4<f32>, v: &Vector4<f32>, w: &Vector4<f32>) -> Vector4<f32> {
-        let a = (v[0] * w[1]) - (v[1] * w[0]);
-        let b = (v[0] * w[2]) - (v[2] * w[0]);
-        let c = (v[0] * w[3]) - (v[3] * w[0]);
-        let d = (v[1] * w[2]) - (v[2] * w[1]);
-        let e = (v[1] * w[3]) - (v[3] * w[1]);
-        let f = (v[2] * w[3]) - (v[3] * w[2]);
-
-        let result = Vector4::new(
-            (u[1] * f) - (u[2] * e) + (u[3] * d),
-            -(u[0] * f) + (u[2] * c) - (u[3] * b),
-            (u[0] * e) - (u[1] * c) + (u[3] * a),
-            -(u[0] * d) + (u[1] * b) - (u[2] * a),
-        );
-        result
-    }
-
     fn build_look_at(&mut self) {
         let wd = (self.to - self.from).normalize();
-        let wa = self.cross(&self.up, &self.over, &wd).normalize();
-        let wb = self.cross(&self.over, &wd, &wa).normalize();
-        let wc = self.cross(&wd, &wa, &wb);
+        let wa = cross(&self.up, &self.over, &wd).normalize();
+        let wb = cross(&self.over, &wd, &wa).normalize();
+        let wc = cross(&wd, &wa, &wb);
 
         self.look_at = Matrix4::from_cols(wa, wb, wc, wd);
     }
@@ -348,8 +330,12 @@ fn main() {
 
         polytopes[draw_index].draw();
 
-        let mut slice = polytopes[0].slice(Vector4::new(1.0, 1.0, 1.0, 1.0), (cursor_curr.x * 2.0 - 1.0) * 2.5);
-        slice.draw();
+        if let Some(slice) = polytopes[0].slice(
+            Vector4::new(1.0, 1.0, 1.0, 1.0),
+            (cursor_curr.x * 2.0 - 1.0) * 2.5,
+        ) {
+            slice.draw();
+        }
 
         gl_window.swap_buffers().unwrap();
     }

@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, InnerSpace, Matrix4, Vector4};
+use cgmath::{self, InnerSpace, Matrix4, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -18,8 +18,26 @@ pub enum Plane {
     ZW,
 }
 
+/// Takes a 4D cross product between `u`, `v`, and `w`.
+pub fn cross(u: &Vector4<f32>, v: &Vector4<f32>, w: &Vector4<f32>) -> Vector4<f32> {
+    let a = (v[0] * w[1]) - (v[1] * w[0]);
+    let b = (v[0] * w[2]) - (v[2] * w[0]);
+    let c = (v[0] * w[3]) - (v[3] * w[0]);
+    let d = (v[1] * w[2]) - (v[2] * w[1]);
+    let e = (v[1] * w[3]) - (v[3] * w[1]);
+    let f = (v[2] * w[3]) - (v[3] * w[2]);
+
+    let result = Vector4::new(
+        (u[1] * f) - (u[2] * e) + (u[3] * d),
+        -(u[0] * f) + (u[2] * c) - (u[3] * b),
+        (u[0] * e) - (u[1] * c) + (u[3] * a),
+        -(u[0] * d) + (u[1] * b) - (u[2] * a),
+    );
+    result
+}
+
 /// The 4D equivalent of a quaternion is known as a rotor.
-/// https://math.stackexchange.com/questions/1402362/rotation-in-4d
+/// Reference: `https://math.stackexchange.com/questions/1402362/rotation-in-4d`
 pub fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
     let c = angle.cos();
     let s = angle.sin();
@@ -83,8 +101,6 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
-pub fn angle_between(a: &Vector4<f32>, b: &Vector4<f32>) {
-}
 pub struct Polytope {
     vertices: Vec<f32>,
     edges: Vec<u32>,
@@ -307,14 +323,18 @@ impl Polytope {
     ///     compute proper ordering of `points` (based on signed angle)
     ///
     /// Returns a slice with the proper vertices and edge indices.
-    pub fn slice(&self, mut n: Vector4<f32>, d: f32) -> Slice {
+    pub fn slice(&self, mut n: Vector4<f32>, d: f32) -> Option<Slice> {
         n = n.normalize();
 
         let side = |p: Vector4<f32>| -> f32 { n.dot(p) + d };
 
-        let mut points_of_intersection = Vec::new();
+        let mut all_vertices = Vec::new();
+        let mut all_indices = Vec::new();
 
         let debug = false;
+
+        let mut last_intersection_count = 0;
+
         for (solid, faces) in self.solids
             .chunks(self.faces_per_solid as usize)
             .enumerate()
@@ -322,8 +342,8 @@ impl Polytope {
             // Each solid has `faces_per_solid` indices, corresponding to entries
             // in this polytope's `faces` list. For example, the first solid in a
             // hypercube contains the following face indices: [0  1  2  3  4  5].
-            let mut intersections_found = 0;
             let mut examined_edges = Vec::new();
+            let mut intersections = Vec::new();
             for face in faces {
                 if debug {
                     println!("  face: {}", face);
@@ -346,7 +366,8 @@ impl Polytope {
                     if !examined_edges.contains(edge) {
                         // Grab the pair of vertex indices corresponding to this edge.
                         let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
-                        let idx_edge_e = (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
+                        let idx_edge_e =
+                            (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
                         let pair = &self.edges[idx_edge_s..idx_edge_e];
 
                         if debug {
@@ -367,9 +388,7 @@ impl Polytope {
                         if u >= 0.0 && u <= 1.0 {
                             // Calculate the point of intersection in 4D.
                             let intersection = p0 + (p1 - p0) * u;
-                            points_of_intersection.push(intersection);
-
-                            intersections_found += 1;
+                            intersections.push(intersection);
                         }
 
                         examined_edges.push(*edge);
@@ -377,34 +396,82 @@ impl Polytope {
                 }
             }
 
-//            println!(
-//                "{} intersections found for solid {}",
-//                intersections_found, solid
-//            );
-        }
+            if intersections.len() >= 3 {
+                let mut centroid: Vector4<f32> = intersections.iter().sum();
+                centroid /= intersections.len() as f32;
 
-        let mut vertices = Vec::new();
-        for point in points_of_intersection.iter() {
-            vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+                let a = intersections[0];
+                let b = intersections[1];
+                let c = intersections[2];
+                let ab = b - a;
+                let bc = c - b;
+                let ca = a - c;
+                let polygon_normal = cross(&ab, &bc, &ca);
+
+                let mut first_edge = (a - centroid).normalize();
+
+                let mut indices = Vec::new();
+                for i in 1..intersections.len() {
+                    let p = intersections[i];
+
+                    let edge = (p - centroid).normalize();
+
+                    let mut ang = first_edge.dot(edge);
+                    ang = ang.max(-1.0).min(1.0);
+
+                    let mut signed_angle = ang.acos();
+                    if polygon_normal.dot(cross(&first_edge, &edge, &ab)) < 0.0 {
+                        signed_angle *= -1.0;
+                    }
+
+                    indices.push((i, signed_angle));
+                }
+                indices.push((0, 0.0));
+                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+
+
+                for item in indices.iter() {
+                    let i = item.0;
+                    let point = intersections[i];
+                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+                    all_indices.push((i + last_intersection_count) as u32);
+                }
+
+                last_intersection_count = intersections.len();
+                //println!("{:?}", indices);
+            }
+
+            //            println!(
+            //                "{} intersections found for solid {}",
+            //                intersections.len(), solid
+            //            );
         }
         //println!("-------------------------------");
 
-        Slice::new(vertices)
+        if all_vertices.len() > 0 && all_indices.len() > 0 {
+            return Some(Slice::new(all_vertices, all_indices));
+        }
+        None
     }
 }
 
 pub struct Slice {
     vertices: Vec<f32>,
+    edges: Vec<u32>,
     vao: u32,
     vbo: u32,
+    ebo: u32,
 }
 
 impl Slice {
-    pub fn new(vertices: Vec<f32>) -> Slice {
+    pub fn new(vertices: Vec<f32>, edges: Vec<u32>) -> Slice {
         let mut slice = Slice {
             vertices,
+            edges,
             vao: 0,
             vbo: 0,
+            ebo: 0,
         };
 
         slice.init_render_objects();
@@ -427,12 +494,24 @@ impl Slice {
                 gl::DYNAMIC_DRAW,
             );
 
+            // Create the index buffer.
+            size = (self.edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
+            gl::CreateBuffers(1, &mut self.ebo);
+            gl::NamedBufferData(
+                self.ebo,
+                size,
+                self.edges.as_ptr() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
             // Set up vertex attributes.
             let binding = 0;
 
             gl::EnableVertexArrayAttrib(self.vao, 0);
             gl::VertexArrayAttribFormat(self.vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
             gl::VertexArrayAttribBinding(self.vao, 0, binding);
+
+            gl::VertexArrayElementBuffer(self.vao, self.ebo);
 
             // Link vertex buffers to vertex attributes, via binding points.
             let offset = 0;
@@ -449,7 +528,18 @@ impl Slice {
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
-            gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
+            if self.vertices.len() > 0 {
+                gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
+            }
+
+            if self.edges.len() > 0 {
+                gl::DrawElements(
+                    gl::LINES,
+                    self.edges.len() as i32,
+                    gl::UNSIGNED_INT,
+                    ptr::null(),
+                );
+            }
         }
     }
 }
