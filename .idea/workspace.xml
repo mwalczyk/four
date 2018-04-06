@@ -15,7 +15,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.6682779">
+    <splitter split-orientation="horizontal" split-proportion="0.50090635">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
           <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
@@ -27,22 +27,22 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+          <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="201">
-                  <caret line="345" lean-forward="true" selection-start-line="345" selection-end-line="345" />
+                <state relative-caret-position="419">
+                  <caret line="212" column="22" selection-start-line="212" selection-start-column="22" selection-end-line="212" selection-end-column="22" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="false">
+          <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/polytope.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="843">
-                  <caret line="357" column="25" selection-start-line="357" selection-start-column="25" selection-end-line="357" selection-end-column="25" />
+                <state relative-caret-position="158">
+                  <caret line="310" column="26" lean-forward="true" selection-start-line="310" selection-start-column="26" selection-end-line="310" selection-end-column="26" />
                   <folding>
-                    <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
+                    <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -52,11 +52,11 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="false">
+          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="510">
-                  <caret line="34" column="33" lean-forward="true" selection-start-line="34" selection-start-column="33" selection-end-line="34" selection-end-column="33" />
+                <state relative-caret-position="406">
+                  <caret line="49" column="74" selection-start-line="49" selection-start-column="74" selection-end-line="49" selection-end-column="74" />
                 </state>
               </provider>
             </entry>
@@ -70,7 +70,7 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="8cell.txt" pinned="false" current-in-tab="true">
+          <file leaf-file-name="8cell.txt" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="165">
@@ -104,10 +104,10 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/shapes/120cell.txt" />
         <option value="$PROJECT_DIR$/../sdfperf/src/main.rs" />
-        <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/shaders/shader.frag" />
-        <option value="$PROJECT_DIR$/src/polytope.rs" />
+        <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/polytope.rs" />
       </list>
     </option>
   </component>
@@ -250,7 +250,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="55" y="25" width="1865" height="1055" extended-state="7" />
+    <frame x="55" y="25" width="1865" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -304,7 +304,7 @@
         <state relative-caret-position="630">
           <caret line="96" column="1" lean-forward="true" selection-start-line="96" selection-start-column="1" selection-end-line="96" selection-end-column="1" />
           <folding>
-            <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
+            <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
           </folding>
         </state>
       </provider>
@@ -370,7 +370,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
+            <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
           </folding>
         </state>
       </provider>
@@ -394,7 +394,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
+            <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
           </folding>
         </state>
       </provider>
@@ -425,7 +425,7 @@
         <state relative-caret-position="100">
           <caret line="5" column="24" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="24" />
           <folding>
-            <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
+            <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
           </folding>
         </state>
       </provider>
@@ -599,34 +599,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="34" column="33" lean-forward="true" selection-start-line="34" selection-start-column="33" selection-end-line="34" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="35" selection-start-line="18" selection-start-column="35" selection-end-line="18" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-45">
           <caret line="15" column="20" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="843">
-          <caret line="357" column="25" selection-start-line="357" selection-start-column="25" selection-end-line="357" selection-end-column="25" />
-          <folding>
-            <marker date="1522904782613" expanded="true" signature="12457:12597" ph="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -637,10 +613,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="18" column="35" selection-start-line="18" selection-start-column="35" selection-end-line="18" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="406">
+          <caret line="49" column="74" selection-start-line="49" selection-start-column="74" selection-end-line="49" selection-end-column="74" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="345" lean-forward="true" selection-start-line="345" selection-end-line="345" />
+        <state relative-caret-position="419">
+          <caret line="212" column="22" selection-start-line="212" selection-start-column="22" selection-end-line="212" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="158">
+          <caret line="310" column="26" lean-forward="true" selection-start-line="310" selection-start-column="26" selection-end-line="310" selection-end-column="26" />
+          <folding>
+            <marker date="1522992380344" expanded="true" signature="12550:12690" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

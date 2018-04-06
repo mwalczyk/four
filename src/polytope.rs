@@ -83,6 +83,8 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
+pub fn angle_between(a: &Vector4<f32>, b: &Vector4<f32>) {
+}
 pub struct Polytope {
     vertices: Vec<f32>,
     edges: Vec<u32>,
@@ -305,7 +307,9 @@ impl Polytope {
     ///     compute proper ordering of `points` (based on signed angle)
     ///
     /// Returns a slice with the proper vertices and edge indices.
-    pub fn slice(&self, n: Vector4<f32>, d: f32) -> Slice {
+    pub fn slice(&self, mut n: Vector4<f32>, d: f32) -> Slice {
+        n = n.normalize();
+
         let side = |p: Vector4<f32>| -> f32 { n.dot(p) + d };
 
         let mut points_of_intersection = Vec::new();
