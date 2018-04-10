@@ -442,10 +442,10 @@ impl Polytope {
                 //println!("{:?}", indices);
             }
 
-            //            println!(
-            //                "{} intersections found for solid {}",
-            //                intersections.len(), solid
-            //            );
+//                        println!(
+//                            "{} intersections found for solid {}",
+//                            intersections.len(), solid
+//                        );
         }
         //println!("-------------------------------");
 
