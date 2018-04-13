@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, InnerSpace, Matrix4, Vector4, Zero};
+use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -382,96 +382,106 @@ impl Polytope {
                             println!("          vertex 1: {:?}", p1);
                         }
 
-                        if (p0.w > d && p1.w < d) || (p0.w < d && p1.w > d) {
-
-                            let intersection = Vector4::new(
-                              p0.x + (p1.x - p0.x) * (d - p0.w) / (p1.w - p0.w),
-                              p0.y + (p1.y - p0.y) * (d - p0.w) / (p1.w - p0.w),
-                              p0.z + (p1.z - p0.z) * (d - p0.w) / (p1.w - p0.w),
-                              d
-                            );
-                            intersections.push(intersection);
-                        }
-
-
-
-
-//                        // Calculate whether or not there was an intersection between this
-//                        // edge and the 4-dimensional hyperplane.
-//                        let u = -side(p0) / (side(p1) - side(p0));
-//                        if u >= 0.0 && u <= 1.0 {
-//                            // Calculate the point of intersection in 4D.
-//                            let intersection = p0 + (p1 - p0) * u;
+//                        if (p0.w > d && p1.w < d) || (p0.w < d && p1.w > d) {
+//
+//                            let intersection = Vector4::new(
+//                              p0.x + (p1.x - p0.x) * (d - p0.w) / (p1.w - p0.w),
+//                              p0.y + (p1.y - p0.y) * (d - p0.w) / (p1.w - p0.w),
+//                              p0.z + (p1.z - p0.z) * (d - p0.w) / (p1.w - p0.w),
+//                              d
+//                            );
 //                            intersections.push(intersection);
+//                        }
+//
+//                        if (p0.w - d).abs() + (p1.w - d).abs() <= 1e-6 {
+//                            intersections.push(p0);
+//                            intersections.push(p1);
 //                        }
 
 
 
+                        // Calculate whether or not there was an intersection between this
+                        // edge and the 4-dimensional hyperplane.
+                        let u = -side(p0) / (side(p1) - side(p0));
+                        if u >= 0.0 && u <= 1.0 {
+                            // Calculate the point of intersection in 4D.
+                            let intersection = p0 + (p1 - p0) * u;
+                            intersections.push(intersection);
+                        }
 
-
-
-                        examined_edges.push(*edge);
+                       // examined_edges.push(*edge);
                     }
                 }
             }
 
-//            if intersections.len() >= 3 {
-//                let mut centroid: Vector4<f32> = intersections.iter().sum();
-//                centroid /= intersections.len() as f32;
-//
-//                let a = intersections[0];
-//                let b = intersections[1];
-//                let c = intersections[2];
-//                let ab = b - a;
-//                let bc = c - b;
-//                let ca = a - c;
-//                let polygon_normal = cross(&ab, &bc, &ca);
-//
-//                let mut first_edge = (a - centroid).normalize();
-//
-//                let mut indices = Vec::new();
-//                for i in 1..intersections.len() {
-//                    let p = intersections[i];
-//
-//                    let edge = (p - centroid).normalize();
-//
-//                    let mut ang = first_edge.dot(edge);
-//                    ang = ang.max(-1.0).min(1.0);
-//
-//                    let mut signed_angle = ang.acos();
-//                    if polygon_normal.dot(cross(&first_edge, &edge, &ab)) < 0.0 {
-//                        signed_angle *= -1.0;
-//                    }
-//
-//                    indices.push((i, signed_angle));
-//                }
-//                indices.push((0, 0.0));
-//                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-//
-//
-//
+            if intersections.len() >= 3 {
+                let mut centroid4: Vector4<f32> = intersections.iter().sum();
+                centroid4 /= intersections.len() as f32;
+
+                let centroid = Vector3::new(centroid4.x, centroid4.y, centroid4.z);
+
+                let a = Vector3::new(intersections[0].x, intersections[0].y, intersections[0].z);
+                let b = Vector3::new(intersections[1].x, intersections[1].y, intersections[1].z);
+                let c = Vector3::new(intersections[2].x, intersections[2].y, intersections[2].z);
+                let ab = b - a;
+                let bc = c - b;
+
+                let polygon_normal = bc.cross(ab);
+
+                let mut first_edge = (a - centroid).normalize();
+
+                let mut indices = Vec::new();
+                for i in 1..intersections.len() {
+                    let p4 = intersections[i];
+
+                    let p = Vector3::new(p4.x, p4.y, p4.z);
+                    let edge = (p - centroid).normalize();
+
+                    let mut ang = first_edge.dot(edge);
+                    ang = ang.max(-1.0).min(1.0);
+
+                    let mut signed_angle = ang.acos();
+                    if polygon_normal.dot(first_edge.cross(edge)) < 0.0 {
+                        signed_angle *= -1.0;
+                    }
+
+                    indices.push((i, signed_angle));
+                }
+                indices.push((0, 0.0));
+                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+                for index in 0..indices.len() {
+                    let i0 = indices[index].0;
+                    let i1 = indices[(index+1) % indices.len()].0;
+                    all_indices.push((i0 + last_intersection_count) as u32);
+                    all_indices.push((i1 + last_intersection_count) as u32);
+                }
+
+                for pair in indices.iter() {
+                    let point = intersections[pair.0];
+                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+                }
+
 //                for item in indices.iter() {
 //                    let i = item.0;
 //                    let point = intersections[i];
 //                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
 //                    all_indices.push((i + last_intersection_count) as u32);
 //                }
-//
-//                last_intersection_count = intersections.len();
-//            }
 
-//                        println!(
-//                            "{} intersections found for solid {}",
-//                            intersections.len(), solid
-//                        );
-
-            for point in intersections.iter() {
-                all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+                last_intersection_count = intersections.len();
             }
-        }
-        //println!("-------------------------------");
 
-        println!("{}", all_vertices.len());
+//            println!(
+//                "{} intersections found for solid {}",
+//                intersections.len(), solid
+//            );
+//            for point in intersections.iter() {
+//                all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+//            }
+        }
+//        println!("-------------------------------");
+
         if all_vertices.len() > 0 { //} && all_indices.len() > 0 {
             return Some(Slice::new(all_vertices, all_indices));
         }
@@ -555,14 +565,14 @@ impl Slice {
                 gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
             }
 
-//            if self.edges.len() > 0 {
-//                gl::DrawElements(
-//                    gl::LINES,
-//                    self.edges.len() as i32,
-//                    gl::UNSIGNED_INT,
-//                    ptr::null(),
-//                );
-//            }
+            if self.edges.len() > 0 {
+                gl::DrawElements(
+                    gl::LINES,
+                    self.edges.len() as i32,
+                    gl::UNSIGNED_INT,
+                    ptr::null(),
+                );
+            }
         }
     }
 }

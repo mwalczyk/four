@@ -15,50 +15,38 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/src/polytope.rs">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="823">
-                    <caret line="402" column="59" lean-forward="true" selection-start-line="402" selection-start-column="59" selection-end-line="402" selection-end-column="59" />
-                    <folding>
-                      <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
-                      <element signature="n#!!block;n#get_double_rotation_matrix#0" />
-                      <element signature="e#7008#7215#0" />
-                      <element signature="e#15704#17242#0" />
-                      <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
-  </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.4862119">
+    <splitter split-orientation="horizontal" split-proportion="0.5860215">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
           <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/program.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="378">
+                <state relative-caret-position="405">
                   <caret line="27" selection-start-line="27" selection-end-line="27" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+          <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="261">
-                  <caret line="193" column="33" lean-forward="true" selection-start-line="193" selection-start-column="33" selection-end-line="193" selection-end-column="33" />
+                <state relative-caret-position="519">
+                  <caret line="330" column="37" lean-forward="true" selection-start-line="330" selection-start-column="37" selection-end-line="330" selection-end-column="37" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/src/polytope.rs">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="325">
+                  <caret line="398" column="27" lean-forward="true" selection-start-line="398" selection-start-column="27" selection-end-line="398" selection-end-column="27" />
+                  <folding>
+                    <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
+                    <element signature="n#!!block;n#get_double_rotation_matrix#0" />
+                    <element signature="e#7008#7215#0" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -67,11 +55,11 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="true">
+          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="392">
-                  <caret line="28" column="4" selection-start-line="28" selection-start-column="4" selection-end-line="28" selection-end-column="4" />
+                <state relative-caret-position="398">
+                  <caret line="45" column="4" selection-start-line="45" selection-start-column="4" selection-end-line="45" selection-end-column="4" />
                 </state>
               </provider>
             </entry>
@@ -79,16 +67,16 @@
           <file leaf-file-name="shader.frag" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="434">
+                <state relative-caret-position="465">
                   <caret line="31" column="31" selection-start-line="31" selection-start-column="31" selection-end-line="31" selection-end-column="31" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="8cell.txt" pinned="false" current-in-tab="false">
+          <file leaf-file-name="8cell.txt" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="154">
+                <state relative-caret-position="165">
                   <caret line="11" column="19" selection-start-line="11" selection-start-column="19" selection-end-line="11" selection-end-column="19" />
                 </state>
               </provider>
@@ -108,6 +96,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>6</find>
+      <find>3</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -119,14 +108,14 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/shapes/120cell.txt" />
         <option value="$PROJECT_DIR$/../sdfperf/src/main.rs" />
-        <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/shaders/shader.frag" />
+        <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/polytope.rs" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="360" />
     <option name="y" value="325" />
     <option name="width" value="915" />
@@ -137,6 +126,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -163,8 +154,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -265,19 +254,17 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="851" extended-state="6" />
-    <editor active="true" />
+    <frame x="55" y="25" width="1865" height="1055" extended-state="6" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.102864586" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.10241287" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Cargo" order="3" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.2890625" side_tool="true" visible="true" weight="0.3197832" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.7109375" visible="true" weight="0.3197832" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.28954422" side_tool="true" visible="true" weight="0.250264" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.7104558" weight="0.250264" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -287,6 +274,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -322,8 +310,6 @@
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
             <element signature="n#!!block;n#get_double_rotation_matrix#0" />
             <element signature="e#7008#7215#0" />
-            <element signature="e#15704#17242#0" />
-            <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
           </folding>
         </state>
       </provider>
@@ -392,8 +378,6 @@
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
             <element signature="n#!!block;n#get_double_rotation_matrix#0" />
             <element signature="e#7008#7215#0" />
-            <element signature="e#15704#17242#0" />
-            <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
           </folding>
         </state>
       </provider>
@@ -420,8 +404,6 @@
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
             <element signature="n#!!block;n#get_double_rotation_matrix#0" />
             <element signature="e#7008#7215#0" />
-            <element signature="e#15704#17242#0" />
-            <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
           </folding>
         </state>
       </provider>
@@ -455,8 +437,6 @@
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
             <element signature="n#!!block;n#get_double_rotation_matrix#0" />
             <element signature="e#7008#7215#0" />
-            <element signature="e#15704#17242#0" />
-            <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
           </folding>
         </state>
       </provider>
@@ -630,51 +610,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="11" column="19" selection-start-line="11" selection-start-column="19" selection-end-line="11" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
+        <state relative-caret-position="405">
           <caret line="27" selection-start-line="27" selection-end-line="27" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
+        <state relative-caret-position="465">
           <caret line="31" column="31" selection-start-line="31" selection-start-column="31" selection-end-line="31" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="28" column="4" selection-start-line="28" selection-start-column="4" selection-end-line="28" selection-end-column="4" />
+        <state relative-caret-position="398">
+          <caret line="45" column="4" selection-start-line="45" selection-start-column="4" selection-end-line="45" selection-end-column="4" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="193" column="33" lean-forward="true" selection-start-line="193" selection-start-column="33" selection-end-line="193" selection-end-column="33" />
+        <state relative-caret-position="519">
+          <caret line="330" column="37" lean-forward="true" selection-start-line="330" selection-start-column="37" selection-end-line="330" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="19" selection-start-line="11" selection-start-column="19" selection-end-line="11" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/polytope.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="823">
-          <caret line="402" column="59" lean-forward="true" selection-start-line="402" selection-start-column="59" selection-end-line="402" selection-end-column="59" />
+        <state relative-caret-position="325">
+          <caret line="398" column="27" lean-forward="true" selection-start-line="398" selection-start-column="27" selection-end-line="398" selection-end-column="27" />
           <folding>
             <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
             <element signature="n#!!block;n#get_double_rotation_matrix#0" />
             <element signature="e#7008#7215#0" />
-            <element signature="e#15704#17242#0" />
-            <marker date="1523581979960" expanded="true" signature="18270:18535" ph="..." />
           </folding>
         </state>
       </provider>

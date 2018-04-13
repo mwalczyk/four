@@ -38,6 +38,11 @@ float sigmoid(float x)
 void main() {
     // project 4D -> 3D
 
+#ifdef ORTHOGRAPHIC
+    vec4 p = u_four_rotation * position;
+    p.w = 1.0;
+    float depth_cue = p.w;
+#else
     vec4 p = u_four_rotation * position;
     p = p - u_four_from;
     p = u_four_view * p;
@@ -45,6 +50,7 @@ void main() {
 
     p = u_four_projection * p;
     p /= p.w;
+#endif
 
     // project 3D -> 2D
     gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
