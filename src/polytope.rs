@@ -382,74 +382,97 @@ impl Polytope {
                             println!("          vertex 1: {:?}", p1);
                         }
 
-                        // Calculate whether or not there was an intersection between this
-                        // edge and the 4-dimensional hyperplane.
-                        let u = -side(p0) / (side(p1) - side(p0));
-                        if u >= 0.0 && u <= 1.0 {
-                            // Calculate the point of intersection in 4D.
-                            let intersection = p0 + (p1 - p0) * u;
+                        if (p0.w > d && p1.w < d) || (p0.w < d && p1.w > d) {
+
+                            let intersection = Vector4::new(
+                              p0.x + (p1.x - p0.x) * (d - p0.w) / (p1.w - p0.w),
+                              p0.y + (p1.y - p0.y) * (d - p0.w) / (p1.w - p0.w),
+                              p0.z + (p1.z - p0.z) * (d - p0.w) / (p1.w - p0.w),
+                              d
+                            );
                             intersections.push(intersection);
                         }
+
+
+
+
+//                        // Calculate whether or not there was an intersection between this
+//                        // edge and the 4-dimensional hyperplane.
+//                        let u = -side(p0) / (side(p1) - side(p0));
+//                        if u >= 0.0 && u <= 1.0 {
+//                            // Calculate the point of intersection in 4D.
+//                            let intersection = p0 + (p1 - p0) * u;
+//                            intersections.push(intersection);
+//                        }
+
+
+
+
+
 
                         examined_edges.push(*edge);
                     }
                 }
             }
 
-            if intersections.len() >= 3 {
-                let mut centroid: Vector4<f32> = intersections.iter().sum();
-                centroid /= intersections.len() as f32;
-
-                let a = intersections[0];
-                let b = intersections[1];
-                let c = intersections[2];
-                let ab = b - a;
-                let bc = c - b;
-                let ca = a - c;
-                let polygon_normal = cross(&ab, &bc, &ca);
-
-                let mut first_edge = (a - centroid).normalize();
-
-                let mut indices = Vec::new();
-                for i in 1..intersections.len() {
-                    let p = intersections[i];
-
-                    let edge = (p - centroid).normalize();
-
-                    let mut ang = first_edge.dot(edge);
-                    ang = ang.max(-1.0).min(1.0);
-
-                    let mut signed_angle = ang.acos();
-                    if polygon_normal.dot(cross(&first_edge, &edge, &ab)) < 0.0 {
-                        signed_angle *= -1.0;
-                    }
-
-                    indices.push((i, signed_angle));
-                }
-                indices.push((0, 0.0));
-                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-
-
-
-                for item in indices.iter() {
-                    let i = item.0;
-                    let point = intersections[i];
-                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
-                    all_indices.push((i + last_intersection_count) as u32);
-                }
-
-                last_intersection_count = intersections.len();
-                //println!("{:?}", indices);
-            }
+//            if intersections.len() >= 3 {
+//                let mut centroid: Vector4<f32> = intersections.iter().sum();
+//                centroid /= intersections.len() as f32;
+//
+//                let a = intersections[0];
+//                let b = intersections[1];
+//                let c = intersections[2];
+//                let ab = b - a;
+//                let bc = c - b;
+//                let ca = a - c;
+//                let polygon_normal = cross(&ab, &bc, &ca);
+//
+//                let mut first_edge = (a - centroid).normalize();
+//
+//                let mut indices = Vec::new();
+//                for i in 1..intersections.len() {
+//                    let p = intersections[i];
+//
+//                    let edge = (p - centroid).normalize();
+//
+//                    let mut ang = first_edge.dot(edge);
+//                    ang = ang.max(-1.0).min(1.0);
+//
+//                    let mut signed_angle = ang.acos();
+//                    if polygon_normal.dot(cross(&first_edge, &edge, &ab)) < 0.0 {
+//                        signed_angle *= -1.0;
+//                    }
+//
+//                    indices.push((i, signed_angle));
+//                }
+//                indices.push((0, 0.0));
+//                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+//
+//
+//
+//                for item in indices.iter() {
+//                    let i = item.0;
+//                    let point = intersections[i];
+//                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+//                    all_indices.push((i + last_intersection_count) as u32);
+//                }
+//
+//                last_intersection_count = intersections.len();
+//            }
 
 //                        println!(
 //                            "{} intersections found for solid {}",
 //                            intersections.len(), solid
 //                        );
+
+            for point in intersections.iter() {
+                all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
+            }
         }
         //println!("-------------------------------");
 
-        if all_vertices.len() > 0 && all_indices.len() > 0 {
+        println!("{}", all_vertices.len());
+        if all_vertices.len() > 0 { //} && all_indices.len() > 0 {
             return Some(Slice::new(all_vertices, all_indices));
         }
         None
@@ -532,14 +555,14 @@ impl Slice {
                 gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
             }
 
-            if self.edges.len() > 0 {
-                gl::DrawElements(
-                    gl::LINES,
-                    self.edges.len() as i32,
-                    gl::UNSIGNED_INT,
-                    ptr::null(),
-                );
-            }
+//            if self.edges.len() > 0 {
+//                gl::DrawElements(
+//                    gl::LINES,
+//                    self.edges.len() as i32,
+//                    gl::UNSIGNED_INT,
+//                    ptr::null(),
+//                );
+//            }
         }
     }
 }

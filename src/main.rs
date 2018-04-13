@@ -192,7 +192,7 @@ fn main() {
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
-        Vector4::new(3.0, 0.0, 0.0, 0.0),
+        Vector4::new(0.0, 0.0, 0.0, 1.0),
         Vector4::zero(),
         Vector4::new(0.0, 1.0, 0.0, 0.0),
         Vector4::new(0.0, 0.0, 1.0, 0.0),
@@ -331,7 +331,7 @@ fn main() {
         polytopes[draw_index].draw();
 
         if let Some(slice) = polytopes[0].slice(
-            Vector4::new(1.0, 1.0, 1.0, 1.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
             (cursor_curr.x * 2.0 - 1.0) * 2.5,
         ) {
             slice.draw();
