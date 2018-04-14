@@ -101,6 +101,19 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
+pub struct Tetrahedron {
+    vertices: [Vector4<f32>; 4]
+}
+
+impl Tetrahedron {
+
+    fn slice(&self, mut n: Vector4<f32>, d: f32) {
+        n = n.normalize();
+
+        let side = |p: Vector4<f32>| -> f32 { n.dot(p) + d };
+    }
+}
+
 pub struct Polytope {
     vertices: Vec<f32>,
     edges: Vec<u32>,
@@ -237,13 +250,14 @@ impl Polytope {
         )
     }
 
-    pub fn get_vertices(&self) -> &Vec<f32> {
-        &self.vertices
+    pub fn get_vertices_for_face(&self) {
+        // TODO
     }
 
-    pub fn get_edges(&self) -> &Vec<u32> {
-        &self.edges
+    pub fn get_vertices_for_solid(&self) {
+        // TODO
     }
+
 
     pub fn draw(&self) {
         unsafe {
@@ -309,21 +323,48 @@ impl Polytope {
         }
     }
 
+    fn tetrahedralize(&mut self) {
+        for (solid, faces) in self.solids
+            .chunks(self.faces_per_solid as usize)
+            .enumerate()
+            {
+                for face in faces {}
+            }
+    }
+
     /// Pseudo-code:
     ///
     /// create `hyperplane`
     /// create new list of `points`
+    /// create new list of `indices`
     ///
     /// for each `solid` in `polytope`
+    ///     pick a `corner` that all tetrahedrons will terminate at
     ///     for each `face` in `solid`
-    ///         for each `edge` in `face`
-    ///             compute intersection between `edge` and `hyperplane`
-    ///             if VALID add to `points`
+    ///         if `face` does not contain `corner` then:
+    ///             break `face` into two distinct triangles
+    ///             for each triangle, connect it to `corner` to form a complete tetrahedron
     ///
-    ///     compute proper ordering of `points` (based on signed angle)
+    /// ...
+    ///
+    /// for each `tetrahedron`
+    ///
+    ///     set `intersections` to 0
+    ///
+    ///     for each `edge` in `tetrahedron`
+    ///         if `edge` is cut by `hyperplane`
+    ///             increment `intersections` and add point to `points`
+    ///
+    ///     if `intersections` is 3:
+    ///         add 3 new entries to `indices` in any order
+    ///     else if `intersections` is 4:
+    ///         add 6 new entries to `indices` in ??? order // TODO
+    ///     else
+    ///         throw error
     ///
     /// Returns a slice with the proper vertices and edge indices.
     pub fn slice(&self, mut n: Vector4<f32>, d: f32) -> Option<Slice> {
+        // Make sure `n` is normalized.
         n = n.normalize();
 
         let side = |p: Vector4<f32>| -> f32 { n.dot(p) + d };
