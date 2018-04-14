@@ -192,11 +192,13 @@ fn main() {
 
     // Set up the scene cameras.
     let mut four_cam = FourCamera::new(
-        Vector4::new(3.0, 0.0, 0.0, 0.0),
+        Vector4::new(4.5, 4.5, 4.5, 4.5),
         Vector4::zero(),
         Vector4::new(0.0, 1.0, 0.0, 0.0),
         Vector4::new(0.0, 0.0, 1.0, 0.0),
     );
+    println!("{:?}", four_cam.look_at);
+
     let mut four_rotation = Matrix4::identity();
 
     let mut three_rotation = Matrix4::identity();
@@ -312,6 +314,7 @@ fn main() {
         let elapsed = start.elapsed().unwrap();
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
+
 
         program.uniform_1f("u_time", milliseconds);
 

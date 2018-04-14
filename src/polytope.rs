@@ -415,33 +415,30 @@ impl Polytope {
             }
 
             if intersections.len() >= 3 {
-                let mut centroid4: Vector4<f32> = intersections.iter().sum();
-                centroid4 /= intersections.len() as f32;
+                let mut centroid: Vector4<f32> = intersections.iter().sum();
+                centroid /= intersections.len() as f32;
 
-                let centroid = Vector3::new(centroid4.x, centroid4.y, centroid4.z);
-
-                let a = Vector3::new(intersections[0].x, intersections[0].y, intersections[0].z);
-                let b = Vector3::new(intersections[1].x, intersections[1].y, intersections[1].z);
-                let c = Vector3::new(intersections[2].x, intersections[2].y, intersections[2].z);
+                let a = intersections[0];
+                let b = intersections[1];
+                let c = intersections[2];
                 let ab = b - a;
                 let bc = c - b;
-
-                let polygon_normal = bc.cross(ab);
+                let ca = a - c;
+                let polygon_normal = cross(&ab, &bc, &ca);
 
                 let mut first_edge = (a - centroid).normalize();
 
                 let mut indices = Vec::new();
                 for i in 1..intersections.len() {
-                    let p4 = intersections[i];
+                    let p = intersections[i];
 
-                    let p = Vector3::new(p4.x, p4.y, p4.z);
                     let edge = (p - centroid).normalize();
 
                     let mut ang = first_edge.dot(edge);
                     ang = ang.max(-1.0).min(1.0);
 
                     let mut signed_angle = ang.acos();
-                    if polygon_normal.dot(first_edge.cross(edge)) < 0.0 {
+                    if polygon_normal.dot(cross(&first_edge, &edge, &ab)) < 0.0 {
                         signed_angle *= -1.0;
                     }
 
@@ -561,18 +558,15 @@ impl Slice {
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
-            if self.vertices.len() > 0 {
-                gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
-            }
 
-            if self.edges.len() > 0 {
-                gl::DrawElements(
-                    gl::LINES,
-                    self.edges.len() as i32,
-                    gl::UNSIGNED_INT,
-                    ptr::null(),
-                );
-            }
+            gl::DrawArrays(gl::POINTS, 0, (self.vertices.len() / 4) as i32);
+
+            gl::DrawElements(
+                gl::LINES,
+                self.edges.len() as i32,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
         }
     }
 }

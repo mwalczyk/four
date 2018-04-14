@@ -35,13 +35,33 @@ float sigmoid(float x)
     return 1.0 / (1.0 + exp(-x));
 }
 
+#define ORTHOGRAPHIC
+
 void main() {
     // project 4D -> 3D
 
 #ifdef ORTHOGRAPHIC
-    vec4 p = u_four_rotation * position;
-    p.w = 1.0;
+    // reference: https://en.wikipedia.org/wiki/User:Tetracube/Coordinates_of_uniform_polytopes#Mapping_coordinates_back_to_n-space
+    const float n = 4.0;
+    mat4 rot = mat4(
+        vec4(sqrt(1.0 / n), -sqrt((n - 1.0) / n),          0.0,                                  0.0),
+        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))), -sqrt((n - 2.0) / (n - 1.0)),          0.0),
+        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))), -sqrt((n - 3.0) / (n - 2.0))),
+        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))),  sqrt(1.0 / ((n - 2.0) * (n - 3.0))))
+    );
+
+    vec4 p = rot * position;
+
+    // drop the first coordinate (x)
+    p.xyz = p.yzw;
+
+
+//    p = u_four_rotation * position;
+//    p = p - u_four_from;
+//    p = u_four_view * p;
     float depth_cue = p.w;
+    p.w = 1.0;
+
 #else
     vec4 p = u_four_rotation * position;
     p = p - u_four_from;
@@ -54,7 +74,7 @@ void main() {
 
     // project 3D -> 2D
     gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
-    gl_PointSize = 8.0;//depth_cue * 4.0;
+    gl_PointSize = 8.0; //depth_cue * 4.0;
 
     // pass 4D depth to fragment shader
     vs_out.depth = sigmoid(depth_cue);
