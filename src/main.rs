@@ -9,11 +9,21 @@ extern crate gl;
 extern crate glutin;
 extern crate image;
 
+mod camera;
+mod hyperplane;
 mod polytope;
 mod program;
+mod renderer;
+mod rotations;
+mod slice;
+mod tetrahedron;
 
-use polytope::{cross, Plane, Polytope};
+use camera::Camera;
+use hyperplane::Hyperplane;
+use polytope::Polytope;
 use program::Program;
+use renderer::Renderer;
+use tetrahedron::Tetrahedron;
 
 use std::ffi::OsStr;
 use std::fs::{self, File};
@@ -33,52 +43,6 @@ fn clear() {
     unsafe {
         gl::ClearColor(0.1, 0.05, 0.05, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
-    }
-}
-
-struct FourCamera {
-    from: Vector4<f32>,
-    to: Vector4<f32>,
-    up: Vector4<f32>,
-    over: Vector4<f32>,
-    look_at: Matrix4<f32>,
-    projection: Matrix4<f32>,
-}
-
-impl FourCamera {
-    fn new(
-        from: Vector4<f32>,
-        to: Vector4<f32>,
-        up: Vector4<f32>,
-        over: Vector4<f32>,
-    ) -> FourCamera {
-        let mut cam = FourCamera {
-            from,
-            to,
-            up,
-            over,
-            look_at: Matrix4::identity(),
-            projection: Matrix4::identity(),
-        };
-        cam.build_look_at();
-        cam.build_projection();
-
-        cam
-    }
-
-    fn build_look_at(&mut self) {
-        let wd = (self.to - self.from).normalize();
-        let wa = cross(&self.up, &self.over, &wd).normalize();
-        let wb = cross(&self.over, &wd, &wa).normalize();
-        let wc = cross(&wd, &wa, &wb);
-
-        self.look_at = Matrix4::from_cols(wa, wb, wc, wd);
-    }
-
-    fn build_projection(&mut self) {
-        let t = 1.0 / (std::f32::consts::FRAC_PI_4 * 0.5).tan();
-
-        self.projection = Matrix4::from_diagonal(Vector4::new(t, t, t, t));
     }
 }
 
@@ -174,6 +138,21 @@ fn save_frame(path: &Path, w: u32, h: u32) {
     image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
 }
 
+fn load_shapes() -> Vec<Polytope> {
+    let mut polytopes = Vec::new();
+
+    for entry in fs::read_dir("shapes").unwrap() {
+        let path = entry.unwrap().path();
+        let file = path.file_stem().unwrap();
+        let ext = path.extension();
+
+        if ext == Some(OsStr::new("txt")) {
+            polytopes.push(Polytope::from_file(Path::new(&path)));
+        }
+    }
+    polytopes
+}
+
 fn main() {
     const WIDTH: u32 = 600;
     const HEIGHT: u32 = 600;
@@ -188,17 +167,16 @@ fn main() {
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
     // Set up the 4D shape(s).
-    let polytopes = load_shapes();
+    let mut polytopes = load_shapes();
+    polytopes[0].tetrahedralize();
 
     // Set up the scene cameras.
-    let mut four_cam = FourCamera::new(
-        Vector4::new(4.5, 4.5, 4.5, 4.5),
+    let mut four_cam = Camera::new(
+        Vector4::new(3.0, 0.0, 0.0, 0.0),
         Vector4::zero(),
         Vector4::new(0.0, 1.0, 0.0, 0.0),
         Vector4::new(0.0, 0.0, 1.0, 0.0),
     );
-    println!("{:?}", four_cam.look_at);
-
     let mut four_rotation = Matrix4::identity();
 
     let mut three_rotation = Matrix4::identity();
@@ -215,16 +193,27 @@ fn main() {
         Path::new("shaders/shader.frag"),
     );
 
+    let renderer = Renderer::new();
+    let tetra = Tetrahedron::new([
+        Vector4::new(-1.0, -1.0, -1.0, -1.0),
+        Vector4::new(-1.0, -1.0, -1.0,  1.0),
+        Vector4::new(-1.0, -1.0,  1.0, -1.0),
+        Vector4::zero()
+    ]);
+
     program.bind();
 
     let start = SystemTime::now();
     let mut cursor_prev = Vector2::zero();
     let mut cursor_curr = Vector2::zero();
     let mut cursor_pressed = Vector2::zero();
-    let mut mouse_pressed = false;
+    let mut lmouse_pressed = false;
+    let mut rmouse_pressed = false;
     let mut shift_pressed = false;
     let mut alt_pressed = false;
     let mut draw_index = 0;
+
+    let mut hyperplane = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.0);
 
     loop {
         events_loop.poll_events(|event| match event {
@@ -234,22 +223,30 @@ fn main() {
                     cursor_prev = cursor_curr;
                     cursor_curr.x = position.0 as f32 / WIDTH as f32;
                     cursor_curr.y = position.1 as f32 / HEIGHT as f32;
-                    if mouse_pressed {
+                    if lmouse_pressed {
                         let delta = cursor_curr - cursor_prev;
 
                         if shift_pressed {
                             // 4D rotation
                             if alt_pressed {
-                                let rot_xy =
-                                    polytope::get_simple_rotation_matrix(Plane::XY, delta.x);
-                                let rot_zw =
-                                    polytope::get_simple_rotation_matrix(Plane::ZW, delta.y);
+                                let rot_xy = rotations::get_simple_rotation_matrix(
+                                    rotations::Plane::XY,
+                                    delta.x,
+                                );
+                                let rot_zw = rotations::get_simple_rotation_matrix(
+                                    rotations::Plane::ZW,
+                                    delta.y,
+                                );
                                 four_rotation = rot_xy * rot_zw * four_rotation;
                             } else {
-                                let rot_xw =
-                                    polytope::get_simple_rotation_matrix(Plane::XW, delta.x);
-                                let rot_yw =
-                                    polytope::get_simple_rotation_matrix(Plane::YW, delta.y);
+                                let rot_xw = rotations::get_simple_rotation_matrix(
+                                    rotations::Plane::XW,
+                                    delta.x,
+                                );
+                                let rot_yw = rotations::get_simple_rotation_matrix(
+                                    rotations::Plane::YW,
+                                    delta.y,
+                                );
                                 four_rotation = rot_xw * rot_yw * four_rotation;
                             }
                         } else {
@@ -260,14 +257,24 @@ fn main() {
                         }
                     }
                 }
-                glutin::WindowEvent::MouseInput { state, button, .. } => {
-                    if let glutin::ElementState::Pressed = state {
-                        cursor_pressed = cursor_curr;
-                        mouse_pressed = true;
-                    } else {
-                        mouse_pressed = false;
+                glutin::WindowEvent::MouseInput { state, button, .. } => match button {
+                    glutin::MouseButton::Left => {
+                        if let glutin::ElementState::Pressed = state {
+                            cursor_pressed = cursor_curr;
+                            lmouse_pressed = true;
+                        } else {
+                            lmouse_pressed = false;
+                        }
                     }
-                }
+                    glutin::MouseButton::Right => {
+                        if let glutin::ElementState::Pressed = state {
+                            rmouse_pressed = true;
+                        } else {
+                            rmouse_pressed = false;
+                        }
+                    }
+                    _ => (),
+                },
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
                     if let Some(key) = input.virtual_keycode {
                         match input.state {
@@ -315,7 +322,6 @@ fn main() {
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
 
-
         program.uniform_1f("u_time", milliseconds);
 
         // Uniforms for 4D -> 3D projection.
@@ -331,30 +337,21 @@ fn main() {
 
         clear();
 
-        polytopes[draw_index].draw();
+        program.uniform_4f("u_draw_color", &Vector4::new(1.0, 1.0, 1.0, 1.0));
+        //polytopes[draw_index].draw();
 
-        if let Some(slice) = polytopes[0].slice(
-            Vector4::new(1.0, 1.0, 1.0, 1.0),
-            (cursor_curr.x * 2.0 - 1.0) * 2.5,
-        ) {
-            slice.draw();
+        if rmouse_pressed {
+            hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 2.5;
         }
+
+        if let Some(slice) = polytopes[0].slice(&hyperplane) {
+            program.uniform_4f("u_draw_color", &Vector4::new(1.0, 0.0, 0.0, 1.0));
+           // slice.draw();
+        }
+
+        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 1.0));
+        renderer.draw_tetrahedron(&tetra);
 
         gl_window.swap_buffers().unwrap();
     }
-}
-
-fn load_shapes() -> Vec<Polytope> {
-    let mut polytopes = Vec::new();
-
-    for entry in fs::read_dir("shapes").unwrap() {
-        let path = entry.unwrap().path();
-        let file = path.file_stem().unwrap();
-        let ext = path.extension();
-
-        if ext == Some(OsStr::new("txt")) {
-            polytopes.push(Polytope::from_file(Path::new(&path)));
-        }
-    }
-    polytopes
 }

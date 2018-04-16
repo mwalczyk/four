@@ -35,13 +35,15 @@ float sigmoid(float x)
     return 1.0 / (1.0 + exp(-x));
 }
 
-#define ORTHOGRAPHIC
+//#define ORTHOGRAPHIC
 
-void main() {
+void main()
+{
     // project 4D -> 3D
 
 #ifdef ORTHOGRAPHIC
-    // reference: https://en.wikipedia.org/wiki/User:Tetracube/Coordinates_of_uniform_polytopes#Mapping_coordinates_back_to_n-space
+    float depth_cue = position.w;
+
     const float n = 4.0;
     mat4 rot = mat4(
         vec4(sqrt(1.0 / n), -sqrt((n - 1.0) / n),          0.0,                                  0.0),
@@ -49,17 +51,12 @@ void main() {
         vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))), -sqrt((n - 3.0) / (n - 2.0))),
         vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))),  sqrt(1.0 / ((n - 2.0) * (n - 3.0))))
     );
-
     vec4 p = rot * position;
 
-    // drop the first coordinate (x)
-    p.xyz = p.yzw;
+    const float scale = 0.5;
 
-
-//    p = u_four_rotation * position;
-//    p = p - u_four_from;
-//    p = u_four_view * p;
-    float depth_cue = p.w;
+    // drop the first coordinate (x) and prepare for 3D -> 2D projection
+    p.xyz = p.yzw * scale;
     p.w = 1.0;
 
 #else
