@@ -6,7 +6,7 @@ use std::ptr;
 use gl;
 use gl::types::*;
 
-use tetrahedron::{Tetrahedron, TetrahedronSlice, INDICES};
+use tetrahedron::{Tetrahedron, TetrahedronSlice, TETRAHEDRON_INDICES};
 
 pub struct Renderer {
     vao: u32,
@@ -44,7 +44,7 @@ impl Renderer {
             gl::NamedBufferData(
                 self.ebo,
                 size,
-                INDICES.as_ptr() as *const GLvoid,
+                TETRAHEDRON_INDICES.as_ptr() as *const GLvoid,
                 gl::STATIC_DRAW,
             );
 

@@ -168,7 +168,8 @@ fn main() {
 
     // Set up the 4D shape(s).
     let mut polytopes = load_shapes();
-    polytopes[0].tetrahedralize();
+    let tetrahedrons = polytopes[0].tetrahedralize();
+    println!("Mesh tetrahedralization resulted in {} tetrahedrons", tetrahedrons.len());
 
     // Set up the scene cameras.
     let mut four_cam = Camera::new(
@@ -194,12 +195,12 @@ fn main() {
     );
 
     let renderer = Renderer::new();
-    let tetra = Tetrahedron::new([
-        Vector4::new(-1.0, -1.0, -1.0, -1.0),
-        Vector4::new(-1.0, -1.0, -1.0,  1.0),
-        Vector4::new(-1.0, -1.0,  1.0, -1.0),
-        Vector4::zero()
-    ]);
+//    let tetra = Tetrahedron::new([
+//        Vector4::new(-1.0, -1.0, -1.0, -1.0),
+//        Vector4::new(-1.0, -1.0, -1.0,  1.0),
+//        Vector4::new(-1.0, -1.0,  1.0, -1.0),
+//        Vector4::zero()
+//    ]);
 
     program.bind();
 
@@ -338,7 +339,7 @@ fn main() {
         clear();
 
         program.uniform_4f("u_draw_color", &Vector4::new(1.0, 1.0, 1.0, 1.0));
-        //polytopes[draw_index].draw();
+        polytopes[draw_index].draw();
 
         if rmouse_pressed {
             hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 2.5;
@@ -350,7 +351,10 @@ fn main() {
         }
 
         program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 1.0));
-        renderer.draw_tetrahedron(&tetra);
+
+        for tetra in tetrahedrons.iter() {
+            renderer.draw_tetrahedron(&tetra);
+        }
 
         gl_window.swap_buffers().unwrap();
     }

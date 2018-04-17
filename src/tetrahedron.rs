@@ -13,7 +13,7 @@ pub enum TetrahedronSlice {
 }
 
 /// Note that OpenGL expects these to be `u32`s.
-pub const INDICES: [(u32, u32); 6] = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
+pub const TETRAHEDRON_INDICES: [(u32, u32); 6] = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
 
 /// A struct representing a tetrahedron (3-simplex) embedded in 4-dimensions. This
 /// is the building block for all 4-dimensional meshes in the `four` renderer.
@@ -34,7 +34,7 @@ impl Tetrahedron {
     fn slice(&self, hyperplane: &Hyperplane) -> TetrahedronSlice {
         let mut intersections = Vec::new();
 
-        for (a, b) in INDICES.iter() {
+        for (a, b) in TETRAHEDRON_INDICES.iter() {
             let vertex_a = self.vertices[*a as usize];
             let vertex_b = self.vertices[*b as usize];
 
