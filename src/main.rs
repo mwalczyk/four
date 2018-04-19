@@ -338,7 +338,14 @@ fn main() {
 
         clear();
 
+      //  unsafe { gl::Enable(gl::DEPTH_TEST); gl::DepthFunc(gl::LESS);}
         program.uniform_4f("u_draw_color", &Vector4::new(1.0, 1.0, 1.0, 1.0));
+        for tetra in tetrahedrons.iter() {
+            let tetra_slice = tetra.slice(&hyperplane);
+            renderer.draw_tetrahedron_slice(&tetra_slice);
+        }
+      //  unsafe { gl::Disable(gl::DEPTH_TEST); }
+        program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
         polytopes[draw_index].draw();
 
         if rmouse_pressed {
@@ -347,13 +354,12 @@ fn main() {
 
         if let Some(slice) = polytopes[0].slice(&hyperplane) {
             program.uniform_4f("u_draw_color", &Vector4::new(1.0, 0.0, 0.0, 1.0));
-           // slice.draw();
+            slice.draw();
         }
 
         program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 1.0));
-
         for tetra in tetrahedrons.iter() {
-            renderer.draw_tetrahedron(&tetra);
+          //  renderer.draw_tetrahedron(&tetra);
         }
 
         gl_window.swap_buffers().unwrap();

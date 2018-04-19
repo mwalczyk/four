@@ -221,7 +221,7 @@ impl Polytope {
         for faces in self.solids.chunks(self.faces_per_solid as usize) {
             // The index of the vertex that all tetrahedrons making up this solid
             // will connect to.
-            let mut apex = usize::max_value();
+            let mut apex = u32::max_value();
 
             let previous_len = tetrahedrons.len();
 
@@ -233,7 +233,7 @@ impl Polytope {
                 let edges = &self.faces[idx_face_s..idx_face_e];
 
                 // Retrieve the (unique) indices of all of the vertices that make up this face.
-                let mut face_vertices = HashSet::new();
+                let mut face_vertices = Vec::new();
                 for edge in edges {
                     let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
                     let idx_edge_e =
@@ -244,16 +244,21 @@ impl Polytope {
 
                     // If the apex vertex has not been assigned yet, assign it to this face's
                     // first vertex and continue.
-                    if apex == usize::max_value() {
-                        apex = vertex_s as usize;
+                    if apex == u32::max_value() {
+                        apex = vertex_s;
                     }
 
-                    face_vertices.insert(vertex_s);
-                    face_vertices.insert(vertex_e);
+                    if !face_vertices.contains(&vertex_s) {
+                        face_vertices.push(vertex_s);
+                    }
+
+                    if !face_vertices.contains(&vertex_e) {
+                        face_vertices.push(vertex_e);
+                    }
                 }
 
                 // We only want to tetrahedralize faces that are NOT connected to the apex.
-                if !face_vertices.contains(&(apex as u32)) {
+                if !face_vertices.contains(&apex) {
                     // First, we need to triangulate this face into two, non-overlapping
                     // triangles.
                     //
@@ -270,10 +275,10 @@ impl Polytope {
                     for (a, b, c) in PERMUTATIONS.iter() {
                         // Next, form a tetrahedron with each triangle and the apex vertex.
                         tetrahedrons.push(Tetrahedron::new([
-                            self.get_vertex(*a),
-                            self.get_vertex(*b),
-                            self.get_vertex(*c),
-                            self.get_vertex(apex),
+                            self.get_vertex(face_vertices[*a] as usize),
+                            self.get_vertex(face_vertices[*b] as usize),
+                            self.get_vertex(face_vertices[*c] as usize),
+                            self.get_vertex(apex as usize),
                         ]));
                     }
                 }

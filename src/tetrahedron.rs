@@ -31,7 +31,7 @@ impl Tetrahedron {
     /// Returns the result of slicing the tetrahedron with `hyperplane`. Note that
     /// this will always return either an empty intersection, a single triangle,
     /// or a single quadrilateral.
-    fn slice(&self, hyperplane: &Hyperplane) -> TetrahedronSlice {
+    pub fn slice(&self, hyperplane: &Hyperplane) -> Vec<Vector4<f32>> {
         let mut intersections = Vec::new();
 
         for (a, b) in TETRAHEDRON_INDICES.iter() {
@@ -49,11 +49,7 @@ impl Tetrahedron {
             }
         }
 
-        match intersections.len() {
-            0 => TetrahedronSlice::Empty,
-            3 => TetrahedronSlice::Triangle(intersections),
-            4 => TetrahedronSlice::Quadrilateral(intersections),
-            _ => panic!("Tetrahedron slice resulted in an invalid number of intersections"),
-        }
+        //assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
+        intersections
     }
 }
