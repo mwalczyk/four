@@ -70,7 +70,12 @@ impl Renderer {
         unsafe {
             // Each tetrahedron has 4 vertices, each of which has 4 components.
             let vbo_upload_size = (4 * 4 * mem::size_of::<GLfloat>()) as GLsizeiptr;
-            gl::NamedBufferSubData(self.vbo, 0, vbo_upload_size, tetra.vertices.as_ptr() as *const c_void);
+            gl::NamedBufferSubData(
+                self.vbo,
+                0,
+                vbo_upload_size,
+                tetra.vertices.as_ptr() as *const c_void,
+            );
 
             gl::BindVertexArray(self.vao);
             gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
@@ -78,22 +83,36 @@ impl Renderer {
     }
 
     pub fn draw_tetrahedron_slice(&self, tetra_slice: &Vec<Vector4<f32>>) {
-        const QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
+        const QUAD_INDICES: [u32; 6] = [0, 1, 2, 0, 2, 3];
         const TRI_INDICES: [u32; 3] = [0, 1, 2];
 
         unsafe {
             // Each tetrahedron has 4 vertices, each of which has 4 components.
             let vbo_upload_size = (tetra_slice.len() * 4 * mem::size_of::<GLfloat>()) as GLsizeiptr;
-            gl::NamedBufferSubData(self.vbo, 0, vbo_upload_size, tetra_slice.as_ptr() as *const c_void);
 
-            let number_of_elements = match tetra_slice.len() {
-                3 => 3,
-                4 => 6,
-                _ => 0
-            };
+            gl::NamedBufferSubData(
+                self.vbo,
+                0,
+                vbo_upload_size,
+                tetra_slice.as_ptr() as *const c_void,
+            );
+            //            let number_of_elements = match tetra_slice.len() {
+            //                3 => 3,
+            //                4 => 6,
+            //                _ => 0
+            //            };
+            //
+            //            let size = (6 * mem::size_of::<u32>()) as GLsizeiptr;
+            //            gl::NamedBufferData(
+            //                self.ebo,
+            //                size,
+            //                QUAD_INDICES.as_ptr() as *const GLvoid,
+            //                gl::DYNAMIC_DRAW,
+            //            );
+
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(gl::POINTS, 0, tetra_slice.len() as i32);
-           // gl::DrawElements(gl::POINTS, number_of_elements as i32, gl::UNSIGNED_INT, ptr::null());
+            //   gl::DrawElements(gl::TRIANGLES, number_of_elements as i32, gl::UNSIGNED_INT, ptr::null());
         }
     }
 }

@@ -215,8 +215,29 @@ impl Polytope {
         }
     }
 
+    fn palette(
+        &self,
+        t: f32,
+        a: &Vector3<f32>,
+        b: &Vector3<f32>,
+        c: &Vector3<f32>,
+        d: &Vector3<f32>,
+    ) -> Vector3<f32> {
+        use std::f32;
+
+        let mut temp = (c * t + d) * 2.0f32 * f32::consts::PI;
+        temp.x = temp.x.cos();
+        temp.y = temp.y.cos();
+        temp.z = temp.z.cos();
+
+        let btemp = Vector3::new(b.x * temp.x, b.y * temp.y, b.z * temp.z);
+        a + btemp
+    }
+
     pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
         let mut tetrahedrons = Vec::new();
+
+        let mut solid_index = 0.0;
 
         for faces in self.solids.chunks(self.faces_per_solid as usize) {
             // The index of the vertex that all tetrahedrons making up this solid
@@ -273,17 +294,29 @@ impl Polytope {
                     const PERMUTATIONS: [(usize, usize, usize); 2] = [(0, 1, 2), (2, 3, 0)];
 
                     for (a, b, c) in PERMUTATIONS.iter() {
+                        let color = self.palette(
+                            solid_index / 8.0,
+                            &Vector3::new(0.5, 0.5, 0.5),
+                            &Vector3::new(0.5, 0.5, 0.5),
+                            &Vector3::new(1.0, 1.0, 1.0),
+                            &Vector3::new(0.00, 0.33, 0.67),
+                        );
                         // Next, form a tetrahedron with each triangle and the apex vertex.
-                        tetrahedrons.push(Tetrahedron::new([
-                            self.get_vertex(face_vertices[*a] as usize),
-                            self.get_vertex(face_vertices[*b] as usize),
-                            self.get_vertex(face_vertices[*c] as usize),
-                            self.get_vertex(apex as usize),
-                        ]));
+                        tetrahedrons.push(Tetrahedron::new(
+                            [
+                                self.get_vertex(face_vertices[*a] as usize),
+                                self.get_vertex(face_vertices[*b] as usize),
+                                self.get_vertex(face_vertices[*c] as usize),
+                                self.get_vertex(apex as usize),
+                            ],
+                            Vector4::new(color.x, color.y, color.z, 1.0),
+                        ));
                     }
                 }
             }
             println!("Added {} tetrahedrons", tetrahedrons.len() - previous_len);
+
+            solid_index += 1.0;
         }
 
         tetrahedrons

@@ -34,5 +34,5 @@ void main()
 
     vec3 color = vec3(fs_in.depth);
 
-    o_color = u_draw_color * vec4(vec3(fs_in.depth), 1.0);
+    o_color = u_draw_color * fs_in.depth;
 }

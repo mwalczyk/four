@@ -169,7 +169,10 @@ fn main() {
     // Set up the 4D shape(s).
     let mut polytopes = load_shapes();
     let tetrahedrons = polytopes[0].tetrahedralize();
-    println!("Mesh tetrahedralization resulted in {} tetrahedrons", tetrahedrons.len());
+    println!(
+        "Mesh tetrahedralization resulted in {} tetrahedrons",
+        tetrahedrons.len()
+    );
 
     // Set up the scene cameras.
     let mut four_cam = Camera::new(
@@ -195,12 +198,12 @@ fn main() {
     );
 
     let renderer = Renderer::new();
-//    let tetra = Tetrahedron::new([
-//        Vector4::new(-1.0, -1.0, -1.0, -1.0),
-//        Vector4::new(-1.0, -1.0, -1.0,  1.0),
-//        Vector4::new(-1.0, -1.0,  1.0, -1.0),
-//        Vector4::zero()
-//    ]);
+    //    let tetra = Tetrahedron::new([
+    //        Vector4::new(-1.0, -1.0, -1.0, -1.0),
+    //        Vector4::new(-1.0, -1.0, -1.0,  1.0),
+    //        Vector4::new(-1.0, -1.0,  1.0, -1.0),
+    //        Vector4::zero()
+    //    ]);
 
     program.bind();
 
@@ -338,13 +341,18 @@ fn main() {
 
         clear();
 
-      //  unsafe { gl::Enable(gl::DEPTH_TEST); gl::DepthFunc(gl::LESS);}
+        unsafe {
+            gl::Enable(gl::BLEND);
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        }
+
+        //  unsafe { gl::Enable(gl::DEPTH_TEST); gl::DepthFunc(gl::LESS);}
         program.uniform_4f("u_draw_color", &Vector4::new(1.0, 1.0, 1.0, 1.0));
         for tetra in tetrahedrons.iter() {
             let tetra_slice = tetra.slice(&hyperplane);
             renderer.draw_tetrahedron_slice(&tetra_slice);
         }
-      //  unsafe { gl::Disable(gl::DEPTH_TEST); }
+        //  unsafe { gl::Disable(gl::DEPTH_TEST); }
         program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
         polytopes[draw_index].draw();
 
@@ -357,9 +365,9 @@ fn main() {
             slice.draw();
         }
 
-        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 1.0));
         for tetra in tetrahedrons.iter() {
-          //  renderer.draw_tetrahedron(&tetra);
+            program.uniform_4f("u_draw_color", &tetra.color);
+            renderer.draw_tetrahedron(&tetra);
         }
 
         gl_window.swap_buffers().unwrap();
