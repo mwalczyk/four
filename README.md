@@ -1,5 +1,5 @@
-# Four
-A 4D rendering engine.
+# four
+⛶ A 4-dimensional renderer.
 
 <p>
   <img src="https://github.com/mwalczyk/four/blob/master/screenshots/screenshot.gif" alt="screenshot" width="300" height="auto"/>
@@ -15,7 +15,8 @@ Windows 8.1, NVIDIA GeForce GTX 970M.
 
 ## To Build
 1. Clone this repo.
-2. Run `cargo build --release`.
+2. Make sure 🦀 [Rust](https://www.rust-lang.org/en-US/) installed and `cargo` is in your `PATH`.
+3. Inside the repo, run: `cargo build --release`.
 
 ## Credits
 The `.txt` shape files are from Paul Bourke's [website](http://paulbourke.net/geometry/hyperspace/). Eventually, these shapes will (hopefully) be generated procedurally, but for now, they are loaded offline. 
