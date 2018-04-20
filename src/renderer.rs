@@ -7,7 +7,7 @@ use gl;
 use gl::types::*;
 use cgmath::{self, Vector4};
 
-use tetrahedron::{Tetrahedron, TetrahedronSlice, TETRAHEDRON_INDICES};
+use tetrahedron::Tetrahedron;
 
 pub struct Renderer {
     vao: u32,
@@ -45,8 +45,8 @@ impl Renderer {
             gl::NamedBufferData(
                 self.ebo,
                 size,
-                TETRAHEDRON_INDICES.as_ptr() as *const GLvoid,
-                gl::STATIC_DRAW,
+                Tetrahedron::get_edge_indices().as_ptr() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
             );
 
             let binding = 0;
@@ -82,37 +82,31 @@ impl Renderer {
         }
     }
 
-    pub fn draw_tetrahedron_slice(&self, tetra_slice: &Vec<Vector4<f32>>) {
-        const QUAD_INDICES: [u32; 6] = [0, 1, 2, 0, 2, 3];
-        const TRI_INDICES: [u32; 3] = [0, 1, 2];
-
+    pub fn draw_tetrahedron_slice(&self, slice_vertices: &Vec<Vector4<f32>>) {
         unsafe {
+            const COMPONENTS_PER_VERTEX: usize = 4;
+            const NUMBER_OF_INDICES: usize = 6;
+            let slice_indices = Tetrahedron::get_quad_indices();
+
             // Each tetrahedron has 4 vertices, each of which has 4 components.
-            let vbo_upload_size = (tetra_slice.len() * 4 * mem::size_of::<GLfloat>()) as GLsizeiptr;
+            let vbo_upload_size = (COMPONENTS_PER_VERTEX * slice_vertices.len() * mem::size_of::<GLfloat>()) as GLsizeiptr;
+            gl::NamedBufferSubData(self.vbo, 0, vbo_upload_size, slice_vertices.as_ptr() as *const c_void);
 
-            gl::NamedBufferSubData(
-                self.vbo,
-                0,
-                vbo_upload_size,
-                tetra_slice.as_ptr() as *const c_void,
-            );
-            //            let number_of_elements = match tetra_slice.len() {
-            //                3 => 3,
-            //                4 => 6,
-            //                _ => 0
-            //            };
-            //
-            //            let size = (6 * mem::size_of::<u32>()) as GLsizeiptr;
-            //            gl::NamedBufferData(
-            //                self.ebo,
-            //                size,
-            //                QUAD_INDICES.as_ptr() as *const GLvoid,
-            //                gl::DYNAMIC_DRAW,
-            //            );
+            let ebo_upload_size = (NUMBER_OF_INDICES * mem::size_of::<u32>()) as GLsizeiptr;
+            gl::NamedBufferSubData(self.ebo, 0, ebo_upload_size, slice_indices.as_ptr() as *const GLvoid);
 
+            // First, draw each vertex of the slice as a point.
             gl::BindVertexArray(self.vao);
-            gl::DrawArrays(gl::POINTS, 0, tetra_slice.len() as i32);
-            //   gl::DrawElements(gl::TRIANGLES, number_of_elements as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawArrays(gl::POINTS, 0, slice_vertices.len() as i32);
+
+            // Then, draw the triangle or quadrilateral, depending on the number of vertices passed
+            // to this function.
+            let number_of_elements = match slice_vertices.len() {
+                3 => 3,
+                4 => 6,
+                _ => 0
+            };
+            gl::DrawElements(gl::TRIANGLES, number_of_elements as i32, gl::UNSIGNED_INT, ptr::null());
         }
     }
 }

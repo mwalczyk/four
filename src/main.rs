@@ -15,7 +15,6 @@ mod polytope;
 mod program;
 mod renderer;
 mod rotations;
-mod slice;
 mod tetrahedron;
 
 use camera::Camera;
@@ -42,7 +41,7 @@ use image::{GenericImage, ImageBuffer};
 fn clear() {
     unsafe {
         gl::ClearColor(0.1, 0.05, 0.05, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
+        gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
 }
 
@@ -166,6 +165,20 @@ fn main() {
     unsafe { gl_window.make_current() }.unwrap();
     gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
+    unsafe {
+        // For now, we don't really know the winding order of the tetrahedron
+        // slices, so we want to disable face culling.
+        gl::Disable(gl::CULL_FACE);
+
+        // Enable depth testing.
+        gl::Enable(gl::DEPTH_TEST);
+        gl::DepthFunc(gl::LESS);
+
+        // Enable alpha blending.
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    }
+
     // Set up the 4D shape(s).
     let mut polytopes = load_shapes();
     let tetrahedrons = polytopes[0].tetrahedralize();
@@ -175,7 +188,7 @@ fn main() {
     );
 
     // Set up the scene cameras.
-    let mut four_cam = Camera::new(
+    let four_cam = Camera::new(
         Vector4::new(3.0, 0.0, 0.0, 0.0),
         Vector4::zero(),
         Vector4::new(0.0, 1.0, 0.0, 0.0),
@@ -198,12 +211,6 @@ fn main() {
     );
 
     let renderer = Renderer::new();
-    //    let tetra = Tetrahedron::new([
-    //        Vector4::new(-1.0, -1.0, -1.0, -1.0),
-    //        Vector4::new(-1.0, -1.0, -1.0,  1.0),
-    //        Vector4::new(-1.0, -1.0,  1.0, -1.0),
-    //        Vector4::zero()
-    //    ]);
 
     program.bind();
 
@@ -217,7 +224,7 @@ fn main() {
     let mut alt_pressed = false;
     let mut draw_index = 0;
 
-    let mut hyperplane = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.0);
+    let mut hyperplane = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.1);
 
     loop {
         events_loop.poll_events(|event| match event {
@@ -326,6 +333,8 @@ fn main() {
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
 
+        three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
+
         program.uniform_1f("u_time", milliseconds);
 
         // Uniforms for 4D -> 3D projection.
@@ -341,32 +350,22 @@ fn main() {
 
         clear();
 
-        unsafe {
-            gl::Enable(gl::BLEND);
-            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        }
-
-        //  unsafe { gl::Enable(gl::DEPTH_TEST); gl::DepthFunc(gl::LESS);}
-        program.uniform_4f("u_draw_color", &Vector4::new(1.0, 1.0, 1.0, 1.0));
         for tetra in tetrahedrons.iter() {
+            program.uniform_4f("u_draw_color", &tetra.color);
             let tetra_slice = tetra.slice(&hyperplane);
             renderer.draw_tetrahedron_slice(&tetra_slice);
         }
-        //  unsafe { gl::Disable(gl::DEPTH_TEST); }
+
         program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
         polytopes[draw_index].draw();
 
+        //hyperplane.displacement = (milliseconds * 0.5).sin() * 2.5;
         if rmouse_pressed {
             hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 2.5;
         }
 
-        if let Some(slice) = polytopes[0].slice(&hyperplane) {
-            program.uniform_4f("u_draw_color", &Vector4::new(1.0, 0.0, 0.0, 1.0));
-            slice.draw();
-        }
-
+        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
         for tetra in tetrahedrons.iter() {
-            program.uniform_4f("u_draw_color", &tetra.color);
             renderer.draw_tetrahedron(&tetra);
         }
 

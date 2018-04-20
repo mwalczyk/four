@@ -1,19 +1,11 @@
 use cgmath::{self, Vector4};
 
 use hyperplane::Hyperplane;
+use rotations;
 
 pub trait Tetrahedralize {
     fn generate() -> Vec<Tetrahedron>;
 }
-
-pub enum TetrahedronSlice {
-    Empty,
-    Triangle(Vec<Vector4<f32>>),
-    Quadrilateral(Vec<Vector4<f32>>),
-}
-
-/// Note that OpenGL expects these to be `u32`s.
-pub const TETRAHEDRON_INDICES: [(u32, u32); 6] = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
 
 /// A struct representing a tetrahedron (3-simplex) embedded in 4-dimensions. This
 /// is the building block for all 4-dimensional meshes in the `four` renderer.
@@ -29,13 +21,24 @@ impl Tetrahedron {
         Tetrahedron { vertices, color }
     }
 
+    /// Note that OpenGL expects these to be `u32`s.
+    pub fn get_edge_indices() -> [(u32, u32); 6] {
+        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+    }
+
+    /// Returns the indices for a quadrilateral slice, which is constructed from two
+    /// triangles.
+    pub fn get_quad_indices() -> [(u32, u32, u32); 2] {
+        [(0, 1, 2), (0, 2, 3)]
+    }
+
     /// Returns the result of slicing the tetrahedron with `hyperplane`. Note that
     /// this will always return either an empty intersection, a single triangle,
     /// or a single quadrilateral.
     pub fn slice(&self, hyperplane: &Hyperplane) -> Vec<Vector4<f32>> {
         let mut intersections = Vec::new();
 
-        for (a, b) in TETRAHEDRON_INDICES.iter() {
+        for (a, b) in Tetrahedron::get_edge_indices().iter() {
             let vertex_a = self.vertices[*a as usize];
             let vertex_b = self.vertices[*b as usize];
 
@@ -45,26 +48,17 @@ impl Tetrahedron {
 
             if t >= 0.0 && t <= 1.0 {
                 let intersection = vertex_a + (vertex_b - vertex_a) * t;
-
                 intersections.push(intersection);
             }
         }
 
         if intersections.len() == 4 {
-            // TODO
+            return rotations::sort_quadrilateral(&intersections);
         }
 
-        // TODO: this fails on start.
-        //assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
+        // TODO: this fails sometimes.
+       // assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
+
         intersections
-    }
-
-    /// Given a set of four vertices embedded in 4-dimensions, find a proper ordering
-    /// of `points[0]`, `points[1]`, `points[2]`, and `points[3]` such that the resulting
-    /// list of vertices can be drawn as two distinct triangles.
-    pub fn sort_quadrilateral(&self, points: &mut Vec<Vector4<f32>>) {
-        assert_eq!(points.len(), 4);
-
-        // TODO
     }
 }

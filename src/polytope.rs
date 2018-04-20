@@ -5,16 +5,12 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use std::collections::HashSet;
-
-use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4, Zero};
+use cgmath::{self, Vector3, Vector4, ElementWise, InnerSpace, Zero};
 use gl;
 use gl::types::*;
 
-use hyperplane::Hyperplane;
 use rotations;
-use slice::Slice;
-use tetrahedron::{Tetrahedron, TetrahedronSlice};
+use tetrahedron::Tetrahedron;
 
 pub struct Polytope {
     vertices: Vec<f32>,
@@ -176,8 +172,6 @@ impl Polytope {
 
     fn init_render_objects(&mut self) {
         unsafe {
-            gl::Enable(gl::VERTEX_PROGRAM_POINT_SIZE);
-
             gl::CreateVertexArrays(1, &mut self.vao);
 
             let mut size = (self.vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
@@ -225,26 +219,30 @@ impl Polytope {
     ) -> Vector3<f32> {
         use std::f32;
 
-        let mut temp = (c * t + d) * 2.0f32 * f32::consts::PI;
+        // TODO: there should be a way to iterate over the `Vector4<f32>` and do this...
+        let mut temp = (c * t + d) * 2.0 * f32::consts::PI;
         temp.x = temp.x.cos();
         temp.y = temp.y.cos();
         temp.z = temp.z.cos();
 
-        let btemp = Vector3::new(b.x * temp.x, b.y * temp.y, b.z * temp.z);
-        a + btemp
+        a + b.mul_element_wise(temp)
     }
 
     pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
         let mut tetrahedrons = Vec::new();
 
-        let mut solid_index = 0.0;
-
-        for faces in self.solids.chunks(self.faces_per_solid as usize) {
+        let get_color_for_tetrahedron = |t: f32| {
+            self.palette(t,
+                &Vector3::new(0.5, 0.5, 0.5),
+                &Vector3::new(0.5, 0.5, 0.5),
+                &Vector3::new(1.0, 1.0, 1.0),
+                &Vector3::new(0.00, 0.33, 0.67),
+            ).extend(1.0)
+        };
+        for (solid, faces) in self.solids.chunks(self.faces_per_solid as usize).enumerate() {
             // The index of the vertex that all tetrahedrons making up this solid
             // will connect to.
             let mut apex = u32::max_value();
-
-            let previous_len = tetrahedrons.len();
 
             // Iterate over each face of the current cell.
             for face in faces {
@@ -290,206 +288,27 @@ impl Polytope {
                     //
                     assert_eq!(face_vertices.len(), 4);
 
-                    // TODO
-                    const PERMUTATIONS: [(usize, usize, usize); 2] = [(0, 1, 2), (2, 3, 0)];
+                    // Collect all 4D vertices and sort.
+                    let quad_sorted = rotations::sort_quadrilateral(&face_vertices.iter().map(|index| {
+                        self.get_vertex(*index as usize)
+                    }).collect::<Vec<_>>());
 
-                    for (a, b, c) in PERMUTATIONS.iter() {
-                        let color = self.palette(
-                            solid_index / 8.0,
-                            &Vector3::new(0.5, 0.5, 0.5),
-                            &Vector3::new(0.5, 0.5, 0.5),
-                            &Vector3::new(1.0, 1.0, 1.0),
-                            &Vector3::new(0.00, 0.33, 0.67),
-                        );
+                    for (a, b, c) in Tetrahedron::get_quad_indices().iter() {
                         // Next, form a tetrahedron with each triangle and the apex vertex.
                         tetrahedrons.push(Tetrahedron::new(
                             [
-                                self.get_vertex(face_vertices[*a] as usize),
-                                self.get_vertex(face_vertices[*b] as usize),
-                                self.get_vertex(face_vertices[*c] as usize),
+                                quad_sorted[*a as usize],
+                                quad_sorted[*b as usize],
+                                quad_sorted[*c as usize],
                                 self.get_vertex(apex as usize),
                             ],
-                            Vector4::new(color.x, color.y, color.z, 1.0),
+                            get_color_for_tetrahedron(solid as f32 / 8.0)
                         ));
                     }
                 }
             }
-            println!("Added {} tetrahedrons", tetrahedrons.len() - previous_len);
-
-            solid_index += 1.0;
         }
 
         tetrahedrons
-    }
-
-    /// Pseudo-code:
-    ///
-    /// create `hyperplane`
-    /// create new list of `points`
-    /// create new list of `indices`
-    ///
-    /// for each `solid` in `polytope`
-    ///     pick a `corner` that all tetrahedrons will terminate at
-    ///     for each `face` in `solid`
-    ///         if `face` does not contain `corner` then:
-    ///             break `face` into two distinct triangles
-    ///             for each triangle, connect it to `corner` to form a complete tetrahedron
-    ///
-    /// ...
-    ///
-    /// for each `tetrahedron`
-    ///
-    ///     set `intersections` to 0
-    ///
-    ///     for each `edge` in `tetrahedron`
-    ///         if `edge` is cut by `hyperplane`
-    ///             increment `intersections` and add point to `points`
-    ///
-    ///     if `intersections` is 3:
-    ///         add 3 new entries to `indices` in any order
-    ///     else if `intersections` is 4:
-    ///         add 6 new entries to `indices` in ??? order // TODO
-    ///     else
-    ///         throw error
-    ///
-    /// Returns a slice with the proper vertices and edge indices.
-    pub fn slice(&self, hyperplane: &Hyperplane) -> Option<Slice> {
-        let rot = rotations::align();
-
-        let mut all_vertices = Vec::new();
-        let mut all_indices = Vec::new();
-
-        let debug = false;
-
-        let mut last_intersection_count = 0;
-
-        for (solid, faces) in self.solids
-            .chunks(self.faces_per_solid as usize)
-            .enumerate()
-        {
-            let mut intersections = Vec::new();
-            let mut examined_edges = Vec::new();
-
-            // Each solid has `faces_per_solid` indices, corresponding to entries
-            // in this polytope's `faces` list. For example, the first solid in a
-            // hypercube contains the following face indices: [0  1  2  3  4  5].
-            for face in faces {
-                // Each face has `edges_per_face` indices, corresponding to entries
-                // in this polytope's `edges` list. For example, the first face in a
-                // hypercube contains the following edge indices: [0  1  2  3].
-                let idx_face_s = (*face * self.edges_per_face) as usize;
-                let idx_face_e = (*face * self.edges_per_face + self.edges_per_face) as usize;
-                let edges = &self.faces[idx_face_s..idx_face_e];
-
-                for edge in edges {
-                    if !examined_edges.contains(edge) {
-                        // Grab the pair of vertex indices corresponding to this edge.
-                        let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
-                        let idx_edge_e =
-                            (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
-                        let pair = &self.edges[idx_edge_s..idx_edge_e];
-
-                        // Grab the two vertices that form this edge.
-                        let p0 = self.get_vertex(pair[0] as usize);
-                        let p1 = self.get_vertex(pair[1] as usize);
-
-                        //                        if (p0.w > d && p1.w < d) || (p0.w < d && p1.w > d) {
-                        //
-                        //                            let intersection = Vector4::new(
-                        //                              p0.x + (p1.x - p0.x) * (d - p0.w) / (p1.w - p0.w),
-                        //                              p0.y + (p1.y - p0.y) * (d - p0.w) / (p1.w - p0.w),
-                        //                              p0.z + (p1.z - p0.z) * (d - p0.w) / (p1.w - p0.w),
-                        //                              d
-                        //                            );
-                        //                            intersections.push(intersection);
-                        //                        }
-                        //
-                        //                        if (p0.w - d).abs() + (p1.w - d).abs() <= 1e-6 {
-                        //                            intersections.push(p0);
-                        //                            intersections.push(p1);
-                        //                        }
-
-                        // Calculate whether or not there was an intersection between this
-                        // edge and the 4-dimensional hyperplane.
-                        let u =
-                            -hyperplane.side(&p0) / (hyperplane.side(&p1) - hyperplane.side(&p0));
-                        if u >= 0.0 && u <= 1.0 {
-                            // Calculate the point of intersection in 4D.
-                            let intersection = p0 + (p1 - p0) * u;
-
-                            intersections.push(intersection);
-                        }
-
-                        examined_edges.push(*edge);
-                    }
-                }
-            }
-
-            let mut intersections_3d = Vec::new();
-            for point in intersections.iter() {
-                let point_transformed = rot * point;
-                let point_3d = Vector3::new(
-                    point_transformed.y,
-                    point_transformed.z,
-                    point_transformed.w,
-                );
-                intersections_3d.push(point_3d);
-            }
-
-            if intersections_3d.len() >= 3 {
-                let mut centroid: Vector3<f32> = intersections_3d.iter().sum();
-                centroid /= intersections_3d.len() as f32;
-
-                let a = intersections_3d[0];
-                let b = intersections_3d[1];
-                let c = intersections_3d[2];
-
-                // Calculate the normal of this polygon by taking the cross product
-                // between two of its edges.
-                let ab = b - a;
-                let bc = c - b;
-                let polygon_normal = bc.cross(ab).normalize();
-
-                let mut first_edge = (a - centroid).normalize();
-
-                let mut indices = Vec::new();
-
-                for i in 1..intersections_3d.len() {
-                    let p = intersections_3d[i];
-
-                    let edge = (p - centroid).normalize();
-
-                    let mut ang = first_edge.dot(edge);
-                    ang = ang.max(-1.0).min(1.0);
-
-                    let mut signed_angle = ang.acos();
-                    if polygon_normal.dot(first_edge.cross(edge)) < 0.0 {
-                        signed_angle *= -1.0;
-                    }
-
-                    indices.push((i, signed_angle));
-                }
-                indices.push((0, 0.0));
-                indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-
-                for index in 0..indices.len() {
-                    let i0 = indices[index].0;
-                    let i1 = indices[(index + 1) % indices.len()].0;
-                    all_indices.push((i0 + last_intersection_count) as u32);
-                    all_indices.push((i1 + last_intersection_count) as u32);
-                }
-
-                for point in intersections.iter() {
-                    all_vertices.extend_from_slice(&[point.x, point.y, point.z, point.w]);
-                }
-
-                last_intersection_count += intersections.len();
-            }
-        }
-
-        if all_vertices.len() > 0 && all_indices.len() > 0 {
-            return Some(Slice::new(all_vertices, all_indices));
-        }
-        None
     }
 }
