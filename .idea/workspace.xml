@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/polytope.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/polytope.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rotations.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rotations.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/slice.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tetrahedron.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tetrahedron.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preview.png" beforeDir="false" afterPath="$PROJECT_DIR$/preview.png" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -36,7 +29,7 @@
           <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/polytope.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="289">
+                <state relative-caret-position="302">
                   <caret line="289" lean-forward="true" selection-start-line="289" selection-end-line="289" />
                   <folding>
                     <element signature="e#1092#4043#0" />
@@ -295,7 +288,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.08802083" />
@@ -304,7 +296,7 @@
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32897604" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.30392158" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.30392158" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
@@ -611,7 +603,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/polytope.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
+        <state relative-caret-position="302">
           <caret line="289" lean-forward="true" selection-start-line="289" selection-end-line="289" />
           <folding>
             <element signature="e#1092#4043#0" />
