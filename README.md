@@ -1,5 +1,5 @@
 # four
-⛶ A 4-dimensional renderer.
+💎 A 4-dimensional renderer.
 
 <p>
   <img src="https://github.com/mwalczyk/four/blob/master/screenshots/screenshot.gif" alt="screenshot" width="300" height="auto"/>
