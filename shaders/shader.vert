@@ -59,6 +59,12 @@ void main()
     p.xyz = p.yzw * scale;
     p.w = 1.0;
 
+
+
+    p = vec4(position.xyz, 1.0);
+
+
+
 #else
     vec4 p = u_four_rotation * position;
     p = p - u_four_from;

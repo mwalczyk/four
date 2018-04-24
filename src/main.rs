@@ -180,8 +180,11 @@ fn main() {
     }
 
     // Set up the 4D shape(s).
+    let mut hyperplane_temp = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.1);
+    let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
+
     let mut polytopes = load_shapes();
-    let tetrahedrons = polytopes[0].tetrahedralize();
+    let mut tetrahedrons = polytopes[0].tetrahedralize(&hyperplane_temp);
     println!(
         "Mesh tetrahedralization resulted in {} tetrahedrons",
         tetrahedrons.len()
@@ -223,8 +226,6 @@ fn main() {
     let mut shift_pressed = false;
     let mut alt_pressed = false;
     let mut draw_index = 0;
-
-    let mut hyperplane = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.1);
 
     loop {
         events_loop.poll_events(|event| match event {
@@ -333,7 +334,7 @@ fn main() {
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
 
-        three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
+        //three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
 
         program.uniform_1f("u_time", milliseconds);
 
@@ -350,8 +351,11 @@ fn main() {
 
         clear();
 
-        for tetra in tetrahedrons.iter() {
+        for tetra in tetrahedrons.iter_mut() {
             program.uniform_4f("u_draw_color", &tetra.color);
+
+            tetra.set_transform(&four_rotation);
+
             let tetra_slice = tetra.slice(&hyperplane);
             renderer.draw_tetrahedron_slice(&tetra_slice);
         }
@@ -362,6 +366,12 @@ fn main() {
         //hyperplane.displacement = (milliseconds * 0.5).sin() * 2.5;
         if rmouse_pressed {
             hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 2.5;
+
+            // Prevent this from ever becoming zero
+            let epsilon = 0.001;
+            if (hyperplane.displacement == 0.0) {
+                hyperplane.displacement += 0.001;
+            }
         }
 
         program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));

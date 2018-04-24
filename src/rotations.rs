@@ -1,5 +1,7 @@
 use cgmath::{self, Matrix4, Vector3, Vector4, InnerSpace};
 
+use hyperplane::Hyperplane;
+
 pub enum Plane {
     XY,
     YZ,
@@ -96,13 +98,13 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
 /// Given a set of four vertices embedded in 4-dimensions, find a proper ordering
 /// of `points[0]`, `points[1]`, `points[2]`, and `points[3]` such that the resulting
 /// list of vertices can be drawn as two distinct triangles.
-pub fn sort_quadrilateral(points: &Vec<Vector4<f32>>) -> Vec<Vector4<f32>> {
+pub fn sort_quadrilateral(points: &Vec<Vector4<f32>>, hyperplane: &Hyperplane) -> Vec<Vector4<f32>> {
     assert_eq!(points.len(), 4);
 
     // First, project the 4D points to 3D.
-    let align_with_x_axis = align();
+    let align = hyperplane.get_inverse_rotation();
     let projected = points.iter().map(|pt| {
-        (align_with_x_axis * pt).truncate_n(0)
+        (align * pt).truncate_n(0)
     }).collect::<Vec<_>>();
 
     assert_eq!(projected.len(), 4);
@@ -151,7 +153,7 @@ pub fn sort_quadrilateral(points: &Vec<Vector4<f32>>) -> Vec<Vector4<f32>> {
 }
 
 /// Construct a 4x4 matrix representing a series of plane rotations that cause
-/// the vector <1, 1, 1, 1> to algin with the x-axis, <1, 0, 0, 0>.
+/// the vector <1, 1, 1, 1> to align with the x-axis, <1, 0, 0, 0>.
 ///
 /// Reference: `https://en.wikipedia.org/wiki/User:Tetracube/Coordinates_of_uniform_polytopes#Mapping_coordinates_back_to_n-space`
 pub fn align() -> Matrix4<f32> {

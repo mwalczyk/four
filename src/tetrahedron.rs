@@ -1,4 +1,4 @@
-use cgmath::{self, Vector4};
+use cgmath::{self, Matrix4, Vector4, SquareMatrix};
 
 use hyperplane::Hyperplane;
 use rotations;
@@ -12,13 +12,14 @@ pub trait Tetrahedralize {
 pub struct Tetrahedron {
     pub vertices: [Vector4<f32>; 4],
     pub color: Vector4<f32>,
+    pub transform: Matrix4<f32>
 }
 
 impl Tetrahedron {
     /// Create a new tetrahedron from an array of 4 vertices embedded in a 4-dimensional
     /// space.
     pub fn new(vertices: [Vector4<f32>; 4], color: Vector4<f32>) -> Tetrahedron {
-        Tetrahedron { vertices, color }
+        Tetrahedron { vertices, color, transform: Matrix4::identity() }
     }
 
     /// Note that OpenGL expects these to be `u32`s.
@@ -39,8 +40,8 @@ impl Tetrahedron {
         let mut intersections = Vec::new();
 
         for (a, b) in Tetrahedron::get_edge_indices().iter() {
-            let vertex_a = self.vertices[*a as usize];
-            let vertex_b = self.vertices[*b as usize];
+            let vertex_a = self.transform * self.vertices[*a as usize];
+            let vertex_b = self.transform * self.vertices[*b as usize];
 
             // TODO: explain this math.
             let t = -hyperplane.side(&vertex_a)
@@ -53,12 +54,16 @@ impl Tetrahedron {
         }
 
         if intersections.len() == 4 {
-            return rotations::sort_quadrilateral(&intersections);
+            return rotations::sort_quadrilateral(&intersections, hyperplane);
         }
 
         // TODO: this fails sometimes.
-       // assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
+        //assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
 
         intersections
+    }
+
+    pub fn set_transform(&mut self, t: &Matrix4<f32>) {
+        self.transform = *t;
     }
 }

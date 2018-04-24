@@ -9,6 +9,7 @@ use cgmath::{self, Vector3, Vector4, ElementWise, InnerSpace, Zero};
 use gl;
 use gl::types::*;
 
+use hyperplane::Hyperplane;
 use rotations;
 use tetrahedron::Tetrahedron;
 
@@ -228,7 +229,7 @@ impl Polytope {
         a + b.mul_element_wise(temp)
     }
 
-    pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
+    pub fn tetrahedralize(&mut self, hyperplane: &Hyperplane) -> Vec<Tetrahedron> {
         let mut tetrahedrons = Vec::new();
 
         let get_color_for_tetrahedron = |t: f32| {
@@ -291,7 +292,7 @@ impl Polytope {
                     // Collect all 4D vertices and sort.
                     let quad_sorted = rotations::sort_quadrilateral(&face_vertices.iter().map(|index| {
                         self.get_vertex(*index as usize)
-                    }).collect::<Vec<_>>());
+                    }).collect::<Vec<_>>(), hyperplane);
 
                     for (a, b, c) in Tetrahedron::get_quad_indices().iter() {
                         // Next, form a tetrahedron with each triangle and the apex vertex.
