@@ -44,26 +44,24 @@ void main()
 #ifdef ORTHOGRAPHIC
     float depth_cue = position.w;
 
-    const float n = 4.0;
-    mat4 rot = mat4(
-        vec4(sqrt(1.0 / n), -sqrt((n - 1.0) / n),          0.0,                                  0.0),
-        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))), -sqrt((n - 2.0) / (n - 1.0)),          0.0),
-        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))), -sqrt((n - 3.0) / (n - 2.0))),
-        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))),  sqrt(1.0 / ((n - 2.0) * (n - 3.0))))
-    );
-    vec4 p = rot * position;
-
-    const float scale = 0.5;
-
-    // drop the first coordinate (x) and prepare for 3D -> 2D projection
-    p.xyz = p.yzw * scale;
-    p.w = 1.0;
-
-
-
-    p = vec4(position.xyz, 1.0);
+//    const float n = 4.0;
+//    mat4 rot = mat4(
+//        vec4(sqrt(1.0 / n), -sqrt((n - 1.0) / n),          0.0,                                  0.0),
+//        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))), -sqrt((n - 2.0) / (n - 1.0)),          0.0),
+//        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))), -sqrt((n - 3.0) / (n - 2.0))),
+//        vec4(sqrt(1.0 / n),  sqrt(1.0 / (n * (n - 1.0))),  sqrt(1.0 / ((n - 1.0) * (n - 2.0))),  sqrt(1.0 / ((n - 2.0) * (n - 3.0))))
+//    );
+//    vec4 p = rot * position;
+//
+//    const float scale = 0.5;
+//
+//    // drop the first coordinate (x) and prepare for 3D -> 2D projection
+//    p.xyz = p.yzw * scale;
+//    p.w = 1.0;
 
 
+    // drop the last coordinate (w) and prepare for 3D -> 2D projection
+    vec4 p = vec4(position.xyz, 1.0);
 
 #else
     vec4 p = u_four_rotation * position;

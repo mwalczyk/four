@@ -1,4 +1,4 @@
-use cgmath::{self, Matrix4, Vector4, InnerSpace};
+use cgmath::{self, InnerSpace, Matrix4, Vector4};
 
 pub struct Hyperplane {
     pub normal: Vector4<f32>,
@@ -24,7 +24,12 @@ impl Hyperplane {
         const DIMENSION: f32 = 4.0;
 
         Matrix4::from_cols(
-            Vector4::new((1.0 / DIMENSION).sqrt(), -((DIMENSION - 1.0) / DIMENSION).sqrt(), 0.0, 0.0),
+            Vector4::new(
+                (1.0 / DIMENSION).sqrt(),
+                -((DIMENSION - 1.0) / DIMENSION).sqrt(),
+                0.0,
+                0.0,
+            ),
             Vector4::new(
                 (1.0 / DIMENSION).sqrt(),
                 (1.0 / (DIMENSION * (DIMENSION - 1.0))).sqrt(),

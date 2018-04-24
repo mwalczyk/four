@@ -1,4 +1,4 @@
-use cgmath::{self, Matrix4, Vector3, Vector4, InnerSpace};
+use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4};
 
 use hyperplane::Hyperplane;
 
@@ -98,14 +98,18 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
 /// Given a set of four vertices embedded in 4-dimensions, find a proper ordering
 /// of `points[0]`, `points[1]`, `points[2]`, and `points[3]` such that the resulting
 /// list of vertices can be drawn as two distinct triangles.
-pub fn sort_quadrilateral(points: &Vec<Vector4<f32>>, hyperplane: &Hyperplane) -> Vec<Vector4<f32>> {
+pub fn sort_quadrilateral(
+    points: &Vec<Vector4<f32>>,
+    hyperplane: &Hyperplane,
+) -> Vec<Vector4<f32>> {
     assert_eq!(points.len(), 4);
 
     // First, project the 4D points to 3D.
     let align = hyperplane.get_inverse_rotation();
-    let projected = points.iter().map(|pt| {
-        (align * pt).truncate_n(0)
-    }).collect::<Vec<_>>();
+    let projected = points
+        .iter()
+        .map(|pt| (align * pt).truncate_n(0))
+        .collect::<Vec<_>>();
 
     assert_eq!(projected.len(), 4);
 
@@ -145,9 +149,10 @@ pub fn sort_quadrilateral(points: &Vec<Vector4<f32>>, hyperplane: &Hyperplane) -
     indices.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
     // Now, return the original set of 4D points in the proper order.
-    let points_sorted = indices.iter().map(|(index, _)| {
-        points[*index]
-    }).collect::<Vec<_>>();
+    let points_sorted = indices
+        .iter()
+        .map(|(index, _)| points[*index])
+        .collect::<Vec<_>>();
 
     points_sorted
 }
@@ -160,7 +165,12 @@ pub fn align() -> Matrix4<f32> {
     const DIMENSION: f32 = 4.0;
 
     Matrix4::from_cols(
-        Vector4::new((1.0 / DIMENSION).sqrt(), -((DIMENSION - 1.0) / DIMENSION).sqrt(), 0.0, 0.0),
+        Vector4::new(
+            (1.0 / DIMENSION).sqrt(),
+            -((DIMENSION - 1.0) / DIMENSION).sqrt(),
+            0.0,
+            0.0,
+        ),
         Vector4::new(
             (1.0 / DIMENSION).sqrt(),
             (1.0 / (DIMENSION * (DIMENSION - 1.0))).sqrt(),

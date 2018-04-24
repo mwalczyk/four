@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, Vector3, Vector4, ElementWise, InnerSpace, Zero};
+use cgmath::{self, ElementWise, InnerSpace, Vector3, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -233,14 +233,18 @@ impl Polytope {
         let mut tetrahedrons = Vec::new();
 
         let get_color_for_tetrahedron = |t: f32| {
-            self.palette(t,
+            self.palette(
+                t,
                 &Vector3::new(0.5, 0.5, 0.5),
                 &Vector3::new(0.5, 0.5, 0.5),
                 &Vector3::new(1.0, 1.0, 1.0),
                 &Vector3::new(0.00, 0.33, 0.67),
             ).extend(1.0)
         };
-        for (solid, faces) in self.solids.chunks(self.faces_per_solid as usize).enumerate() {
+        for (solid, faces) in self.solids
+            .chunks(self.faces_per_solid as usize)
+            .enumerate()
+        {
             // The index of the vertex that all tetrahedrons making up this solid
             // will connect to.
             let mut apex = u32::max_value();
@@ -290,9 +294,13 @@ impl Polytope {
                     assert_eq!(face_vertices.len(), 4);
 
                     // Collect all 4D vertices and sort.
-                    let quad_sorted = rotations::sort_quadrilateral(&face_vertices.iter().map(|index| {
-                        self.get_vertex(*index as usize)
-                    }).collect::<Vec<_>>(), hyperplane);
+                    let quad_sorted = rotations::sort_quadrilateral(
+                        &face_vertices
+                            .iter()
+                            .map(|index| self.get_vertex(*index as usize))
+                            .collect::<Vec<_>>(),
+                        hyperplane,
+                    );
 
                     for (a, b, c) in Tetrahedron::get_quad_indices().iter() {
                         // Next, form a tetrahedron with each triangle and the apex vertex.
@@ -303,7 +311,7 @@ impl Polytope {
                                 quad_sorted[*c as usize],
                                 self.get_vertex(apex as usize),
                             ],
-                            get_color_for_tetrahedron(solid as f32 / 8.0)
+                            get_color_for_tetrahedron(solid as f32 / 8.0),
                         ));
                     }
                 }

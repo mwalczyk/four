@@ -3,9 +3,9 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
+use cgmath::{self, Vector4};
 use gl;
 use gl::types::*;
-use cgmath::{self, Vector4};
 
 use tetrahedron::Tetrahedron;
 
@@ -91,11 +91,22 @@ impl Renderer {
             let slice_indices = Tetrahedron::get_quad_indices();
 
             // Each tetrahedron has 4 vertices, each of which has 4 components.
-            let vbo_upload_size = (COMPONENTS_PER_VERTEX * slice_vertices.len() * mem::size_of::<GLfloat>()) as GLsizeiptr;
-            gl::NamedBufferSubData(self.vbo, 0, vbo_upload_size, slice_vertices.as_ptr() as *const c_void);
+            let vbo_upload_size = (COMPONENTS_PER_VERTEX * slice_vertices.len()
+                * mem::size_of::<GLfloat>()) as GLsizeiptr;
+            gl::NamedBufferSubData(
+                self.vbo,
+                0,
+                vbo_upload_size,
+                slice_vertices.as_ptr() as *const c_void,
+            );
 
             let ebo_upload_size = (NUMBER_OF_INDICES * mem::size_of::<u32>()) as GLsizeiptr;
-            gl::NamedBufferSubData(self.ebo, 0, ebo_upload_size, slice_indices.as_ptr() as *const GLvoid);
+            gl::NamedBufferSubData(
+                self.ebo,
+                0,
+                ebo_upload_size,
+                slice_indices.as_ptr() as *const GLvoid,
+            );
 
             // First, draw each vertex of the slice as a point.
             gl::BindVertexArray(self.vao);
@@ -106,9 +117,14 @@ impl Renderer {
             let number_of_elements = match slice_vertices.len() {
                 3 => 3,
                 4 => 6,
-                _ => 0
+                _ => 0,
             };
-            gl::DrawElements(gl::TRIANGLES, number_of_elements as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawElements(
+                gl::TRIANGLES,
+                number_of_elements as i32,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
         }
     }
 }
