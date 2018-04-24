@@ -201,7 +201,7 @@ fn main() {
 
     let mut three_rotation = Matrix4::identity();
     let three_view = Matrix4::look_at(
-        Point3::new(2.5, 0.0, 0.0),
+        Point3::new(3.5, 0.0, 0.0),
         Point3::new(0.0, 0.0, 0.0),
         Vector3::unit_y(),
     );
@@ -246,7 +246,7 @@ fn main() {
                                     delta.x,
                                 );
                                 let rot_zw = rotations::get_simple_rotation_matrix(
-                                    rotations::Plane::ZW,
+                                    rotations::Plane::ZX,
                                     delta.y,
                                 );
                                 four_rotation = rot_xy * rot_zw * four_rotation;
