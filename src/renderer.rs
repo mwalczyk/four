@@ -68,13 +68,15 @@ impl Renderer {
 
     pub fn draw_tetrahedron(&self, tetra: &Tetrahedron) {
         unsafe {
+            let transformed_vertices = tetra.get_transformed_vertices();
+
             // Each tetrahedron has 4 vertices, each of which has 4 components.
             let vbo_upload_size = (4 * 4 * mem::size_of::<GLfloat>()) as GLsizeiptr;
             gl::NamedBufferSubData(
                 self.vbo,
                 0,
                 vbo_upload_size,
-                tetra.vertices.as_ptr() as *const c_void,
+                transformed_vertices.as_ptr() as *const c_void,
             );
 
             gl::BindVertexArray(self.vao);

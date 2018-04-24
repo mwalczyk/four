@@ -66,4 +66,10 @@ impl Tetrahedron {
     pub fn set_transform(&mut self, t: &Matrix4<f32>) {
         self.transform = *t;
     }
+
+    pub fn get_transformed_vertices(&self) -> Vec<Vector4<f32>> {
+        self.vertices.iter().map(|pt| {
+            self.transform * pt
+        }).collect::<Vec<_>>()
+    }
 }
