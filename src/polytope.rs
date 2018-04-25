@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, ElementWise, InnerSpace, Vector3, Vector4, Zero};
+use cgmath::{self, Array, ElementWise, InnerSpace, Vector3, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -18,12 +18,10 @@ pub enum Definition {
     Cell24,
     Cell120,
     Cell600,
-    Hypersphere
+    Hypersphere,
 }
 
-impl Definition {
-
-}
+impl Definition {}
 
 pub struct Polytope {
     vertices: Vec<Vector4<f32>>,
@@ -184,10 +182,7 @@ impl Polytope {
         let idx_edge_e = (i * self.vertices_per_edge + self.vertices_per_edge) as usize;
         let pair = &self.edges[idx_edge_s..idx_edge_e];
 
-        (
-            self.get_vertex(pair[0]),
-            self.get_vertex(pair[1]),
-        )
+        (self.get_vertex(pair[0]), self.get_vertex(pair[1]))
     }
 
     /// Returns an unordered list of the unique vertices that make up the `i`th
@@ -354,6 +349,8 @@ impl Polytope {
     }
 
     pub fn tetrahedralize(&mut self, hyperplane: &Hyperplane) -> Vec<Tetrahedron> {
+        use std::f32;
+
         let mut tetrahedrons = Vec::new();
 
         let get_color_for_tetrahedron = |t: f32| {
@@ -369,9 +366,8 @@ impl Polytope {
             .chunks(self.faces_per_solid as usize)
             .enumerate()
         {
-            // The index of the vertex that all tetrahedrons making up this solid
-            // will connect to.
-            let mut apex = u32::max_value();
+            // The vertex that all tetrahedrons making up this solid will connect to.
+            let mut apex = Vector4::from_value(f32::MAX);
 
             // Iterate over each face of the current cell.
             for face in faces {
@@ -380,29 +376,10 @@ impl Polytope {
                 let idx_face_e = (*face * self.edges_per_face + self.edges_per_face) as usize;
                 let edges = &self.faces[idx_face_s..idx_face_e];
 
-                // Retrieve the (unique) indices of all of the vertices that make up this face.
-                let mut face_vertices = Vec::new();
-                for edge in edges {
-                    let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
-                    let idx_edge_e =
-                        (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
-                    let pair = &self.edges[idx_edge_s..idx_edge_e];
-                    let vertex_s = pair[0];
-                    let vertex_e = pair[1];
+                let face_vertices = self.get_vertices_for_face(*face);
 
-                    // If the apex vertex has not been assigned yet, assign it to this face's
-                    // first vertex and continue.
-                    if apex == u32::max_value() {
-                        apex = vertex_s;
-                    }
-
-                    if !face_vertices.contains(&vertex_s) {
-                        face_vertices.push(vertex_s);
-                    }
-
-                    if !face_vertices.contains(&vertex_e) {
-                        face_vertices.push(vertex_e);
-                    }
+                if apex.x == f32::MAX {
+                    apex = face_vertices[0];
                 }
 
                 // We only want to tetrahedralize faces that are NOT connected to the apex.
@@ -418,9 +395,9 @@ impl Polytope {
                     assert_eq!(face_vertices.len(), 4);
 
                     // Compute the face normal.
-                    let v0 = self.vertices[face_vertices[0] as usize];
-                    let v1 = self.vertices[face_vertices[1] as usize];
-                    let v2 = self.vertices[face_vertices[2] as usize];
+                    let v0 = face_vertices[0];
+                    let v1 = face_vertices[1];
+                    let v2 = face_vertices[2];
                     let edge_1_0 = v1 - v0;
                     let edge_2_0 = v2 - v0;
                     let edge_2_1 = v2 - v1;
@@ -428,16 +405,9 @@ impl Polytope {
                     let face_hyperplane =
                         Hyperplane::new(rotations::cross(&edge_1_0, &edge_2_0, &edge_2_1), 0.0);
 
-                    for i in 0..(self.vertices.len() / 4) {}
-
                     // Collect all 4D vertices and sort.
-                    let face_vertices_sorted = rotations::sort_points_on_plane(
-                        &face_vertices
-                            .iter()
-                            .map(|index| self.vertices[*index as usize])
-                            .collect::<Vec<_>>(),
-                        &face_hyperplane,
-                    );
+                    let face_vertices_sorted =
+                        rotations::sort_points_on_plane(&face_vertices, &face_hyperplane);
 
                     // Create a triangle fan, starting at the first vertex of the sorted list.
                     // Connect each resulting triangle to the apex vertex to create a full
@@ -448,7 +418,7 @@ impl Polytope {
                                 face_vertices_sorted[0],
                                 face_vertices_sorted[i + 0],
                                 face_vertices_sorted[i + 1],
-                                self.vertices[apex as usize],
+                                apex,
                             ],
                             get_color_for_tetrahedron(solid as f32 / 8.0),
                         ));
