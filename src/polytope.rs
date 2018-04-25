@@ -274,6 +274,7 @@ impl Polytope {
             solids.push(faces_in_hyperplane);
         }
 
+        println!("{:?}", solids);
         solids
     }
 
@@ -348,6 +349,7 @@ impl Polytope {
         a + b.mul_element_wise(temp)
     }
 
+    /// Performs of a tetrahedral decomposition of the polytope.
     pub fn tetrahedralize(&mut self, hyperplane: &Hyperplane) -> Vec<Tetrahedron> {
         use std::f32;
 
@@ -362,10 +364,8 @@ impl Polytope {
                 &Vector3::new(0.00, 0.33, 0.67),
             ).extend(1.0)
         };
-        for (solid, faces) in self.solids
-            .chunks(self.faces_per_solid as usize)
-            .enumerate()
-        {
+
+        for (solid, faces) in self.gather_solids().iter().enumerate() {
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
 
