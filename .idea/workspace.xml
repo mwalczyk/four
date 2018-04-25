@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hyperplane.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/hyperplane.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/polytope.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/polytope.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rotations.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rotations.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tetrahedron.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tetrahedron.rs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -27,14 +21,19 @@
             <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/src/polytope.rs">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="459">
-                    <caret line="214" column="18" selection-start-line="214" selection-start-column="18" selection-end-line="214" selection-end-column="18" />
+                  <state relative-caret-position="-1181">
+                    <caret line="146" column="37" selection-start-line="146" selection-start-column="37" selection-end-line="146" selection-end-column="37" />
                     <folding>
-                      <element signature="e#4520#4521#0" expanded="true" />
-                      <element signature="e#4554#4555#0" expanded="true" />
-                      <element signature="e#4719#4720#0" expanded="true" />
-                      <element signature="e#4781#4782#0" expanded="true" />
-                      <element signature="e#4960#5936#0" />
+                      <element signature="e#4402#4403#0" expanded="true" />
+                      <element signature="e#4436#4437#0" expanded="true" />
+                      <element signature="e#4715#4716#0" expanded="true" />
+                      <element signature="e#4777#4778#0" expanded="true" />
+                      <element signature="e#4884#4885#0" expanded="true" />
+                      <element signature="e#4924#4925#0" expanded="true" />
+                      <element signature="e#5045#5061#0" />
+                      <element signature="e#5789#6470#0" />
+                      <element signature="e#7478#7479#0" expanded="true" />
+                      <element signature="e#7507#7508#0" expanded="true" />
                     </folding>
                   </state>
                 </provider>
@@ -231,7 +230,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.fmt">
+  <component name="RunManager" selected="Cargo Command.run">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="HEIGHT" value="0" />
       <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
@@ -623,14 +622,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/polytope.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="214" column="18" selection-start-line="214" selection-start-column="18" selection-end-line="214" selection-end-column="18" />
+        <state relative-caret-position="-1181">
+          <caret line="146" column="37" selection-start-line="146" selection-start-column="37" selection-end-line="146" selection-end-column="37" />
           <folding>
-            <element signature="e#4520#4521#0" expanded="true" />
-            <element signature="e#4554#4555#0" expanded="true" />
-            <element signature="e#4719#4720#0" expanded="true" />
-            <element signature="e#4781#4782#0" expanded="true" />
-            <element signature="e#4960#5936#0" />
+            <element signature="e#4402#4403#0" expanded="true" />
+            <element signature="e#4436#4437#0" expanded="true" />
+            <element signature="e#4715#4716#0" expanded="true" />
+            <element signature="e#4777#4778#0" expanded="true" />
+            <element signature="e#4884#4885#0" expanded="true" />
+            <element signature="e#4924#4925#0" expanded="true" />
+            <element signature="e#5045#5061#0" />
+            <element signature="e#5789#6470#0" />
+            <element signature="e#7478#7479#0" expanded="true" />
+            <element signature="e#7507#7508#0" expanded="true" />
           </folding>
         </state>
       </provider>

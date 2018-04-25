@@ -13,11 +13,24 @@ use hyperplane::Hyperplane;
 use rotations;
 use tetrahedron::Tetrahedron;
 
+pub enum Definition {
+    Cell8,
+    Cell24,
+    Cell120,
+    Cell600,
+    Hypersphere
+}
+
+impl Definition {
+
+}
+
 pub struct Polytope {
     vertices: Vec<Vector4<f32>>,
     edges: Vec<u32>,
     faces: Vec<u32>,
     solids: Vec<u32>,
+    components_per_vertex: u32,
     vertices_per_edge: u32,
     edges_per_face: u32,
     faces_per_solid: u32,
@@ -68,11 +81,6 @@ impl Polytope {
             let w = all_coordinates.next().unwrap().trim().parse().unwrap();
 
             vertices.push(Vector4::new(x, y, z, w));
-
-            //            for entry in line.split_whitespace() {
-            //                let data: f32 = entry.trim().parse().unwrap();
-            //                vertices.push(data);
-            //            }
         }
         entry_count.clear();
 
@@ -125,7 +133,7 @@ impl Polytope {
 
         println!(
             "Loaded file with {} vertices, {} edges, {} faces, and {} solids",
-            vertices.len() / 4,
+            vertices.len(),
             edges.len() / 2,
             faces.len() / 4,
             solids.len() / 6
@@ -136,6 +144,7 @@ impl Polytope {
             edges,
             faces,
             solids,
+            components_per_vertex: 4,
             vertices_per_edge: 2,
             edges_per_face: 4,
             faces_per_solid: 6,
@@ -148,55 +157,73 @@ impl Polytope {
         polytope
     }
 
+    /// Returns the number of unique vertices in this mesh.
     pub fn get_number_of_vertices(&self) -> usize {
         self.vertices.len()
     }
 
+    /// Returns the number of unique edges in this mesh.
     pub fn get_number_of_edges(&self) -> usize {
         self.edges.len() / self.vertices_per_edge as usize
     }
 
+    /// Returns the number of unique faces in this mesh.
     pub fn get_number_of_faces(&self) -> usize {
         self.faces.len() / self.edges_per_face as usize
     }
 
-    /// Returns an unordered list of the unique vertices that make up the face at
-    /// index `face`.
-    pub fn get_vertices_for_face(&self, face: u32) -> Vec<Vector4<f32>> {
-        let mut visited_vertices = Vec::new();
-        let mut unique_vertices = Vec::new();
+    /// Returns the `i`th vertex of this polytope.
+    pub fn get_vertex(&self, i: u32) -> Vector4<f32> {
+        self.vertices[i as usize]
+    }
 
-        let idx_face_s = (face * self.edges_per_face) as usize;
-        let idx_face_e = (face * self.edges_per_face + self.edges_per_face) as usize;
+    /// Returns an unordered tuple of the two vertices that make up the `i`th
+    /// edge of this polytope.
+    pub fn get_vertices_for_edge(&self, i: u32) -> (Vector4<f32>, Vector4<f32>) {
+        let idx_edge_s = (i * self.vertices_per_edge) as usize;
+        let idx_edge_e = (i * self.vertices_per_edge + self.vertices_per_edge) as usize;
+        let pair = &self.edges[idx_edge_s..idx_edge_e];
+
+        (
+            self.get_vertex(pair[0]),
+            self.get_vertex(pair[1]),
+        )
+    }
+
+    /// Returns an unordered list of the unique vertices that make up the `i`th
+    /// face of this polytope.
+    pub fn get_vertices_for_face(&self, i: u32) -> Vec<Vector4<f32>> {
+        //let mut visited_vertices = Vec::new();
+        let mut vertices = Vec::new();
+
+        let idx_face_s = (i * self.edges_per_face) as usize;
+        let idx_face_e = (i * self.edges_per_face + self.edges_per_face) as usize;
         let edges = &self.faces[idx_face_s..idx_face_e];
 
         for edge in edges {
-            let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
-            let idx_edge_e = (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
-            let pair = &self.edges[idx_edge_s..idx_edge_e];
+            let (a, b) = self.get_vertices_for_edge(*edge);
 
-            if !visited_vertices.contains(&pair[0]) {
-                visited_vertices.push(pair[0]);
-                unique_vertices.push(self.vertices[pair[0] as usize]);
+            // We want to make sure that we don't add the same vertex to the
+            // list multiple times.
+            if !vertices.contains(&a) {
+                vertices.push(a);
             }
-            if !visited_vertices.contains(&pair[1]) {
-                visited_vertices.push(pair[1]);
-                unique_vertices.push(self.vertices[pair[1] as usize]);
+            if !vertices.contains(&b) {
+                vertices.push(b);
             }
         }
 
-        unique_vertices
+        vertices
     }
 
     pub fn get_vertices_for_solids(&self) {
         // TODO
     }
 
-    /// An H-representation of a polytope is a list of hyperplanes whose
+    /// The H-representation of a convex polytope is the list of hyperplanes whose
     /// intersection produces the desired shape.
     ///
-    /// Reference: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
-    /// See also: `facet enumeration`, `vertex enumeration`
+    /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         vec![
             Hyperplane::new(Vector4::unit_x(), 1.0),
@@ -210,9 +237,17 @@ impl Polytope {
         ]
     }
 
+    /// The V-representation of a convex polytope is simply the list of vertices,
+    /// which form the convex hull of the volume spanned by the polytope.
+    ///
+    /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Vertex_representation_(convex_hull)`
+    pub fn get_v_representation(&self) -> &Vec<Vector4<f32>> {
+        &self.vertices
+    }
+
     /// Given the H-representation of this polytope, return a list of lists, where
     /// each sub-list contains the indices of all faces that are inside of the `i`th
-    /// hyerplane.
+    /// hyperplane.
     pub fn gather_solids(&self) -> Vec<Vec<u32>> {
         let mut solids = Vec::new();
         let h_representation = self.get_h_representation();
