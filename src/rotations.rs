@@ -95,25 +95,42 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
-/// Given a set of four vertices embedded in 4-dimensions, find a proper ordering
-/// of `points[0]`, `points[1]`, `points[2]`, and `points[3]` such that the resulting
-/// list of vertices can be drawn as two distinct triangles.
-pub fn sort_quadrilateral(
+/// Given a set of  vertices embedded in 4-dimensions that lie on `hyperplane`, find a
+/// proper ordering of the points such that the resulting list of vertices can be
+/// traversed in order to create a fan of distinct, non-overlapping triangles. Note
+/// that for the purposes of this application, we don't care if the list ends up
+/// in a "clockwise" or "counter-clockwise" order.
+pub fn sort_points_on_plane(
     points: &Vec<Vector4<f32>>,
     hyperplane: &Hyperplane,
 ) -> Vec<Vector4<f32>> {
-    assert_eq!(points.len(), 4);
+    // Find the index of the largest component of the normal vector.
+    let mut largest_val = hyperplane.normal.x.abs();
+    let mut largest_index = 0;
+    if hyperplane.normal.y.abs() > largest_val {
+        largest_val = hyperplane.normal.y.abs();
+        largest_index = 1;
+    }
+    if hyperplane.normal.z.abs() > largest_val {
+        largest_val = hyperplane.normal.z.abs();
+        largest_index = 2;
+    }
+    if hyperplane.normal.w.abs() > largest_val {
+        largest_val = hyperplane.normal.w.abs();
+        largest_index = 3;
+    }
 
-    // First, project the 4D points to 3D.
+    // First, project the 4D points to 3D. We do this by dropping the coordinate
+    // corresponding to the largest value of the hyperplane's normal vector.
+    //
+    // TODO: does this work all the time?
     let align = hyperplane.get_inverse_rotation();
     let projected = points
         .iter()
-        .map(|pt| (align * pt).truncate_n(0))
+        .map(|pt| pt.truncate_n(largest_index))
         .collect::<Vec<_>>();
 
-    assert_eq!(projected.len(), 4);
-
-    // Now, we are safely working in 3-dimensions.
+    // Now, we are working in 3-dimensions.
     let a = projected[0];
     let b = projected[1];
     let c = projected[2];

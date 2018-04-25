@@ -16,6 +16,10 @@ impl Hyperplane {
         }
     }
 
+    pub fn inside(&self, point: &Vector4<f32>) -> bool {
+        self.side(point) == 0.0
+    }
+
     pub fn side(&self, point: &Vector4<f32>) -> f32 {
         self.normal.dot(*point) + self.displacement
     }

@@ -58,7 +58,7 @@ impl Tetrahedron {
         }
 
         if intersections.len() == 4 {
-            return rotations::sort_quadrilateral(&intersections, hyperplane);
+            return rotations::sort_points_on_plane(&intersections, hyperplane);
         }
 
         // TODO: this fails sometimes.

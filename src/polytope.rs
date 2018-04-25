@@ -158,6 +158,23 @@ impl Polytope {
         // TODO
     }
 
+    /// An H-representation of a polytope is a list of hyperplanes whose
+    /// intersection produces the desired shape.
+    ///
+    /// Reference: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
+    pub fn get_h_representation(&self) -> Vec<Hyperplane> {
+        vec![
+            Hyperplane::new(Vector4::unit_x(), 1.0),
+            Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
+            Hyperplane::new(Vector4::unit_y(), 1.0),
+            Hyperplane::new(Vector4::unit_y() * -1.0, 1.0),
+            Hyperplane::new(Vector4::unit_z(), 1.0),
+            Hyperplane::new(Vector4::unit_z() * -1.0, 1.0),
+            Hyperplane::new(Vector4::unit_w(), 1.0),
+            Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
+        ]
+    }
+
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
@@ -293,22 +310,37 @@ impl Polytope {
                     //
                     assert_eq!(face_vertices.len(), 4);
 
+                    // Compute the face normal.
+                    let v0 = self.get_vertex(face_vertices[0] as usize);
+                    let v1 = self.get_vertex(face_vertices[1] as usize);
+                    let v2 = self.get_vertex(face_vertices[2] as usize);
+                    let edge_1_0 = v1 - v0;
+                    let edge_2_0 = v2 - v0;
+                    let edge_2_1 = v2 - v1;
+
+                    let face_hyperplane =
+                        Hyperplane::new(rotations::cross(&edge_1_0, &edge_2_0, &edge_2_1), 0.0);
+
+                    for i in 0..(self.vertices.len() / 4) {}
+
                     // Collect all 4D vertices and sort.
-                    let quad_sorted = rotations::sort_quadrilateral(
+                    let face_vertices_sorted = rotations::sort_points_on_plane(
                         &face_vertices
                             .iter()
                             .map(|index| self.get_vertex(*index as usize))
                             .collect::<Vec<_>>(),
-                        hyperplane,
+                        &face_hyperplane,
                     );
 
-                    for (a, b, c) in Tetrahedron::get_quad_indices().iter() {
-                        // Next, form a tetrahedron with each triangle and the apex vertex.
+                    // Create a triangle fan, starting at the first vertex of the sorted list.
+                    // Connect each resulting triangle to the apex vertex to create a full
+                    // tetrahedron.
+                    for i in 1..face_vertices_sorted.len() - 1 {
                         tetrahedrons.push(Tetrahedron::new(
                             [
-                                quad_sorted[*a as usize],
-                                quad_sorted[*b as usize],
-                                quad_sorted[*c as usize],
+                                face_vertices_sorted[0],
+                                face_vertices_sorted[i + 0],
+                                face_vertices_sorted[i + 1],
                                 self.get_vertex(apex as usize),
                             ],
                             get_color_for_tetrahedron(solid as f32 / 8.0),

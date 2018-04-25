@@ -250,9 +250,7 @@ fn main() {
                                 delta.y,
                             );
                             four_rotation = rot_xw * rot_yw * four_rotation;
-                        }
-
-                        else if ctrl_pressed {
+                        } else if ctrl_pressed {
                             // 4D rotations (2)
                             let rot_xy = rotations::get_simple_rotation_matrix(
                                 rotations::Plane::XY,
