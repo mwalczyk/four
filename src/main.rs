@@ -190,6 +190,8 @@ fn main() {
         tetrahedrons.len()
     );
 
+    polytopes[0].gather_solids();
+
     // TODO: this camera isn't really being used right now...
     let four_cam = Camera::new(
         Vector4::unit_x(),

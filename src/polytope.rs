@@ -162,6 +162,7 @@ impl Polytope {
     /// intersection produces the desired shape.
     ///
     /// Reference: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
+    /// See also: `facet enumeration`, `vertex enumeration`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         vec![
             Hyperplane::new(Vector4::unit_x(), 1.0),
@@ -173,6 +174,48 @@ impl Polytope {
             Hyperplane::new(Vector4::unit_w(), 1.0),
             Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
         ]
+    }
+
+    pub fn gather_solids(&self) -> Vec<Vec<u32>> {
+        let h_representation = self.get_h_representation();
+
+        let mut solids = Vec::new();
+
+        for h in h_representation.iter() {
+            let mut faces_in_h = Vec::new();
+
+            for (face_index, edges) in self.faces.chunks(self.edges_per_face as usize).enumerate() {
+
+                let mut inside = true;
+
+                for edge in edges {
+                    let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
+                    let idx_edge_e =
+                        (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
+                    let pair = &self.edges[idx_edge_s..idx_edge_e];
+
+                    let v0 = self.get_vertex(pair[0] as usize);
+                    let v1 = self.get_vertex(pair[1] as usize);
+
+                    if !h.inside(&v0) ||  !h.inside(&v1) {
+                        inside = false;
+                    }
+                }
+
+                if inside {
+                    faces_in_h.push(face_index as u32);
+                }
+            }
+            println!(
+                "{} faces found for hyperplane with normal {:?}",
+                faces_in_h.len(),
+                h.normal
+            );
+
+            solids.push(faces_in_h);
+        }
+
+        solids
     }
 
     pub fn draw(&self) {
