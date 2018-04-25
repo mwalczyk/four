@@ -14,7 +14,7 @@ use rotations;
 use tetrahedron::Tetrahedron;
 
 pub struct Polytope {
-    vertices: Vec<f32>,
+    vertices: Vec<Vector4<f32>>,
     edges: Vec<u32>,
     faces: Vec<u32>,
     solids: Vec<u32>,
@@ -61,10 +61,18 @@ impl Polytope {
             let mut line = String::new();
             reader.read_line(&mut line);
 
-            for entry in line.split_whitespace() {
-                let data: f32 = entry.trim().parse().unwrap();
-                vertices.push(data);
-            }
+            let mut all_coordinates = line.split_whitespace();
+            let x = all_coordinates.next().unwrap().trim().parse().unwrap();
+            let y = all_coordinates.next().unwrap().trim().parse().unwrap();
+            let z = all_coordinates.next().unwrap().trim().parse().unwrap();
+            let w = all_coordinates.next().unwrap().trim().parse().unwrap();
+
+            vertices.push(Vector4::new(x, y, z, w));
+
+            //            for entry in line.split_whitespace() {
+            //                let data: f32 = entry.trim().parse().unwrap();
+            //                vertices.push(data);
+            //            }
         }
         entry_count.clear();
 
@@ -140,18 +148,44 @@ impl Polytope {
         polytope
     }
 
-    /// Returns the vertex at `index`, as a single `Vector4`.
-    pub fn get_vertex(&self, index: usize) -> Vector4<f32> {
-        Vector4::new(
-            self.vertices[index * 4 + 0],
-            self.vertices[index * 4 + 1],
-            self.vertices[index * 4 + 2],
-            self.vertices[index * 4 + 3],
-        )
+    pub fn get_number_of_vertices(&self) -> usize {
+        self.vertices.len()
     }
 
-    pub fn get_vertices_for_faces(&self) {
-        // TODO
+    pub fn get_number_of_edges(&self) -> usize {
+        self.edges.len() / self.vertices_per_edge as usize
+    }
+
+    pub fn get_number_of_faces(&self) -> usize {
+        self.faces.len() / self.edges_per_face as usize
+    }
+
+    /// Returns an unordered list of the unique vertices that make up the face at
+    /// index `face`.
+    pub fn get_vertices_for_face(&self, face: u32) -> Vec<Vector4<f32>> {
+        let mut visited_vertices = Vec::new();
+        let mut unique_vertices = Vec::new();
+
+        let idx_face_s = (face * self.edges_per_face) as usize;
+        let idx_face_e = (face * self.edges_per_face + self.edges_per_face) as usize;
+        let edges = &self.faces[idx_face_s..idx_face_e];
+
+        for edge in edges {
+            let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
+            let idx_edge_e = (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
+            let pair = &self.edges[idx_edge_s..idx_edge_e];
+
+            if !visited_vertices.contains(&pair[0]) {
+                visited_vertices.push(pair[0]);
+                unique_vertices.push(self.vertices[pair[0] as usize]);
+            }
+            if !visited_vertices.contains(&pair[1]) {
+                visited_vertices.push(pair[1]);
+                unique_vertices.push(self.vertices[pair[1] as usize]);
+            }
+        }
+
+        unique_vertices
     }
 
     pub fn get_vertices_for_solids(&self) {
@@ -176,43 +210,38 @@ impl Polytope {
         ]
     }
 
+    /// Given the H-representation of this polytope, return a list of lists, where
+    /// each sub-list contains the indices of all faces that are inside of the `i`th
+    /// hyerplane.
     pub fn gather_solids(&self) -> Vec<Vec<u32>> {
+        let mut solids = Vec::new();
         let h_representation = self.get_h_representation();
 
-        let mut solids = Vec::new();
+        for hyperplane in h_representation.iter() {
+            let mut faces_in_hyperplane = Vec::new();
 
-        for h in h_representation.iter() {
-            let mut faces_in_h = Vec::new();
-
-            for (face_index, edges) in self.faces.chunks(self.edges_per_face as usize).enumerate() {
-
+            for face_index in 0..self.get_number_of_faces() {
+                let face_vertices = self.get_vertices_for_face(face_index as u32);
                 let mut inside = true;
 
-                for edge in edges {
-                    let idx_edge_s = (*edge * self.vertices_per_edge) as usize;
-                    let idx_edge_e =
-                        (*edge * self.vertices_per_edge + self.vertices_per_edge) as usize;
-                    let pair = &self.edges[idx_edge_s..idx_edge_e];
-
-                    let v0 = self.get_vertex(pair[0] as usize);
-                    let v1 = self.get_vertex(pair[1] as usize);
-
-                    if !h.inside(&v0) ||  !h.inside(&v1) {
+                for vertex in face_vertices.iter() {
+                    if !hyperplane.inside(&vertex) {
                         inside = false;
                     }
                 }
 
                 if inside {
-                    faces_in_h.push(face_index as u32);
+                    faces_in_hyperplane.push(face_index as u32);
                 }
             }
+
             println!(
                 "{} faces found for hyperplane with normal {:?}",
-                faces_in_h.len(),
-                h.normal
+                faces_in_hyperplane.len(),
+                hyperplane.normal
             );
 
-            solids.push(faces_in_h);
+            solids.push(faces_in_hyperplane);
         }
 
         solids
@@ -235,7 +264,7 @@ impl Polytope {
         unsafe {
             gl::CreateVertexArrays(1, &mut self.vao);
 
-            let mut size = (self.vertices.len() * mem::size_of::<f32>()) as GLsizeiptr;
+            let mut size = (self.vertices.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
             gl::CreateBuffers(1, &mut self.vbo);
             gl::NamedBufferData(
                 self.vbo,
@@ -265,7 +294,7 @@ impl Polytope {
                 binding,
                 self.vbo,
                 offset,
-                (mem::size_of::<f32>() * 4 as usize) as i32,
+                (mem::size_of::<Vector4<f32>>() as usize) as i32,
             );
         }
     }
@@ -354,9 +383,9 @@ impl Polytope {
                     assert_eq!(face_vertices.len(), 4);
 
                     // Compute the face normal.
-                    let v0 = self.get_vertex(face_vertices[0] as usize);
-                    let v1 = self.get_vertex(face_vertices[1] as usize);
-                    let v2 = self.get_vertex(face_vertices[2] as usize);
+                    let v0 = self.vertices[face_vertices[0] as usize];
+                    let v1 = self.vertices[face_vertices[1] as usize];
+                    let v2 = self.vertices[face_vertices[2] as usize];
                     let edge_1_0 = v1 - v0;
                     let edge_2_0 = v2 - v0;
                     let edge_2_1 = v2 - v1;
@@ -370,7 +399,7 @@ impl Polytope {
                     let face_vertices_sorted = rotations::sort_points_on_plane(
                         &face_vertices
                             .iter()
-                            .map(|index| self.get_vertex(*index as usize))
+                            .map(|index| self.vertices[*index as usize])
                             .collect::<Vec<_>>(),
                         &face_hyperplane,
                     );
@@ -384,7 +413,7 @@ impl Polytope {
                                 face_vertices_sorted[0],
                                 face_vertices_sorted[i + 0],
                                 face_vertices_sorted[i + 1],
-                                self.get_vertex(apex as usize),
+                                self.vertices[apex as usize],
                             ],
                             get_color_for_tetrahedron(solid as f32 / 8.0),
                         ));
