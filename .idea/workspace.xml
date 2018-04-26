@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/shapes/8cell.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/shapes/ignore/120cell.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/polytope.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/polytope.rs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
@@ -21,10 +23,9 @@
             <file leaf-file-name="polytope.rs" pinned="false" current-in-tab="true">
               <entry file="file://$PROJECT_DIR$/src/polytope.rs">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="383">
-                    <caret line="363" column="48" lean-forward="true" selection-start-line="363" selection-start-column="48" selection-end-line="363" selection-end-column="48" />
+                  <state relative-caret-position="510">
+                    <caret line="236" column="69" selection-start-line="236" selection-start-column="69" selection-end-line="236" selection-end-column="69" />
                     <folding>
-                      <element signature="e#1185#4430#0" />
                       <element signature="e#4542#4543#0" expanded="true" />
                       <element signature="e#4576#4577#0" expanded="true" />
                       <element signature="e#4855#4856#0" expanded="true" />
@@ -54,23 +55,27 @@
     </window>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.3779029">
+    <splitter split-orientation="horizontal" split-proportion="0.46516538">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-          <file leaf-file-name="renderer.rs" pinned="false" current-in-tab="true">
+          <file leaf-file-name="renderer.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/renderer.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="126">
-                  <caret line="85" lean-forward="true" selection-start-line="85" selection-end-line="85" />
+                <state relative-caret-position="448">
+                  <caret line="83" column="9" lean-forward="true" selection-start-line="83" selection-start-column="9" selection-end-line="83" selection-end-column="9" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="hyperplane.rs" pinned="false" current-in-tab="false">
+          <file leaf-file-name="hyperplane.rs" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="336">
-                  <caret line="24" column="5" selection-start-line="24" selection-start-column="5" selection-end-line="24" selection-end-column="5" />
+                <state relative-caret-position="126">
+                  <caret line="9" column="24" lean-forward="true" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
+                  <folding>
+                    <element signature="e#548#549#0" expanded="true" />
+                    <element signature="e#606#607#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -109,17 +114,17 @@
           <file leaf-file-name="rotations.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/rotations.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="200">
-                  <caret line="114" column="32" selection-start-line="114" selection-start-column="32" selection-end-line="114" selection-end-column="32" />
+                <state relative-caret-position="102">
+                  <caret line="107" column="44" lean-forward="true" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="8cell.txt" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
+          <file leaf-file-name="120cell.txt" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/shapes/120cell.txt">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="276">
-                  <caret line="82" column="16" lean-forward="true" selection-start-line="82" selection-start-column="16" selection-end-line="82" selection-end-column="16" />
+                <state relative-caret-position="778">
+                  <caret line="594" column="34" lean-forward="true" selection-start-line="594" selection-start-column="34" selection-end-line="594" selection-end-column="34" />
                 </state>
               </provider>
             </entry>
@@ -143,6 +148,8 @@
       <find>rotations</find>
       <find>hyperplane</find>
       <find>Matrix4</find>
+      <find>-1.41421 1.41421</find>
+      <find>1.14412 -1.14412</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -322,12 +329,12 @@
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.07486979" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.07486979" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Cargo" order="3" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.4403794" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.26287264" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
@@ -517,7 +524,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../sdfperf/src/renderer.rs" />
     <entry file="file://$PROJECT_DIR$/../sdfperf/Cargo.toml" />
-    <entry file="file://$PROJECT_DIR$/shapes/120cell.txt" />
     <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/image-0.18.0/src/dynimage.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="434">
@@ -578,24 +584,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="24" column="5" selection-start-line="24" selection-start-column="5" selection-end-line="24" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2716">
           <caret line="194" column="32" selection-start-line="194" selection-start-column="32" selection-end-line="194" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/renderer.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="85" lean-forward="true" selection-start-line="85" selection-end-line="85" />
         </state>
       </provider>
     </entry>
@@ -606,26 +598,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/rotations.rs">
+    <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="114" column="32" selection-start-line="114" selection-start-column="32" selection-end-line="114" selection-end-column="32" />
+        <state relative-caret-position="379">
+          <caret line="80" column="16" lean-forward="true" selection-start-line="80" selection-start-column="16" selection-end-line="80" selection-end-column="16" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/shapes/8cell.txt">
+    <entry file="file://$PROJECT_DIR$/src/rotations.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="82" column="16" lean-forward="true" selection-start-line="82" selection-start-column="16" selection-end-line="82" selection-end-column="16" />
+        <state relative-caret-position="102">
+          <caret line="107" column="44" lean-forward="true" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/renderer.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="448">
+          <caret line="83" column="9" lean-forward="true" selection-start-line="83" selection-start-column="9" selection-end-line="83" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="9" column="24" lean-forward="true" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
+          <folding>
+            <element signature="e#548#549#0" expanded="true" />
+            <element signature="e#606#607#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shapes/120cell.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="778">
+          <caret line="594" column="34" lean-forward="true" selection-start-line="594" selection-start-column="34" selection-end-line="594" selection-end-column="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/polytope.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="383">
-          <caret line="363" column="48" lean-forward="true" selection-start-line="363" selection-start-column="48" selection-end-line="363" selection-end-column="48" />
+        <state relative-caret-position="510">
+          <caret line="236" column="69" selection-start-line="236" selection-start-column="69" selection-end-line="236" selection-end-column="69" />
           <folding>
-            <element signature="e#1185#4430#0" />
             <element signature="e#4542#4543#0" expanded="true" />
             <element signature="e#4576#4577#0" expanded="true" />
             <element signature="e#4855#4856#0" expanded="true" />

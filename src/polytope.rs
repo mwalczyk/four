@@ -114,34 +114,34 @@ impl Polytope {
         }
         entry_count.clear();
 
-        // Load solid data (6 entries per solid).
-        reader.read_line(&mut entry_count);
-        number_of_entries = entry_count.trim().parse().unwrap();
-        let mut solids = Vec::with_capacity(number_of_entries * 6);
-
-        for _ in 0..number_of_entries {
-            let mut line = String::new();
-            reader.read_line(&mut line);
-
-            for entry in line.split_whitespace() {
-                let data: u32 = entry.trim().parse().unwrap();
-                solids.push(data);
-            }
-        }
-
-        println!(
-            "Loaded file with {} vertices, {} edges, {} faces, and {} solids",
-            vertices.len(),
-            edges.len() / 2,
-            faces.len() / 4,
-            solids.len() / 6
-        );
+//        // Load solid data (6 entries per solid).
+//        reader.read_line(&mut entry_count);
+//        number_of_entries = entry_count.trim().parse().unwrap();
+//        let mut solids = Vec::with_capacity(number_of_entries * 6);
+//
+//        for _ in 0..number_of_entries {
+//            let mut line = String::new();
+//            reader.read_line(&mut line);
+//
+//            for entry in line.split_whitespace() {
+//                let data: u32 = entry.trim().parse().unwrap();
+//                solids.push(data);
+//            }
+//        }
+//
+//        println!(
+//            "Loaded file with {} vertices, {} edges, {} faces, and {} solids",
+//            vertices.len(),
+//            edges.len() / 2,
+//            faces.len() / 4,
+//            solids.len() / 6
+//        );
 
         let mut polytope = Polytope {
             vertices,
             edges,
             faces,
-            solids,
+            solids: Vec::new(),
             components_per_vertex: 4,
             vertices_per_edge: 2,
             edges_per_face: 4,
@@ -220,6 +220,21 @@ impl Polytope {
     ///
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
+
+        // ~ 1.73205
+        let r = 3.0.sqrt();
+
+        // sqrt(3) = 1.73205
+        // sqrt(5) = 2.23606
+        // phi = 1.61803
+
+        // 2 - 1.41421 = 0.58579
+        // self.normal.dot(*point) + 1.73205
+
+
+
+        // THIS is our radius = 2 * sqrt(2) / 2
+        // described here: http://mathworld.wolfram.com/120-Cell.html
         vec![
             Hyperplane::new(Vector4::unit_x(), 1.0),
             Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
