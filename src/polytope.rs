@@ -114,38 +114,46 @@ impl Polytope {
         }
         entry_count.clear();
 
-//        // Load solid data (6 entries per solid).
-//        reader.read_line(&mut entry_count);
-//        number_of_entries = entry_count.trim().parse().unwrap();
-//        let mut solids = Vec::with_capacity(number_of_entries * 6);
-//
-//        for _ in 0..number_of_entries {
-//            let mut line = String::new();
-//            reader.read_line(&mut line);
-//
-//            for entry in line.split_whitespace() {
-//                let data: u32 = entry.trim().parse().unwrap();
-//                solids.push(data);
-//            }
-//        }
-//
-//        println!(
-//            "Loaded file with {} vertices, {} edges, {} faces, and {} solids",
-//            vertices.len(),
-//            edges.len() / 2,
-//            faces.len() / 4,
-//            solids.len() / 6
-//        );
+        // Load solid data (6 entries per solid).
+        reader.read_line(&mut entry_count);
+        number_of_entries = entry_count.trim().parse().unwrap();
+        let mut solids = Vec::with_capacity(number_of_entries * 6);
+
+        for _ in 0..number_of_entries {
+            let mut line = String::new();
+            reader.read_line(&mut line);
+
+            for entry in line.split_whitespace() {
+                let data: u32 = entry.trim().parse().unwrap();
+                solids.push(data);
+            }
+        }
+
+                println!(
+                    "Loaded file with {} vertices, {} edges, {} faces",
+                    vertices.len(),
+                    edges.len() / 2,
+                    faces.len() / 5,
+//                    solids.len() / 6
+                );
+
+
+
+
+
 
         let mut polytope = Polytope {
             vertices,
             edges,
             faces,
-            solids: Vec::new(),
+            solids,
             components_per_vertex: 4,
             vertices_per_edge: 2,
-            edges_per_face: 4,
-            faces_per_solid: 6,
+//        edges_per_face: 4,
+//        faces_per_solid: 6,
+
+            edges_per_face: 5,
+            faces_per_solid: 20,
             vao: 0,
             vbo: 0,
             ebo: 0,
@@ -181,7 +189,7 @@ impl Polytope {
         let idx_edge_s = (i * self.vertices_per_edge) as usize;
         let idx_edge_e = (i * self.vertices_per_edge + self.vertices_per_edge) as usize;
         let pair = &self.edges[idx_edge_s..idx_edge_e];
-
+        println!("{:?} pair", pair);
         (self.get_vertex(pair[0]), self.get_vertex(pair[1]))
     }
 
@@ -195,17 +203,28 @@ impl Polytope {
         let idx_face_e = (i * self.edges_per_face + self.edges_per_face) as usize;
         let edges = &self.faces[idx_face_s..idx_face_e];
 
+
         for edge in edges {
             let (a, b) = self.get_vertices_for_edge(*edge);
 
+            //println!("  {:?} vertex a", a);
+            //println!("  {:?} vertex b", b);
             // We want to make sure that we don't add the same vertex to the
             // list multiple times.
             if !vertices.contains(&a) {
+                //println!("  {:?} added vertex a", a);
                 vertices.push(a);
+
             }
             if !vertices.contains(&b) {
+                //println!("  {:?} added vertex b", b);
                 vertices.push(b);
             }
+        }
+        if vertices.len() != 5 {
+            println!("Adding vertices for face {}", i);
+            println!("  Edges: {:?}", edges);
+            println!("  Total verts found: {}", vertices.len());
         }
 
         vertices
@@ -220,31 +239,140 @@ impl Polytope {
     ///
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
-
         // ~ 1.73205
-        let r = 3.0.sqrt();
+        //  let r = 3.0.sqrt();
 
+        // sqrt(2) = 1.41421
         // sqrt(3) = 1.73205
         // sqrt(5) = 2.23606
-        // phi = 1.61803
+        // phi = 1.61803 (golden ratio)
+
+        // phi inv = 0.61803
 
         // 2 - 1.41421 = 0.58579
         // self.normal.dot(*point) + 1.73205
 
 
-
         // THIS is our radius = 2 * sqrt(2) / 2
         // described here: http://mathworld.wolfram.com/120-Cell.html
-        vec![
-            Hyperplane::new(Vector4::unit_x(), 1.0),
-            Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
-            Hyperplane::new(Vector4::unit_y(), 1.0),
-            Hyperplane::new(Vector4::unit_y() * -1.0, 1.0),
-            Hyperplane::new(Vector4::unit_z(), 1.0),
-            Hyperplane::new(Vector4::unit_z() * -1.0, 1.0),
-            Hyperplane::new(Vector4::unit_w(), 1.0),
-            Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
-        ]
+
+        let d = 0.0;// 2.0 * 2.0f32.sqrt();
+
+        let rt5 = 5.0f32.sqrt();
+
+        let mut representation = vec![
+            Hyperplane::new(Vector4::new(2.0, 0.0, 0.0, 0.0), d),
+            Hyperplane::new(Vector4::new(-2.0, 2.0, 0.0, 0.0), d),
+            Hyperplane::new(Vector4::new(0.0, -2.0, 2.0, 0.0), d),
+            Hyperplane::new(Vector4::new(0.0, 0.0, -2.0, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(0.0, 0.0, 1.0 + rt5, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(0.0, 1.0 + rt5, -1.0 - rt5, 2.0), d),
+            Hyperplane::new(Vector4::new(0.0, 1.0 + rt5, 0.0, -2.0), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, -1.0 - rt5, 0.0, 2.0), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, -1.0 - rt5, 1.0 + rt5, -2.0), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 0.0, -1.0 - rt5, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 0.0, 2.0, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 2.0, -2.0, 0.0), d),
+            Hyperplane::new(Vector4::new(3.0 + rt5, -2.0, 0.0, 0.0), d),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, 0.0, 0.0, 2.0), d),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, 0.0, 1.0 + rt5, -2.0), d),
+            Hyperplane::new(
+                Vector4::new(-1.0 - rt5, 1.0 + rt5, -1.0 - rt5, 1.0 + rt5),
+                d,
+            ),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, 1.0 + rt5, 2.0, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, 3.0 + rt5, -2.0, 0.0), d),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 1.0 + rt5, 0.0, 0.0), d),
+            Hyperplane::new(Vector4::new(0.0, -1.0 - rt5, 0.0, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(0.0, -1.0 - rt5, 3.0 + rt5, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(2.0, -3.0 - rt5, 1.0 + rt5, 0.0), d),
+            Hyperplane::new(Vector4::new(-2.0, -1.0 - rt5, 1.0 + rt5, 0.0), d),
+            Hyperplane::new(Vector4::new(0.0, 2.0, -3.0 - rt5, 3.0 + rt5), d),
+            Hyperplane::new(Vector4::new(2.0, -2.0, -1.0 - rt5, 3.0 + rt5), d),
+            Hyperplane::new(Vector4::new(-2.0, 0.0, -1.0 - rt5, 3.0 + rt5), d),
+            Hyperplane::new(Vector4::new(0.0, 2.0, 1.0 + rt5, -3.0 - rt5), d),
+            Hyperplane::new(Vector4::new(2.0, -2.0, 3.0 + rt5, -3.0 - rt5), d),
+            Hyperplane::new(Vector4::new(-2.0, 0.0, 3.0 + rt5, -3.0 - rt5), d),
+            Hyperplane::new(Vector4::new(0.0, 3.0 + rt5, -1.0 - rt5, 0.0), d),
+            Hyperplane::new(Vector4::new(2.0, 1.0 + rt5, -3.0 - rt5, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(-2.0, 3.0 + rt5, -3.0 - rt5, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(2.0, 1.0 + rt5, 0.0, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(-2.0, 3.0 + rt5, 0.0, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(3.0 + rt5, -3.0 - rt5, 2.0, 0.0), d),
+            Hyperplane::new(Vector4::new(3.0 + rt5, -1.0 - rt5, -2.0, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, -3.0 - rt5, 0.0, 1.0 + rt5), d),
+            Hyperplane::new(
+                Vector4::new(3.0 + rt5, -1.0 - rt5, 1.0 + rt5, -1.0 - rt5),
+                d,
+            ),
+            Hyperplane::new(
+                Vector4::new(1.0 + rt5, -3.0 - rt5, 3.0 + rt5, -1.0 - rt5),
+                d,
+            ),
+            Hyperplane::new(Vector4::new(3.0 + rt5, 0.0, -1.0 - rt5, 2.0), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 0.0, -3.0 - rt5, 3.0 + rt5), d),
+            Hyperplane::new(Vector4::new(3.0 + rt5, 0.0, 0.0, -2.0), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 0.0, 1.0 + rt5, -3.0 - rt5), d),
+            Hyperplane::new(Vector4::new(1.0 + rt5, 1.0 + rt5, -1.0 - rt5, 0.0), d),
+            Hyperplane::new(Vector4::new(2.0 + 2.0 * rt5, -1.0 - rt5, 0.0, 0.0), d),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 0.0, 2.0, 0.0), d),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 2.0, -2.0, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, -2.0, 0.0, 1.0 + rt5), d),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 2.0, 1.0 + rt5, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(-1.0 - rt5, -2.0, 3.0 + rt5, -1.0 - rt5), d),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 3.0 + rt5, -1.0 - rt5, 2.0), d),
+            Hyperplane::new(
+                Vector4::new(-1.0 - rt5, 1.0 + rt5, -3.0 - rt5, 3.0 + rt5),
+                d,
+            ),
+            Hyperplane::new(Vector4::new(-3.0 - rt5, 3.0 + rt5, 0.0, -2.0), d),
+            Hyperplane::new(
+                Vector4::new(-1.0 - rt5, 1.0 + rt5, 1.0 + rt5, -3.0 - rt5),
+                d,
+            ),
+            Hyperplane::new(
+                Vector4::new(-1.0 - rt5, 2.0 + 2.0 * rt5, -1.0 - rt5, 0.0),
+                d,
+            ),
+            Hyperplane::new(Vector4::new(0.0, -3.0 - rt5, 2.0, 2.0), d),
+            Hyperplane::new(Vector4::new(0.0, -1.0 - rt5, -2.0, 3.0 + rt5), d),
+            Hyperplane::new(Vector4::new(0.0, -3.0 - rt5, 3.0 + rt5, -2.0), d),
+            Hyperplane::new(
+                Vector4::new(0.0, -1.0 - rt5, 2.0 + 2.0 * rt5, -3.0 - rt5),
+                d,
+            ),
+            Hyperplane::new(Vector4::new(0.0, 0.0, -3.0 - rt5, 2.0 + 2.0 * rt5), d),
+        ];
+
+        let mut flipped = Vec::new();
+        for hyperplane in representation.iter() {
+            let normal = hyperplane.normal * -1.0;
+            //println!("{}", normal.magnitude());
+            flipped.push(Hyperplane::new(normal, d));
+        }
+
+        representation.append(&mut flipped);
+
+        println!(
+            "Number of hyperplanes in 120-cell's H-representation: {}",
+            representation.len()
+        );
+
+        let hypercube = false;
+        if hypercube {
+            return vec![
+                Hyperplane::new(Vector4::unit_x(), 1.0),
+                Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_y(), 1.0),
+                Hyperplane::new(Vector4::unit_y() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_z(), 1.0),
+                Hyperplane::new(Vector4::unit_z() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_w(), 1.0),
+                Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
+            ];
+        } else {
+            return representation;
+        }
     }
 
     /// The V-representation of a convex polytope is simply the list of vertices,
@@ -380,16 +508,13 @@ impl Polytope {
             ).extend(1.0)
         };
 
-        for (solid, faces) in self.gather_solids().iter().enumerate() {
+        for (solid, faces) in self.solids.chunks(self.faces_per_solid as usize).enumerate() {
+        //for (solid, faces) in self.gather_solids().iter().enumerate() {
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
 
             // Iterate over each face of the current cell.
             for face in faces {
-                // Retrieve the indices of all of the edges that make up this face.
-                let idx_face_s = (*face * self.edges_per_face) as usize;
-                let idx_face_e = (*face * self.edges_per_face + self.edges_per_face) as usize;
-                let edges = &self.faces[idx_face_s..idx_face_e];
 
                 let face_vertices = self.get_vertices_for_face(*face);
 
@@ -407,7 +532,7 @@ impl Polytope {
                     // | /  |
                     // c -- d
                     //
-                    assert_eq!(face_vertices.len(), 4);
+                   // assert_eq!(face_vertices.len(), 4);
 
                     // Compute the face normal.
                     let v0 = face_vertices[0];
@@ -423,6 +548,7 @@ impl Polytope {
                     // Collect all 4D vertices and sort.
                     let face_vertices_sorted =
                         rotations::sort_points_on_plane(&face_vertices, &face_hyperplane);
+
 
                     // Create a triangle fan, starting at the first vertex of the sorted list.
                     // Connect each resulting triangle to the apex vertex to create a full

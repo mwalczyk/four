@@ -113,29 +113,29 @@ fn load_shaders(vs_path: &Path, fs_path: &Path) -> Program {
     Program::new(vs_src, fs_src).unwrap()
 }
 
-/// Saves the current frame to disk at `path` with dimensions `w`x`h`.
-fn save_frame(path: &Path, w: u32, h: u32) {
-    let len = w * h * 3;
-    let mut pixels: Vec<u8> = Vec::new();
-    pixels.reserve(len as usize);
-
-    unsafe {
-        // We don't want any alignment padding on pixel rows.
-        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
-        gl::ReadPixels(
-            0,
-            0,
-            w as i32,
-            h as i32,
-            gl::RGB,
-            gl::UNSIGNED_BYTE,
-            pixels.as_mut_ptr() as *mut c_void,
-        );
-        pixels.set_len(len as usize);
-    }
-
-    image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
-}
+///// Saves the current frame to disk at `path` with dimensions `w`x`h`.
+//fn save_frame(path: &Path, w: u32, h: u32) {
+//    let len = w * h * 3;
+//    let mut pixels: Vec<u8> = Vec::new();
+//    pixels.reserve(len as usize);
+//
+//    unsafe {
+//        // We don't want any alignment padding on pixel rows.
+//        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
+//        gl::ReadPixels(
+//            0,
+//            0,
+//            w as i32,
+//            h as i32,
+//            gl::RGB,
+//            gl::UNSIGNED_BYTE,
+//            pixels.as_mut_ptr() as *mut c_void,
+//        );
+//        pixels.set_len(len as usize);
+//    }
+//
+//    image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
+//}
 
 fn load_shapes() -> Vec<Polytope> {
     let mut polytopes = Vec::new();
@@ -190,7 +190,8 @@ fn main() {
         tetrahedrons.len()
     );
 
-    polytopes[0].gather_solids();
+    println!("{:?}", polytopes[0].get_vertices_for_face(100));
+    //polytopes[0].gather_solids();
 
     // TODO: this camera isn't really being used right now...
     let four_cam = Camera::new(
@@ -295,7 +296,7 @@ fn main() {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
-                                    save_frame(path, WIDTH, HEIGHT);
+                                    //save_frame(path, WIDTH, HEIGHT);
                                 }
                                 glutin::VirtualKeyCode::O => {
                                     if draw_index > 0 {
@@ -338,7 +339,7 @@ fn main() {
         program.uniform_1f("u_time", milliseconds);
 
         // Automatically rotate around the y-axis in 3-dimensions
-        three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
+        //three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
 
         // Uniforms for 4D -> 3D projection.
         program.uniform_4f("u_four_from", &four_cam.from);
@@ -352,15 +353,15 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
-        for tetra in tetrahedrons.iter_mut() {
-            program.uniform_4f("u_draw_color", &tetra.color);
-
-            // First, set this tetrahedron's transform matrix
-            tetra.set_transform(&four_rotation);
-
-            // Then, render the slice
-            renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
-        }
+//        for tetra in tetrahedrons.iter_mut() {
+//            program.uniform_4f("u_draw_color", &tetra.color);
+//
+//            // First, set this tetrahedron's transform matrix
+//            tetra.set_transform(&four_rotation);
+//
+//            // Then, render the slice
+//            renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
+//        }
 
         // Draw the full polytope
         program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
