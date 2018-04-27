@@ -77,8 +77,7 @@ impl Polytope {
             let y = all_coordinates.next().unwrap().trim().parse().unwrap();
             let z = all_coordinates.next().unwrap().trim().parse().unwrap();
             let w = all_coordinates.next().unwrap().trim().parse().unwrap();
-            let vertex = Vector4::new(x, y, z, w) * 2.0f32.sqrt();
-            //println!("{:?}", vertex);
+            let vertex = Vector4::new(x, y, z, w); // TODO: wtf how does this cause so much: - Vector4::from_value(0.001);
 
             vertices.push(vertex);
         }
@@ -198,10 +197,18 @@ impl Polytope {
         let idx_face_e = (i * self.vertices_per_face + self.vertices_per_face) as usize;
         let vertex_ids = &self.faces[idx_face_s..idx_face_e];
 
-        vertex_ids
+        let vertices = vertex_ids
             .iter()
             .map(|id| self.get_vertex(*id))
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>();
+
+//        if i == 50 {
+//            println!("-----------------------------------------------------------------------");
+//            println!("ids: {:?}", vertex_ids);
+//            println!("  ids: {:?}", vertices);
+//        }
+
+        vertices
     }
 
     /// Returns an unordered list of the unique vertices that make up the `i`th
@@ -222,10 +229,8 @@ impl Polytope {
     ///
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
-
-        let displacement = 0.0;
-
-        let representation = vec![
+        let displacement = 2.0;
+        let mut representation = vec![
             Hyperplane::new(Vector4::new(2.0, 0.0, 0.0, 0.0), displacement),
             Hyperplane::new(Vector4::new(-2.0, 0.0, 0.0, 0.0), displacement),
             Hyperplane::new(Vector4::new(0.0, 2.0, 0.0, 0.0), displacement),
@@ -388,9 +393,15 @@ impl Polytope {
         for hyperplane in h_representation.iter() {
             let mut faces_in_hyperplane = Vec::new();
 
+            // Iterate over all of the faces of this polytope. For the 120-cell, for example,
+            // there are 720 faces, each of which has 5 vertices associated with it.
+            assert_eq!(self.get_number_of_faces(), 720);
+
             for face_index in 0..self.get_number_of_faces() {
 
                 let face_vertices = self.get_vertices_for_face(face_index as u32);
+                assert_eq!(face_vertices.len(), 5);
+
                 let mut inside = true;
 
                 for vertex in face_vertices.iter() {
@@ -512,21 +523,21 @@ impl Polytope {
             let (hyperplane, faces) = plane_and_faces;
             let mut prev_len = tetrahedrons.len();
 
-            println!("-------------------------------------------------------");
+          //  println!("-------------------------------------------------------");
 
             // Iterate over each face of the current cell.
             for face in faces {
                 let face_vertices = self.get_vertices_for_face(*face);
 
-                println!("face vertices: {:?}", face_vertices);
+               // println!("face vertices: {:?}", face_vertices);
 
                 if apex.x == f32::MAX {
                     apex = face_vertices[0];
-                    println!("  apex chosen {:?}", apex);
+                   // println!("  apex chosen {:?}", apex);
                 }
 
                 // We only want to tetrahedralize faces that are NOT connected to the apex.
-                if !face_vertices.contains(&apex) {
+                if !face_vertices.contains(&apex) { //} && !face_vertices.contains(&(apex * -1.0)) {
                     // First, we need to triangulate this face into two, non-overlapping
                     // triangles.
                     //
@@ -556,7 +567,7 @@ impl Polytope {
                 }
             }
 
-            //println!("{} tetrahedrons found for solid {}", tetrahedrons.len()-prev_len, solid);
+            println!("{} tetrahedrons found for solid {}", tetrahedrons.len()-prev_len, solid);
         }
 
         tetrahedrons

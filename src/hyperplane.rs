@@ -13,18 +13,16 @@ impl Hyperplane {
 
         Hyperplane {
             normal,
-            displacement,
+            displacement
         }
     }
 
     pub fn inside(&self, point: &Vector4<f32>) -> bool {
+        let pct = self.normal.dot(*point) - 2.0;
 
+        //pct.abs() <= 0.381
 
-        // only works with normalized n
-        //(self.normal.dot(*point) - 1.0) >= 0.01
-
-
-        (self.normal.dot(*point) + self.displacement).abs() <= 0.001
+         (self.normal.dot(*point)).abs() <= 0.001
     }
 
     pub fn side(&self, point: &Vector4<f32>) -> f32 {

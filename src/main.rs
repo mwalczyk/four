@@ -341,7 +341,7 @@ fn main() {
         program.uniform_1f("u_time", milliseconds);
 
         // Automatically rotate around the y-axis in 3-dimensions
-        //three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
+        three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
 
         // Uniforms for 4D -> 3D projection.
         program.uniform_4f("u_four_from", &four_cam.from);
@@ -381,7 +381,7 @@ fn main() {
         }
 
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh
-        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.125));
+        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
         for tetra in tetrahedrons.iter() {
             //renderer.draw_tetrahedron(&tetra);
         }
