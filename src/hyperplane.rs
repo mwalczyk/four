@@ -1,5 +1,6 @@
 use cgmath::{self, InnerSpace, Matrix4, Vector4};
 
+#[derive(Copy, Clone, Debug)]
 pub struct Hyperplane {
     pub normal: Vector4<f32>,
     pub displacement: f32,
@@ -12,15 +13,15 @@ impl Hyperplane {
 
         Hyperplane {
             normal,
-            displacement
+            displacement,
         }
     }
 
     pub fn inside(&self, point: &Vector4<f32>) -> bool {
+       self.side(point) == 0.0
 
-        //(self.normal.dot(*point) - self.displacement).abs() < 0.1
-
-        self.side(point).abs() < 0.1
+        //self.normal.dot(*point) - self.displacement == 0.0
+        // self.side(point).abs() < 0.001
     }
 
     pub fn side(&self, point: &Vector4<f32>) -> f32 {

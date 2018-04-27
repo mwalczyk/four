@@ -190,12 +190,12 @@ fn main() {
         tetrahedrons.len()
     );
 
-    println!("{:?}", polytopes[0].get_vertices_for_face(100));
+    //println!("{:?}", polytopes[0].get_vertices_for_face(100));
     //polytopes[0].gather_solids();
 
     // TODO: this camera isn't really being used right now...
     let four_cam = Camera::new(
-        Vector4::unit_x(),
+        Vector4::unit_x() * 3.0,
         Vector4::zero(),
         Vector4::unit_y(),
         Vector4::unit_z(),
@@ -353,15 +353,15 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
-//        for tetra in tetrahedrons.iter_mut() {
-//            program.uniform_4f("u_draw_color", &tetra.color);
-//
-//            // First, set this tetrahedron's transform matrix
-//            tetra.set_transform(&four_rotation);
-//
-//            // Then, render the slice
-//            renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
-//        }
+        for tetra in tetrahedrons.iter_mut() {
+            program.uniform_4f("u_draw_color", &tetra.color);
+
+            // First, set this tetrahedron's transform matrix
+            tetra.set_transform(&four_rotation);
+
+            // Then, render the slice
+            renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
+        }
 
         // Draw the full polytope
         program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
@@ -379,7 +379,7 @@ fn main() {
         }
 
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh
-        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
+        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.125));
         for tetra in tetrahedrons.iter() {
             renderer.draw_tetrahedron(&tetra);
         }

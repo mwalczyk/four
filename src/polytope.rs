@@ -30,8 +30,8 @@ pub struct Polytope {
     solids: Vec<u32>,
     components_per_vertex: u32,
     vertices_per_edge: u32,
-    edges_per_face: u32,
-    faces_per_solid: u32,
+    vertices_per_face: u32,
+    vertices_per_solid: u32,
     vao: u32,
     vbo: u32,
     ebo: u32,
@@ -114,31 +114,20 @@ impl Polytope {
         }
         entry_count.clear();
 
-        // Load solid data (6 entries per solid).
-        reader.read_line(&mut entry_count);
-        number_of_entries = entry_count.trim().parse().unwrap();
-        let mut solids = Vec::with_capacity(number_of_entries * 6);
-
-        for _ in 0..number_of_entries {
-            let mut line = String::new();
-            reader.read_line(&mut line);
-
-            for entry in line.split_whitespace() {
-                let data: u32 = entry.trim().parse().unwrap();
-                solids.push(data);
-            }
-        }
-
-                println!(
-                    "Loaded file with {} vertices, {} edges, {} faces",
-                    vertices.len(),
-                    edges.len() / 2,
-                    faces.len() / 5,
-//                    solids.len() / 6
-                );
-
-
-
+//        // Load solid data (6 entries per solid).
+//        reader.read_line(&mut entry_count);
+//        number_of_entries = entry_count.trim().parse().unwrap();
+//        let mut solids = Vec::with_capacity(number_of_entries * 6);
+//
+//        for _ in 0..number_of_entries {
+//            let mut line = String::new();
+//            reader.read_line(&mut line);
+//
+//            for entry in line.split_whitespace() {
+//                let data: u32 = entry.trim().parse().unwrap();
+//                solids.push(data);
+//            }
+//        }
 
 
 
@@ -146,18 +135,25 @@ impl Polytope {
             vertices,
             edges,
             faces,
-            solids,
+            solids: Vec::new(),
             components_per_vertex: 4,
             vertices_per_edge: 2,
-//        edges_per_face: 4,
-//        faces_per_solid: 6,
 
-            edges_per_face: 5,
-            faces_per_solid: 20,
+            vertices_per_face: 4,
+            vertices_per_solid: 6,
+//            vertices_per_face: 5,
+//            vertices_per_solid: 20,
             vao: 0,
             vbo: 0,
             ebo: 0,
         };
+
+        println!(
+            "Loaded file with {} vertices, {} edges, {} faces",
+            polytope.vertices.len(),
+            polytope.edges.len() / polytope.vertices_per_edge as usize,
+            polytope.faces.len() / polytope.vertices_per_face as usize,
+        );
 
         polytope.init_render_objects();
         polytope
@@ -175,7 +171,7 @@ impl Polytope {
 
     /// Returns the number of unique faces in this mesh.
     pub fn get_number_of_faces(&self) -> usize {
-        self.faces.len() / self.edges_per_face as usize
+        self.faces.len() / self.vertices_per_face as usize
     }
 
     /// Returns the `i`th vertex of this polytope.
@@ -189,49 +185,34 @@ impl Polytope {
         let idx_edge_s = (i * self.vertices_per_edge) as usize;
         let idx_edge_e = (i * self.vertices_per_edge + self.vertices_per_edge) as usize;
         let pair = &self.edges[idx_edge_s..idx_edge_e];
-        println!("{:?} pair", pair);
+
         (self.get_vertex(pair[0]), self.get_vertex(pair[1]))
     }
 
     /// Returns an unordered list of the unique vertices that make up the `i`th
     /// face of this polytope.
     pub fn get_vertices_for_face(&self, i: u32) -> Vec<Vector4<f32>> {
-        //let mut visited_vertices = Vec::new();
-        let mut vertices = Vec::new();
+        let idx_face_s = (i * self.vertices_per_face) as usize;
+        let idx_face_e = (i * self.vertices_per_face + self.vertices_per_face) as usize;
+        let vertex_ids = &self.faces[idx_face_s..idx_face_e];
 
-        let idx_face_s = (i * self.edges_per_face) as usize;
-        let idx_face_e = (i * self.edges_per_face + self.edges_per_face) as usize;
-        let edges = &self.faces[idx_face_s..idx_face_e];
-
-
-        for edge in edges {
-            let (a, b) = self.get_vertices_for_edge(*edge);
-
-            //println!("  {:?} vertex a", a);
-            //println!("  {:?} vertex b", b);
-            // We want to make sure that we don't add the same vertex to the
-            // list multiple times.
-            if !vertices.contains(&a) {
-                //println!("  {:?} added vertex a", a);
-                vertices.push(a);
-
-            }
-            if !vertices.contains(&b) {
-                //println!("  {:?} added vertex b", b);
-                vertices.push(b);
-            }
-        }
-        if vertices.len() != 5 {
-            println!("Adding vertices for face {}", i);
-            println!("  Edges: {:?}", edges);
-            println!("  Total verts found: {}", vertices.len());
-        }
-
-        vertices
+        vertex_ids
+            .iter()
+            .map(|id| self.get_vertex(*id))
+            .collect::<Vec<_>>()
     }
 
-    pub fn get_vertices_for_solids(&self) {
-        // TODO
+    /// Returns an unordered list of the unique vertices that make up the `i`th
+    /// solid of this polytope.
+    pub fn get_vertices_for_solid(&self, i: u32) -> Vec<Vector4<f32>> {
+        let idx_solid_s = (i * self.vertices_per_solid) as usize;
+        let idx_solid_e = (i * self.vertices_per_solid + self.vertices_per_solid) as usize;
+        let vertex_ids = &self.solids[idx_solid_s..idx_solid_e];
+
+        vertex_ids
+            .iter()
+            .map(|id| self.get_vertex(*id))
+            .collect::<Vec<_>>()
     }
 
     /// The H-representation of a convex polytope is the list of hyperplanes whose
@@ -252,11 +233,10 @@ impl Polytope {
         // 2 - 1.41421 = 0.58579
         // self.normal.dot(*point) + 1.73205
 
-
         // THIS is our radius = 2 * sqrt(2) / 2
         // described here: http://mathworld.wolfram.com/120-Cell.html
 
-        let d = 0.0;// 2.0 * 2.0f32.sqrt();
+        let d = 0.0; // 2.0 * 2.0f32.sqrt();
 
         let rt5 = 5.0f32.sqrt();
 
@@ -358,7 +338,7 @@ impl Polytope {
             representation.len()
         );
 
-        let hypercube = false;
+        let hypercube = true;
         if hypercube {
             return vec![
                 Hyperplane::new(Vector4::unit_x(), 1.0),
@@ -386,7 +366,7 @@ impl Polytope {
     /// Given the H-representation of this polytope, return a list of lists, where
     /// each sub-list contains the indices of all faces that are inside of the `i`th
     /// hyperplane.
-    pub fn gather_solids(&self) -> Vec<Vec<u32>> {
+    pub fn gather_solids(&self) -> Vec<(Hyperplane, Vec<u32>)> {
         let mut solids = Vec::new();
         let h_representation = self.get_h_representation();
 
@@ -394,6 +374,7 @@ impl Polytope {
             let mut faces_in_hyperplane = Vec::new();
 
             for face_index in 0..self.get_number_of_faces() {
+
                 let face_vertices = self.get_vertices_for_face(face_index as u32);
                 let mut inside = true;
 
@@ -414,7 +395,7 @@ impl Polytope {
                 hyperplane.normal
             );
 
-            solids.push(faces_in_hyperplane);
+            solids.push((*hyperplane, faces_in_hyperplane));
         }
 
         println!("{:?}", solids);
@@ -508,14 +489,21 @@ impl Polytope {
             ).extend(1.0)
         };
 
-        for (solid, faces) in self.solids.chunks(self.faces_per_solid as usize).enumerate() {
-        //for (solid, faces) in self.gather_solids().iter().enumerate() {
+//        for (solid, faces) in self.solids
+//            .chunks(self.vertices_per_solid as usize)
+//            .enumerate()
+//        {
+
+
+        for (solid, plane_and_faces) in self.gather_solids().iter().enumerate() {
+
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
 
+            let (hyperplane, faces) = plane_and_faces;
+
             // Iterate over each face of the current cell.
             for face in faces {
-
                 let face_vertices = self.get_vertices_for_face(*face);
 
                 if apex.x == f32::MAX {
@@ -532,23 +520,9 @@ impl Polytope {
                     // | /  |
                     // c -- d
                     //
-                   // assert_eq!(face_vertices.len(), 4);
-
-                    // Compute the face normal.
-                    let v0 = face_vertices[0];
-                    let v1 = face_vertices[1];
-                    let v2 = face_vertices[2];
-                    let edge_1_0 = v1 - v0;
-                    let edge_2_0 = v2 - v0;
-                    let edge_2_1 = v2 - v1;
-
-                    let face_hyperplane =
-                        Hyperplane::new(rotations::cross(&edge_1_0, &edge_2_0, &edge_2_1), 0.0);
-
                     // Collect all 4D vertices and sort.
                     let face_vertices_sorted =
-                        rotations::sort_points_on_plane(&face_vertices, &face_hyperplane);
-
+                        rotations::sort_points_on_plane(&face_vertices, &hyperplane);
 
                     // Create a triangle fan, starting at the first vertex of the sorted list.
                     // Connect each resulting triangle to the apex vertex to create a full
