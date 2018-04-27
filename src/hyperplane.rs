@@ -9,7 +9,7 @@ pub struct Hyperplane {
 impl Hyperplane {
     pub fn new(mut normal: Vector4<f32>, displacement: f32) -> Hyperplane {
         // Make sure `normal` is of unit length.
-        normal = normal.normalize();
+        //normal = normal.normalize();
 
         Hyperplane {
             normal,
@@ -18,10 +18,13 @@ impl Hyperplane {
     }
 
     pub fn inside(&self, point: &Vector4<f32>) -> bool {
-       self.side(point) == 0.0
 
-        //self.normal.dot(*point) - self.displacement == 0.0
-        // self.side(point).abs() < 0.001
+
+        // only works with normalized n
+        //(self.normal.dot(*point) - 1.0) >= 0.01
+
+
+        (self.normal.dot(*point) + self.displacement).abs() <= 0.001
     }
 
     pub fn side(&self, point: &Vector4<f32>) -> f32 {

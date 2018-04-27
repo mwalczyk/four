@@ -190,6 +190,8 @@ fn main() {
         tetrahedrons.len()
     );
 
+    polytopes[0].get_vertices_for_face(3);
+
     //println!("{:?}", polytopes[0].get_vertices_for_face(100));
     //polytopes[0].gather_solids();
 
@@ -381,7 +383,7 @@ fn main() {
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh
         program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.125));
         for tetra in tetrahedrons.iter() {
-            renderer.draw_tetrahedron(&tetra);
+            //renderer.draw_tetrahedron(&tetra);
         }
 
         gl_window.swap_buffers().unwrap();
