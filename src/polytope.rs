@@ -1,3 +1,4 @@
+use std::f32;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
@@ -5,7 +6,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, Array, ElementWise, InnerSpace, Vector3, Vector4, Zero};
+use cgmath::{self, Array, InnerSpace, Vector3, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -14,14 +15,19 @@ use rotations::{self, Plane};
 use tetrahedron::Tetrahedron;
 use utilities;
 
+/// A struct that describes a class of polychoron.
 pub struct Definition {
     components_per_vertex: u32,
     vertices_per_edge: u32,
     vertices_per_face: u32,
     vertices_per_solid: u32,
+    faces_per_cell: u32,
     cells: u32,
 }
 
+/// A polychoron is a polytope that exists in 4-dimensions. It is the 4-dimensional
+/// analog of a polyhedron. It is made up of vertices, edges, faces, and cells. Each
+/// cell is itself a polyhedra.
 pub enum Polychoron {
     Cell8,
     Cell24,
@@ -31,31 +37,39 @@ pub enum Polychoron {
 
 impl Polychoron {
     pub fn get_definition(&self) -> Definition {
-        Definition {
-            components_per_vertex: 0,
-            vertices_per_edge: 0,
-            vertices_per_face: 0,
-            vertices_per_solid: 0,
-            cells: 0,
+        match *self {
+            Polychoron::Cell120 => Definition {
+                components_per_vertex: 4,
+                vertices_per_edge: 2,
+                vertices_per_face: 5,
+                vertices_per_solid: 20,
+                faces_per_cell: 12,
+                cells: 120,
+            },
+            _ => Definition {
+                components_per_vertex: 0,
+                vertices_per_edge: 0,
+                vertices_per_face: 0,
+                vertices_per_solid: 0,
+                faces_per_cell: 0,
+                cells: 0,
+            },
         }
     }
 }
 
-pub struct Polytope {
+/// A 4-dimensional mesh.
+pub struct Mesh {
     pub vertices: Vec<Vector4<f32>>,
     pub edges: Vec<u32>,
     pub faces: Vec<u32>,
-    components_per_vertex: u32,
-    vertices_per_edge: u32,
-    vertices_per_face: u32,
-    vertices_per_solid: u32,
-    cells: u32,
+    pub def: Definition,
     vao: u32,
     vbo: u32,
     ebo: u32,
 }
 
-impl Polytope {
+impl Mesh {
     /// Loads the shape file at the specified `path`. The file
     /// should follow the format:
     ///
@@ -76,7 +90,9 @@ impl Polytope {
     /// ...
     ///
     /// ```
-    pub fn from_file(path: &Path) -> Polytope {
+    pub fn from_file(path: &Path, polychoron: Polychoron) -> Mesh {
+        let def = polychoron.get_definition();
+
         let file = File::open(path).unwrap();
         let mut reader = BufReader::new(file);
         let mut number_of_entries = 0usize;
@@ -85,7 +101,8 @@ impl Polytope {
         // Load vertex data (4 entries per vertex).
         reader.read_line(&mut entry_count);
         number_of_entries = entry_count.trim().parse().unwrap();
-        let mut vertices = Vec::with_capacity(number_of_entries * 4);
+        let mut vertices =
+            Vec::with_capacity(number_of_entries * def.components_per_vertex as usize);
 
         for _ in 0..number_of_entries {
             let mut line = String::new();
@@ -105,7 +122,7 @@ impl Polytope {
         // Load edge data (2 entries per edge).
         reader.read_line(&mut entry_count);
         number_of_entries = entry_count.trim().parse().unwrap();
-        let mut edges = Vec::with_capacity(number_of_entries * 2);
+        let mut edges = Vec::with_capacity(number_of_entries * def.vertices_per_edge as usize);
 
         for _ in 0..number_of_entries {
             let mut line = String::new();
@@ -121,7 +138,7 @@ impl Polytope {
         // Load face data (`vertices_per_face` entries per face).
         reader.read_line(&mut entry_count);
         number_of_entries = entry_count.trim().parse().unwrap();
-        let mut faces = Vec::with_capacity(number_of_entries * 5);
+        let mut faces = Vec::with_capacity(number_of_entries * def.vertices_per_face as usize);
 
         for _ in 0..number_of_entries {
             let mut line = String::new();
@@ -134,15 +151,11 @@ impl Polytope {
         }
         entry_count.clear();
 
-        let mut polytope = Polytope {
+        let mut mesh = Mesh {
             vertices,
             edges,
             faces,
-            components_per_vertex: 4,
-            vertices_per_edge: 2,
-            vertices_per_face: 5,
-            vertices_per_solid: 20,
-            cells: 120,
+            def,
             vao: 0,
             vbo: 0,
             ebo: 0,
@@ -150,13 +163,13 @@ impl Polytope {
 
         println!(
             "Loaded file with {} vertices, {} edges, {} faces",
-            polytope.vertices.len(),
-            polytope.edges.len() / polytope.vertices_per_edge as usize,
-            polytope.faces.len() / polytope.vertices_per_face as usize,
+            mesh.vertices.len(),
+            mesh.edges.len() / mesh.def.vertices_per_edge as usize,
+            mesh.faces.len() / mesh.def.vertices_per_face as usize,
         );
 
-        polytope.init_render_objects();
-        polytope
+        mesh.init_render_objects();
+        mesh
     }
 
     /// Returns the number of unique vertices in this mesh.
@@ -166,12 +179,12 @@ impl Polytope {
 
     /// Returns the number of unique edges in this mesh.
     pub fn get_number_of_edges(&self) -> usize {
-        self.edges.len() / self.vertices_per_edge as usize
+        self.edges.len() / self.def.vertices_per_edge as usize
     }
 
     /// Returns the number of unique faces in this mesh.
     pub fn get_number_of_faces(&self) -> usize {
-        self.faces.len() / self.vertices_per_face as usize
+        self.faces.len() / self.def.vertices_per_face as usize
     }
 
     /// Returns the `i`th vertex of this polytope.
@@ -182,8 +195,8 @@ impl Polytope {
     /// Returns an unordered tuple of the two vertices that make up the `i`th
     /// edge of this polytope.
     pub fn get_vertices_for_edge(&self, i: u32) -> (Vector4<f32>, Vector4<f32>) {
-        let idx_edge_s = (i * self.vertices_per_edge) as usize;
-        let idx_edge_e = (i * self.vertices_per_edge + self.vertices_per_edge) as usize;
+        let idx_edge_s = (i * self.def.vertices_per_edge) as usize;
+        let idx_edge_e = (i * self.def.vertices_per_edge + self.def.vertices_per_edge) as usize;
         let pair = &self.edges[idx_edge_s..idx_edge_e];
 
         (self.get_vertex(pair[0]), self.get_vertex(pair[1]))
@@ -192,8 +205,8 @@ impl Polytope {
     /// Returns an unordered list of the unique vertices that make up the `i`th
     /// face of this polytope.
     pub fn get_vertices_for_face(&self, i: u32) -> Vec<Vector4<f32>> {
-        let idx_face_s = (i * self.vertices_per_face) as usize;
-        let idx_face_e = (i * self.vertices_per_face + self.vertices_per_face) as usize;
+        let idx_face_s = (i * self.def.vertices_per_face) as usize;
+        let idx_face_e = (i * self.def.vertices_per_face + self.def.vertices_per_face) as usize;
         let vertex_ids = &self.faces[idx_face_s..idx_face_e];
 
         let vertices = vertex_ids
@@ -205,7 +218,9 @@ impl Polytope {
     }
 
     /// The H-representation of a convex polytope is the list of hyperplanes whose
-    /// intersection produces the desired shape.
+    /// intersection produces the desired shape. Together, these hyperplanes form
+    /// a "boundary" for the polytope. We use this representation in order to determine
+    /// which faces belong to each of the cells that form the polytope's surface.
     ///
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
@@ -214,6 +229,7 @@ impl Polytope {
         // The inner "radius" of this particular 120-cell is: -2 * φ^2
         let golden_ratio: f32 = (1.0 + 5.0f32.sqrt()) / 2.0;
         let displacement = -golden_ratio.powf(2.0) * 2.0;
+        let d2 = -8.47213;
 
         let representation = vec![
             Hyperplane::new(Vector4::new(2.0, 0.0, 0.0, 0.0), displacement),
@@ -224,486 +240,102 @@ impl Polytope {
             Hyperplane::new(Vector4::new(0.0, 0.0, -2.0, 0.0), displacement),
             Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, 2.0), displacement),
             Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, -2.0), displacement),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 1.0, 0.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 0.0, 1.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 0.0, -1.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, -1.0, 0.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, -1.618033988749894, -1.0, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 2.618033988749894, 0.0, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 1.0, -2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 0.0, 1.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 0.0, -1.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, -1.0, -2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, -2.618033988749894, 0.0, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 2.618033988749894, -1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 1.618033988749894, 0.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 0.0, 2.618033988749894, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 0.0, -2.618033988749894, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, -1.618033988749894, 0.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 2.618033988749894, 1.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 2.618033988749894, -1.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.618033988749894, 2.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.618033988749894, -2.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.0, 1.618033988749894, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.0, -1.618033988749894, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.0, 1.618033988749894, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.0, -1.618033988749894, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.618033988749894, 2.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.618033988749894, -2.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -2.618033988749894, 1.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -2.618033988749894, -1.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 1.618033988749894, 0.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 0.0, 2.618033988749894, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 0.0, -2.618033988749894, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, -1.618033988749894, 0.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, -2.618033988749894, -1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 2.618033988749894, 0.0, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 1.0, -2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 0.0, 1.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 0.0, -1.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, -1.0, -2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, -2.618033988749894, 0.0, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 1.618033988749894, -1.0, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 1.0, 0.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 0.0, 1.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 0.0, -1.618033988749894, -1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, -1.0, -0.0, -1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, -1.618033988749894, -1.0, -0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, -1.618033988749894, 1.0, -0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, -1.0, 0.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 0.0, -1.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 0.0, 1.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 1.0, 0.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-2.618033988749894, 1.618033988749894, 1.0, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, -2.618033988749894, 0.0, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, -1.0, 2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, -0.0, -1.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 0.0, 1.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 1.0, 2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.618033988749894, 2.618033988749894, 0.0, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, -2.618033988749894, 1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, -1.618033988749894, 0.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 0.0, -2.618033988749894, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 0.0, 2.618033988749894, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 1.618033988749894, 0.0, -2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 2.618033988749894, -1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(-1.0, 2.618033988749894, 1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -2.618033988749894, -1.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -2.618033988749894, 1.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.618033988749894, -2.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.618033988749894, 2.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.0, -1.618033988749894, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, -1.0, 1.618033988749894, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.0, -1.618033988749894, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.0, 1.618033988749894, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.618033988749894, -2.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 1.618033988749894, 2.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 2.618033988749894, -1.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(0.0, 2.618033988749894, 1.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, -2.618033988749894, -1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, -2.618033988749894, 1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, -1.618033988749894, 0.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 0.0, -2.618033988749894, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 0.0, 2.618033988749894, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 1.618033988749894, 0.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.0, 2.618033988749894, 1.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, -2.618033988749894, 0.0, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, -1.0, 2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 0.0, -1.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 0.0, 1.0, 2.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 1.0, 2.618033988749894, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(1.618033988749894, 2.618033988749894, 0.0, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, -1.618033988749894, 1.0, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, -1.0, 0.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 0.0, -1.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 0.0, 1.618033988749894, 1.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 1.0, 0.0, 1.618033988749894),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 1.618033988749894, -1.0, 0.0),
-                -8.472135954999578,
-            ),
-            Hyperplane::new(
-                Vector4::new(2.618033988749894, 1.618033988749894, 1.0, 0.0),
-                -8.472135954999578,
-            ),
-            //            Hyperplane::new(Vector4::new(0.0, 1.0, 0.618034, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.0, 0.618034, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.0, -0.618034, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.0, 0.618034, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.0, -0.618034, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.0, 0.618034, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.0, -0.618034, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.0, -0.618034, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 0.618034, 1.61803, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -0.618034, 1.61803, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 0.618034, -1.61803, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 0.618034, 1.61803, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -0.618034, -1.61803, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -0.618034, 1.61803, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 0.618034, -1.61803, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -0.618034, -1.61803, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.61803, 1.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.61803, 1.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.61803, -1.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.61803, 1.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.61803, -1.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.61803, 1.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, 1.61803, -1.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.0, -1.61803, -1.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.0, 1.61803, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.0, 1.61803, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.0, -1.61803, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.0, 1.61803, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.0, -1.61803, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.0, 1.61803, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.0, -1.61803, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.0, -1.61803, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 0.0, 1.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 0.0, 1.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 0.0, -1.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 0.0, 1.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 0.0, -1.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 0.0, 1.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 0.0, -1.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 0.0, -1.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.0, 0.618034, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.0, 0.618034, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.0, -0.618034, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.0, 0.618034, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.0, -0.618034, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.0, 0.618034, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.0, -0.618034, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.0, -0.618034, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 1.61803, 0.0, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 1.61803, 0.0, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, -1.61803, 0.0, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 1.61803, 0.0, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, -1.61803, 0.0, 1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 1.61803, 0.0, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, -1.61803, 0.0, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, -1.61803, 0.0, -1.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 1.0, 0.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 1.0, 0.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, -1.0, 0.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 1.0, 0.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, -1.0, 0.0, 0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 1.0, 0.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, -1.0, 0.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, -1.0, 0.0, -0.618034), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.618034, 0.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.618034, 0.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, -0.618034, 0.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 0.618034, 0.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, -0.618034, 0.0, 1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 0.618034, 0.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, -0.618034, 0.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, -0.618034, 0.0, -1.61803), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.618034, 1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.618034, 1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, -0.618034, 1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, 0.618034, -1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, -0.618034, 1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, 0.618034, -1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.61803, -0.618034, -1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.61803, -0.618034, -1.0, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 1.61803, 0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, -1.61803, 0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, 1.61803, -0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, 1.61803, -0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(1.0, -1.61803, -0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-1.0, -1.61803, -0.618034, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 1.0, 1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 1.0, 1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, -1.0, 1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, 1.0, -1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, -1.0, 1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, 1.0, -1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(0.618034, -1.0, -1.61803, 0.0), displacement),
-            //            Hyperplane::new(Vector4::new(-0.618034, -1.0, -1.61803, 0.0), displacement),
+            Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(2.61803, -1.61803, -1.0, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, -1.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, 1.0, -2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(1.61803, -1.0, -2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, -1.0), d2),
+            Hyperplane::new(Vector4::new(1.0, 2.61803, -1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, -1.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, -1.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, -2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, -2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, -2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, -2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, -1.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, -1.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, -2.61803, -1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, -1.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 1.0, -2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 0.0, -1.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.61803, -1.0, -2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, -1.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 1.61803, -1.0, 0.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, -1.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, -1.0, -0.0, -1.61803), d2),
+            Hyperplane::new(Vector4::new(-2.61803, -1.61803, -1.0, -0.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, -1.61803, 1.0, -0.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, -1.0, 0.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(-2.61803, 1.61803, 1.0, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, 1.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, -1.0, 2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, -0.0, -1.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 1.0, 2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, 1.0), d2),
+            Hyperplane::new(Vector4::new(-1.0, -2.61803, 1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, 1.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, 1.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, -2.61803), d2),
+            Hyperplane::new(Vector4::new(-1.0, 2.61803, -1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(-1.0, 2.61803, 1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, 2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, 2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, 2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, 2.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, -2.61803, -1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.0, -2.61803, 1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, 1.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, 1.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(1.0, 2.61803, 1.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, 1.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, -1.0, 2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, 2.61803), d2),
+            Hyperplane::new(Vector4::new(1.61803, 1.0, 2.61803, 0.0), d2),
+            Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, 1.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, -1.61803, 1.0, 0.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, 1.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, 1.61803), d2),
+            Hyperplane::new(Vector4::new(2.61803, 1.61803, -1.0, 0.0), d2),
+            Hyperplane::new(Vector4::new(2.61803, 1.61803, 1.0, 0.0), d2),
             Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), displacement),
             Hyperplane::new(Vector4::new(-1.0, 1.0, 1.0, 1.0), displacement),
             Hyperplane::new(Vector4::new(1.0, -1.0, 1.0, 1.0), displacement),
@@ -755,7 +387,7 @@ impl Polytope {
     /// Given the H-representation of this polytope, return a list of lists, where
     /// each sub-list contains the indices of all faces that are inside of the `i`th
     /// hyperplane.
-    pub fn gather_solids(&self) -> Vec<(Hyperplane, Vec<u32>)> {
+    pub fn gather_cells(&self) -> Vec<(Hyperplane, Vec<u32>)> {
         let mut solids = Vec::new();
 
         for hyperplane in self.get_h_representation().iter() {
@@ -763,22 +395,19 @@ impl Polytope {
 
             // Iterate over all of the faces of this polytope. For the 120-cell, for example,
             // there are 720 faces, each of which has 5 vertices associated with it.
-            assert_eq!(self.get_number_of_faces(), 720);
-
             for face_index in 0..self.get_number_of_faces() {
                 let face_vertices = self.get_vertices_for_face(face_index as u32);
 
-                assert_eq!(face_vertices.len(), 5);
+                assert_eq!(face_vertices.len(), self.def.vertices_per_face as usize);
 
+                // Check if all of the vertices of this face are inside the bounding hyperplane.
                 let mut inside = true;
-
                 for vertex in face_vertices.iter() {
                     if !hyperplane.inside(&vertex) {
                         inside = false;
                         break;
                     }
                 }
-
                 if inside {
                     faces_in_hyperplane.push(face_index as u32);
                 }
@@ -848,56 +477,25 @@ impl Polytope {
         }
     }
 
-    fn palette(
-        &self,
-        t: f32,
-        a: &Vector3<f32>,
-        b: &Vector3<f32>,
-        c: &Vector3<f32>,
-        d: &Vector3<f32>,
-    ) -> Vector3<f32> {
-        use std::f32;
-
-        // TODO: there should be a way to iterate over the `Vector4<f32>` and do this...
-        let mut temp = (c * t + d) * 2.0 * f32::consts::PI;
-        temp.x = temp.x.cos();
-        temp.y = temp.y.cos();
-        temp.z = temp.z.cos();
-
-        a + b.mul_element_wise(temp)
-    }
-
     /// Performs of a tetrahedral decomposition of the polytope.
     pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
-        use std::f32;
-
         let mut tetrahedrons = Vec::new();
 
-        let palette = vec![
-            utilities::from_hex(0x006ba6, 1.0),
-            utilities::from_hex(0x0496ff, 1.0),
-            utilities::from_hex(0xffbc42, 1.0),
-            utilities::from_hex(0xd81159, 1.0),
-            utilities::from_hex(0x8f2d56, 1.0)
-
-        ];
-
-        let get_color_for_tetrahedron = |t: f32| {
-            self.palette(
-                t,
-                &Vector3::new(0.5, 0.5, 0.5),
-                &Vector3::new(0.5, 0.5, 0.5),
-                &Vector3::new(2.0, 2.0, 2.0),
-                &Vector3::new(0.0, 0.33, 0.67),
-            ).extend(1.0)
-        };
-
-        for (solid, plane_and_faces) in self.gather_solids().iter().enumerate() {
+        for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
 
             let (hyperplane, faces) = plane_and_faces;
             let mut prev_len = tetrahedrons.len();
+
+            // Calculate the centroid of this cell.
+            let mut cell_centroid = Vector4::from_value(0.0);
+            for index in faces.iter() {
+                let face_vertices = self.get_vertices_for_face(*index);
+                let face_centroid = face_vertices.iter().sum::<Vector4<f32>>();
+                cell_centroid += face_centroid;
+            }
+            cell_centroid /= (self.def.vertices_per_face * self.def.faces_per_cell) as f32;
 
             // Iterate over each face of the current cell.
             for face in faces {
@@ -932,9 +530,9 @@ impl Polytope {
                                 face_vertices_sorted[i + 1],
                                 apex,
                             ],
-                            palette[(solid % palette.len()) as usize],
-                            solid as u32
-                            //get_color_for_tetrahedron((solid as f32 / 240 as f32) + 0.5),
+                            utilities::from_hex(0xffffff, 1.0),
+                            cell_index as u32,
+                            cell_centroid,
                         ));
                     }
                 }
@@ -943,7 +541,7 @@ impl Polytope {
             println!(
                 "{} tetrahedrons found for solid {}",
                 tetrahedrons.len() - prev_len,
-                solid
+                cell_index
             );
         }
 

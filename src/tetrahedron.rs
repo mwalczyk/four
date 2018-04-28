@@ -13,18 +13,25 @@ pub struct Tetrahedron {
     pub vertices: [Vector4<f32>; 4],
     pub color: Vector4<f32>,
     pub transform: Matrix4<f32>,
-    pub cell: u32
+    pub cell: u32,
+    pub cell_centroid: Vector4<f32>,
 }
 
 impl Tetrahedron {
     /// Create a new tetrahedron from an array of 4 vertices embedded in a 4-dimensional
     /// space.
-    pub fn new(vertices: [Vector4<f32>; 4], color: Vector4<f32>, cell: u32) -> Tetrahedron {
+    pub fn new(
+        vertices: [Vector4<f32>; 4],
+        color: Vector4<f32>,
+        cell: u32,
+        cell_centroid: Vector4<f32>,
+    ) -> Tetrahedron {
         Tetrahedron {
             vertices,
             color,
             transform: Matrix4::identity(),
-            cell
+            cell,
+            cell_centroid,
         }
     }
 

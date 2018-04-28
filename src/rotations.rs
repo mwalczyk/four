@@ -95,9 +95,9 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     )
 }
 
-/// Given a set of  vertices embedded in 4-dimensions that lie on `hyperplane`, find a
-/// proper ordering of the points such that the resulting list of vertices can be
-/// traversed in order to create a fan of distinct, non-overlapping triangles. Note
+/// Given a set of  vertices embedded in 4-dimensions that lie inside `hyperplane`,
+/// find a proper ordering of the points such that the resulting list of vertices can
+/// be traversed in order to create a fan of distinct, non-overlapping triangles. Note
 /// that for the purposes of this application, we don't care if the list ends up
 /// in a "clockwise" or "counter-clockwise" order.
 pub fn sort_points_on_plane(

@@ -21,7 +21,7 @@ mod utilities;
 
 use camera::Camera;
 use hyperplane::Hyperplane;
-use polytope::Polytope;
+use polytope::{Mesh, Polychoron};
 use program::Program;
 use renderer::Renderer;
 use tetrahedron::Tetrahedron;
@@ -87,21 +87,6 @@ fn save_frame(path: &Path, w: u32, h: u32) {
     image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
 }
 
-fn load_shapes() -> Vec<Polytope> {
-    let mut polytopes = Vec::new();
-
-    for entry in fs::read_dir("shapes").unwrap() {
-        let path = entry.unwrap().path();
-        let file = path.file_stem().unwrap();
-        let ext = path.extension();
-
-        if ext == Some(OsStr::new("txt")) {
-            polytopes.push(Polytope::from_file(Path::new(&path)));
-        }
-    }
-    polytopes
-}
-
 fn main() {
     const WIDTH: u32 = 600;
     const HEIGHT: u32 = 600;
@@ -133,8 +118,8 @@ fn main() {
 
     // Set up the 4D shape(s).
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
-    let mut polytopes = load_shapes();
-    let mut tetrahedrons = polytopes[0].tetrahedralize();
+    let mut mesh = Mesh::from_file(Path::new("shapes/120cell.txt"), Polychoron::Cell120);
+    let mut tetrahedrons = mesh.tetrahedralize();
 
     println!(
         "Mesh tetrahedralization resulted in {} tetrahedrons",
@@ -175,10 +160,9 @@ fn main() {
     let mut rmouse_pressed = false;
     let mut shift_pressed = false;
     let mut ctrl_pressed = false;
-    let mut draw_index = 0;
 
     // Other controls.
-    let mut show_tetrahedrons = true;
+    let mut show_tetrahedrons = false;
     let mut reveal_cells = 120;
 
     loop {
@@ -246,16 +230,7 @@ fn main() {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
-                                    //save_frame(path, WIDTH, HEIGHT);
-                                }
-                                glutin::VirtualKeyCode::O => {
-                                    if draw_index > 0 {
-                                        draw_index -= 1;
-                                    }
-                                }
-                                glutin::VirtualKeyCode::P => {
-                                    draw_index += 1;
-                                    draw_index = draw_index.min(polytopes.len() - 1);
+                                    save_frame(path, WIDTH, HEIGHT);
                                 }
                                 glutin::VirtualKeyCode::LShift => {
                                     shift_pressed = true;
@@ -265,6 +240,12 @@ fn main() {
                                 }
                                 glutin::VirtualKeyCode::T => {
                                     show_tetrahedrons = !show_tetrahedrons;
+                                }
+                                glutin::VirtualKeyCode::W => {
+                                    unsafe { gl::PolygonMode( gl::FRONT_AND_BACK, gl::LINE ); }
+                                }
+                                glutin::VirtualKeyCode::F => {
+                                    unsafe { gl::PolygonMode( gl::FRONT_AND_BACK, gl::FILL ); }
                                 }
                                 glutin::VirtualKeyCode::LBracket => {
                                     if reveal_cells > 0 {
@@ -316,12 +297,10 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
-        //unsafe { gl::PolygonMode( gl::FRONT_AND_BACK, gl::LINE ); }
-
         for tetra in tetrahedrons.iter_mut() {
-
             if tetra.cell < reveal_cells {
                 program.uniform_4f("u_draw_color", &tetra.color);
+                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
 
                 // First, set this tetrahedron's transform matrix
                 tetra.set_transform(&four_rotation);
