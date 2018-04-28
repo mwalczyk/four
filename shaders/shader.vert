@@ -61,7 +61,7 @@ void main()
 
 
     // drop the last coordinate (w) and prepare for 3D -> 2D projection
-    vec4 p = vec4(position.xyz * 0.5, 1.0);
+    vec4 p = vec4(position.xyz * 0.75, 1.0);
 
 #else
     vec4 p = u_four_rotation * position;

@@ -124,7 +124,7 @@ pub fn sort_points_on_plane(
     // corresponding to the largest value of the hyperplane's normal vector.
     //
     // TODO: does this work all the time?
-    let align = hyperplane.get_inverse_rotation();
+    //let align = hyperplane.get_inverse_rotation();
     let projected = points
         .iter()
         .map(|pt| pt.truncate_n(largest_index))

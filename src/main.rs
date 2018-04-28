@@ -190,10 +190,10 @@ fn main() {
         tetrahedrons.len()
     );
 
-    polytopes[0].get_vertices_for_face(3);
-
-    //println!("{:?}", polytopes[0].get_vertices_for_face(100));
-    //polytopes[0].gather_solids();
+//    for i in 0..polytopes[0].get_number_of_faces() {
+//        let verts =  polytopes[0].get_vertices_for_face(i);
+//        println!("{:?}", verts);
+//    }
 
     // TODO: this camera isn't really being used right now...
     let four_cam = Camera::new(
@@ -341,7 +341,7 @@ fn main() {
         program.uniform_1f("u_time", milliseconds);
 
         // Automatically rotate around the y-axis in 3-dimensions
-        three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
+        //three_rotation = Matrix4::from_angle_y(cgmath::Rad(milliseconds));
 
         // Uniforms for 4D -> 3D projection.
         program.uniform_4f("u_four_from", &four_cam.from);
@@ -367,12 +367,12 @@ fn main() {
 
         // Draw the full polytope
         program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
-        polytopes[draw_index].draw();
+        //polytopes[draw_index].draw();
 
         // Pressing the right mouse button and moving left <-> right will translate the
         // slicing hyperplane away from the origin
         if rmouse_pressed {
-            hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 2.5;
+            hyperplane.displacement = (cursor_curr.x * 2.0 - 1.0) * 4.5;
 
             // Prevent this from ever becoming zero
             if hyperplane.displacement == 0.0 {
@@ -383,7 +383,7 @@ fn main() {
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh
         program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
         for tetra in tetrahedrons.iter() {
-            //renderer.draw_tetrahedron(&tetra);
+            renderer.draw_tetrahedron(&tetra);
         }
 
         gl_window.swap_buffers().unwrap();

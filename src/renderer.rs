@@ -79,8 +79,19 @@ impl Renderer {
                 transformed_vertices.as_ptr() as *const c_void,
             );
 
+            let edges = Tetrahedron::get_edge_indices();
+            let ebo_upload_size = (edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
+            gl::NamedBufferSubData(
+                self.ebo,
+                0,
+                ebo_upload_size,
+                edges.as_ptr() as *const GLvoid,
+            );
+
             gl::BindVertexArray(self.vao);
             gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
+
+            //gl::DrawArrays(gl::POINTS, 0, transformed_vertices.len() as i32);
         }
     }
 
