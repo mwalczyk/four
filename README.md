@@ -35,6 +35,7 @@ NOTE: this project will only run on graphics cards that support OpenGL [Direct S
 - [ ] Add 4-dimensional "extrusion" (i.e. things like spherinders)
 - [ ] Add "hollow"-cell variants of each polytope
 - [ ] Add shadow maps and diffuse lighting
+- [ ] Research Munsell color solids
 
 ## Credits
 Some of the `.txt` shape files are from Paul Bourke's [website](http://paulbourke.net/geometry/hyperspace/). Eventually, these shapes will (hopefully) be generated procedurally, but for now, they are loaded offline. 
