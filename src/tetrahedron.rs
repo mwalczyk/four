@@ -61,8 +61,7 @@ impl Tetrahedron {
             return rotations::sort_points_on_plane(&intersections, hyperplane);
         }
 
-        // TODO: this fails sometimes.
-        //assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
+        assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
 
         intersections
     }

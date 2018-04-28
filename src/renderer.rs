@@ -121,7 +121,6 @@ impl Renderer {
 
             // First, draw each vertex of the slice as a point.
             gl::BindVertexArray(self.vao);
-            gl::DrawArrays(gl::POINTS, 0, slice_vertices.len() as i32);
 
             // Then, draw the triangle or quadrilateral, depending on the number of vertices passed
             // to this function.
@@ -136,6 +135,8 @@ impl Renderer {
                 gl::UNSIGNED_INT,
                 ptr::null(),
             );
+
+            gl::DrawArrays(gl::POINTS, 0, slice_vertices.len() as i32);
         }
     }
 }

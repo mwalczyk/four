@@ -10,6 +10,7 @@ extern crate glutin;
 extern crate image;
 
 mod camera;
+mod constants;
 mod hyperplane;
 mod polytope;
 mod program;
@@ -45,58 +46,6 @@ fn clear() {
     }
 }
 
-/// Counts the number of bits that `a` and `b` have in common. Processes
-/// at least `bits`.
-///
-/// Reference: `https://stackoverflow.com/questions/28258882/number-of-digits-common-between-2-binary-numbers`
-fn common_bits(a: u32, b: u32, bits: u32) -> u32 {
-    if bits == 0 {
-        return 0;
-    }
-    ((a & 1) == (b & 1)) as u32 + common_bits(a / 2, b / 2, bits - 1)
-}
-
-/// Generates a hypercube procedurally and returns a tuple of vectors.
-/// The first vector will contain the vertex data and the second vector will
-/// contain the edge indices.
-///
-/// Reference: `http://www.math.caltech.edu/~2014-15/2term/ma006b/05%20connectivity%201.pdf`
-fn hypercube() -> (Vec<f32>, Vec<u32>) {
-    // Two vertices are adjacent if they have `d - 1`
-    // common coordinates.
-    let d = 4;
-    let adj = d - 1;
-    let num_verts = 2u32.pow(d);
-    let num_edges = 2u32.pow(d - 1) * d;
-    println!(
-        "Generating a hypercube with {} vertices and {} edges.",
-        num_verts, num_edges
-    );
-
-    let mut vertices = Vec::with_capacity(num_verts as usize);
-    let mut indices = Vec::with_capacity(num_edges as usize);
-
-    for i in 0..num_verts {
-        let mut num = i;
-
-        // Generate vertices.
-        for bit in 0..d {
-            vertices.insert(0, (num & 1) as f32 * 2.0 - 1.0);
-            num = num >> 1;
-        }
-
-        // Generate indices.
-        for j in 0..num_verts {
-            if i != j && common_bits(i, j, d) == adj {
-                indices.push(i);
-                indices.push(j);
-            }
-        }
-    }
-
-    (vertices, indices)
-}
-
 /// Generates an OpenGL shader program based on the source files specified by
 /// `vs_path` (vertex shader) and `fs_path` (fragment shader).
 fn load_shaders(vs_path: &Path, fs_path: &Path) -> Program {
@@ -113,29 +62,29 @@ fn load_shaders(vs_path: &Path, fs_path: &Path) -> Program {
     Program::new(vs_src, fs_src).unwrap()
 }
 
-///// Saves the current frame to disk at `path` with dimensions `w`x`h`.
-//fn save_frame(path: &Path, w: u32, h: u32) {
-//    let len = w * h * 3;
-//    let mut pixels: Vec<u8> = Vec::new();
-//    pixels.reserve(len as usize);
-//
-//    unsafe {
-//        // We don't want any alignment padding on pixel rows.
-//        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
-//        gl::ReadPixels(
-//            0,
-//            0,
-//            w as i32,
-//            h as i32,
-//            gl::RGB,
-//            gl::UNSIGNED_BYTE,
-//            pixels.as_mut_ptr() as *mut c_void,
-//        );
-//        pixels.set_len(len as usize);
-//    }
-//
-//    image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
-//}
+/// Saves the current frame to disk at `path` with dimensions `w`x`h`.
+fn save_frame(path: &Path, w: u32, h: u32) {
+    let len = w * h * 3;
+    let mut pixels: Vec<u8> = Vec::new();
+    pixels.reserve(len as usize);
+
+    unsafe {
+        // We don't want any alignment padding on pixel rows.
+        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
+        gl::ReadPixels(
+            0,
+            0,
+            w as i32,
+            h as i32,
+            gl::RGB,
+            gl::UNSIGNED_BYTE,
+            pixels.as_mut_ptr() as *mut c_void,
+        );
+        pixels.set_len(len as usize);
+    }
+
+    image::save_buffer(path, &pixels, w, h, image::RGB(8)).unwrap();
+}
 
 fn load_shapes() -> Vec<Polytope> {
     let mut polytopes = Vec::new();
@@ -177,23 +126,19 @@ fn main() {
         // Enable alpha blending.
         gl::Enable(gl::BLEND);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
+        gl::Enable(gl::PROGRAM_POINT_SIZE);
     }
 
     // Set up the 4D shape(s).
-    let mut hyperplane_temp = Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.1);
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
-
     let mut polytopes = load_shapes();
-    let mut tetrahedrons = polytopes[0].tetrahedralize(&hyperplane_temp);
+    let mut tetrahedrons = polytopes[0].tetrahedralize();
+
     println!(
         "Mesh tetrahedralization resulted in {} tetrahedrons",
         tetrahedrons.len()
     );
-
-//    for i in 0..polytopes[0].get_number_of_faces() {
-//        let verts =  polytopes[0].get_vertices_for_face(i);
-//        println!("{:?}", verts);
-//    }
 
     // TODO: this camera isn't really being used right now...
     let four_cam = Camera::new(
@@ -230,8 +175,6 @@ fn main() {
     let mut shift_pressed = false;
     let mut ctrl_pressed = false;
     let mut draw_index = 0;
-    const SENSITIVITY: f32 = 3.0;
-    const EPSILON: f32 = 0.001;
 
     loop {
         events_loop.poll_events(|event| match event {
@@ -242,7 +185,7 @@ fn main() {
                     cursor_curr.x = position.0 as f32 / WIDTH as f32;
                     cursor_curr.y = position.1 as f32 / HEIGHT as f32;
                     if lmouse_pressed {
-                        let delta = (cursor_curr - cursor_prev) * SENSITIVITY;
+                        let delta = (cursor_curr - cursor_prev) * constants::MOUSE_SENSITIVITY;
 
                         if shift_pressed {
                             // 4D rotations (1)
@@ -355,6 +298,8 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
+        //unsafe { gl::PolygonMode( gl::FRONT_AND_BACK, gl::LINE ); }
+
         for tetra in tetrahedrons.iter_mut() {
             program.uniform_4f("u_draw_color", &tetra.color);
 
@@ -376,7 +321,7 @@ fn main() {
 
             // Prevent this from ever becoming zero
             if hyperplane.displacement == 0.0 {
-                hyperplane.displacement += EPSILON;
+                hyperplane.displacement += constants::EPSILON;
             }
         }
 

@@ -1,5 +1,7 @@
 use cgmath::{self, InnerSpace, Matrix4, Vector4};
 
+use constants;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Hyperplane {
     pub normal: Vector4<f32>,
@@ -7,54 +9,21 @@ pub struct Hyperplane {
 }
 
 impl Hyperplane {
-    pub fn new(mut normal: Vector4<f32>, displacement: f32) -> Hyperplane {
-        // Make sure `normal` is of unit length.
+    pub fn new(normal: Vector4<f32>, displacement: f32) -> Hyperplane {
+        // TODO: for now, we don't need to do this?
         //normal = normal.normalize();
 
         Hyperplane {
             normal,
-            displacement
+            displacement,
         }
     }
 
     pub fn inside(&self, point: &Vector4<f32>) -> bool {
-        let plane_equation = self.normal.dot(*point) + self.displacement;
-
-        plane_equation.abs() <= 0.001
+        self.side(point).abs() <= constants::EPSILON
     }
 
     pub fn side(&self, point: &Vector4<f32>) -> f32 {
         self.normal.dot(*point) + self.displacement
-    }
-
-    pub fn get_inverse_rotation(&self) -> Matrix4<f32> {
-        const DIMENSION: f32 = 4.0;
-
-        Matrix4::from_cols(
-            Vector4::new(
-                (1.0 / DIMENSION).sqrt(),
-                -((DIMENSION - 1.0) / DIMENSION).sqrt(),
-                0.0,
-                0.0,
-            ),
-            Vector4::new(
-                (1.0 / DIMENSION).sqrt(),
-                (1.0 / (DIMENSION * (DIMENSION - 1.0))).sqrt(),
-                -((DIMENSION - 2.0) / (DIMENSION - 1.0)).sqrt(),
-                0.0,
-            ),
-            Vector4::new(
-                (1.0 / DIMENSION).sqrt(),
-                (1.0 / (DIMENSION * (DIMENSION - 1.0))).sqrt(),
-                (1.0 / ((DIMENSION - 1.0) * (DIMENSION - 2.0))).sqrt(),
-                -((DIMENSION - 3.0) / (DIMENSION - 2.0)).sqrt(),
-            ),
-            Vector4::new(
-                (1.0 / DIMENSION).sqrt(),
-                (1.0 / (DIMENSION * (DIMENSION - 1.0))).sqrt(),
-                (1.0 / ((DIMENSION - 1.0) * (DIMENSION - 2.0))).sqrt(),
-                (1.0 / ((DIMENSION - 2.0) * (DIMENSION - 3.0))).sqrt(),
-            ),
-        )
     }
 }

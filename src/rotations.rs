@@ -124,7 +124,6 @@ pub fn sort_points_on_plane(
     // corresponding to the largest value of the hyperplane's normal vector.
     //
     // TODO: does this work all the time?
-    //let align = hyperplane.get_inverse_rotation();
     let projected = points
         .iter()
         .map(|pt| pt.truncate_n(largest_index))
@@ -178,7 +177,7 @@ pub fn sort_points_on_plane(
 /// the vector <1, 1, 1, 1> to align with the x-axis, <1, 0, 0, 0>.
 ///
 /// Reference: `https://en.wikipedia.org/wiki/User:Tetracube/Coordinates_of_uniform_polytopes#Mapping_coordinates_back_to_n-space`
-pub fn align() -> Matrix4<f32> {
+pub fn align_corner_to_x_axis() -> Matrix4<f32> {
     const DIMENSION: f32 = 4.0;
 
     Matrix4::from_cols(
