@@ -17,6 +17,7 @@ mod program;
 mod renderer;
 mod rotations;
 mod tetrahedron;
+mod utilities;
 
 use camera::Camera;
 use hyperplane::Hyperplane;
@@ -176,6 +177,10 @@ fn main() {
     let mut ctrl_pressed = false;
     let mut draw_index = 0;
 
+    // Other controls.
+    let mut show_tetrahedrons = true;
+    let mut reveal_cells = 120;
+
     loop {
         events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
@@ -258,6 +263,19 @@ fn main() {
                                 glutin::VirtualKeyCode::LControl => {
                                     ctrl_pressed = true;
                                 }
+                                glutin::VirtualKeyCode::T => {
+                                    show_tetrahedrons = !show_tetrahedrons;
+                                }
+                                glutin::VirtualKeyCode::LBracket => {
+                                    if reveal_cells > 0 {
+                                        reveal_cells -= 1;
+                                    }
+                                }
+                                glutin::VirtualKeyCode::RBracket => {
+                                    if reveal_cells < 120 {
+                                        reveal_cells += 1;
+                                    }
+                                }
                                 _ => (),
                             },
                             glutin::ElementState::Released => match key {
@@ -301,17 +319,20 @@ fn main() {
         //unsafe { gl::PolygonMode( gl::FRONT_AND_BACK, gl::LINE ); }
 
         for tetra in tetrahedrons.iter_mut() {
-            program.uniform_4f("u_draw_color", &tetra.color);
 
-            // First, set this tetrahedron's transform matrix
-            tetra.set_transform(&four_rotation);
+            if tetra.cell < reveal_cells {
+                program.uniform_4f("u_draw_color", &tetra.color);
 
-            // Then, render the slice
-            renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
+                // First, set this tetrahedron's transform matrix
+                tetra.set_transform(&four_rotation);
+
+                // Then, render the slice
+                renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
+            }
         }
 
         // Draw the full polytope
-        program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
+        //program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
         //polytopes[draw_index].draw();
 
         // Pressing the right mouse button and moving left <-> right will translate the
@@ -326,9 +347,11 @@ fn main() {
         }
 
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh
-        program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
-        for tetra in tetrahedrons.iter() {
-            renderer.draw_tetrahedron(&tetra);
+        if show_tetrahedrons {
+            program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
+            for tetra in tetrahedrons.iter() {
+                renderer.draw_tetrahedron(&tetra);
+            }
         }
 
         gl_window.swap_buffers().unwrap();

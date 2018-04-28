@@ -12,6 +12,7 @@ use gl::types::*;
 use hyperplane::Hyperplane;
 use rotations::{self, Plane};
 use tetrahedron::Tetrahedron;
+use utilities;
 
 pub struct Definition {
     components_per_vertex: u32,
@@ -872,6 +873,15 @@ impl Polytope {
 
         let mut tetrahedrons = Vec::new();
 
+        let palette = vec![
+            utilities::from_hex(0x006ba6, 1.0),
+            utilities::from_hex(0x0496ff, 1.0),
+            utilities::from_hex(0xffbc42, 1.0),
+            utilities::from_hex(0xd81159, 1.0),
+            utilities::from_hex(0x8f2d56, 1.0)
+
+        ];
+
         let get_color_for_tetrahedron = |t: f32| {
             self.palette(
                 t,
@@ -922,7 +932,9 @@ impl Polytope {
                                 face_vertices_sorted[i + 1],
                                 apex,
                             ],
-                            get_color_for_tetrahedron((solid as f32 / 240 as f32) + 0.5),
+                            palette[(solid % palette.len()) as usize],
+                            solid as u32
+                            //get_color_for_tetrahedron((solid as f32 / 240 as f32) + 0.5),
                         ));
                     }
                 }
