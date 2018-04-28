@@ -23,6 +23,7 @@ out VS_OUT
 {
     float depth;
     vec3 color;
+    vec3 position;
 } vs_out;
 
 float sigmoid(float x) 
@@ -49,10 +50,13 @@ void main()
 
     // create a color based on the centroid of this cell in 4D
     vec3 centr = u_cell_centroid.xyz * scale;
-    float h = atan(centr.z, centr.x) / (2.0 * pi);
-    float s = 0.75;
-    float b = max(0.15, centr.y * 0.5 + 0.5);
-    vec3 rgb = hsb2rgb(vec3(h, s, b));
+//    float h = atan(centr.z, centr.x) / (2.0 * pi);
+//    float s = 0.75;
+//    float b = max(0.15, centr.y * 0.5 + 0.5);
+//    vec3 rgb = hsb2rgb(vec3(h, s, b));
+
+    vec3 rgb = normalize(centr) * 0.5 + 0.5;
+    rgb = max(vec3(0.15), rgb);
 
     // project 3D -> 2D
     gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
@@ -61,4 +65,5 @@ void main()
     // pass 4D depth to fragment shader
     vs_out.depth = depth_cue;
     vs_out.color = rgb;
+    vs_out.position = p.xyz;
 }

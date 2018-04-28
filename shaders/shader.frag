@@ -3,11 +3,13 @@
 #define pi 3.1415926535897932384626433832795
 
 uniform vec4 u_draw_color;
+uniform vec4 u_cell_centroid;
 
 in VS_OUT 
 {
     float depth;
     vec3 color;
+    vec3 position;
 } fs_in;
 
 layout(location = 0) out vec4 o_color;
@@ -29,8 +31,11 @@ vec4 desaturate(vec3 color, float amount)
 
 void main()
 {
-    o_color = desaturate(fs_in.color.rgb, 0.0);
-    o_color.a = u_draw_color.a;
+    vec3 n = normalize(u_cell_centroid.xyz * 0.75);
 
-   // o_color = u_draw_color;
+    const vec3 l = vec3(5.0, 3.0, -3.0);
+    vec3 to_l = normalize(l - fs_in.position);
+    float diffuse = max(0.0, dot(n, to_l));
+
+    o_color = vec4(fs_in.color.rgb, 1.0);
 }

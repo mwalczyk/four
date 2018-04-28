@@ -4,14 +4,6 @@
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/shaders/shader.frag" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/shader.frag" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/shaders/shader.vert" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/shader.vert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/constants.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hyperplane.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/hyperplane.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/polytope.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/polytope.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rotations.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rotations.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tetrahedron.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tetrahedron.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utilities.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/utilities.rs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -23,14 +15,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.6277546">
+    <splitter split-orientation="horizontal" split-proportion="0.41810602">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="false">
+          <file leaf-file-name="shader.vert" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="182">
-                  <caret line="44" lean-forward="true" selection-start-line="44" selection-end-line="44" />
+                <state relative-caret-position="340">
+                  <caret line="53" column="21" lean-forward="true" selection-start-line="53" selection-start-column="21" selection-end-line="53" selection-end-column="21" />
                 </state>
               </provider>
             </entry>
@@ -63,11 +55,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+          <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="141">
-                  <caret line="249" column="69" lean-forward="true" selection-start-line="249" selection-start-column="69" selection-end-line="249" selection-end-column="69" />
+                  <caret line="249" column="69" selection-start-line="249" selection-start-column="69" selection-end-line="249" selection-end-column="69" />
                   <folding>
                     <element signature="n#!!block;n#save_frame#0" />
                     <element signature="e#3346#3799#0" />
@@ -84,7 +76,7 @@
             <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="306">
-                  <caret line="18" column="9" lean-forward="true" selection-start-line="18" selection-start-column="9" selection-end-line="18" selection-end-column="9" />
+                  <caret line="18" column="9" selection-start-line="18" selection-start-column="9" selection-end-line="18" selection-end-column="9" />
                 </state>
               </provider>
             </entry>
@@ -93,7 +85,7 @@
             <entry file="file://$PROJECT_DIR$/src/tetrahedron.rs">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="493">
-                  <caret line="29" column="21" lean-forward="true" selection-start-line="29" selection-start-column="21" selection-end-line="29" selection-end-column="21" />
+                  <caret line="29" column="21" selection-start-line="29" selection-start-column="21" selection-end-line="29" selection-end-column="21" />
                   <folding>
                     <element signature="e#1174#1175#0" expanded="true" />
                     <element signature="e#1211#1212#0" expanded="true" />
@@ -116,8 +108,8 @@
           <file leaf-file-name="shader.frag" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="560">
-                  <caret line="34" column="29" lean-forward="true" selection-start-line="34" selection-start-column="29" selection-end-line="34" selection-end-column="29" />
+                <state relative-caret-position="475">
+                  <caret line="34" lean-forward="true" selection-start-line="34" selection-end-line="34" />
                 </state>
               </provider>
             </entry>
@@ -141,15 +133,15 @@
       <find>rotations</find>
       <find>hyperplane</find>
       <find>Matrix4</find>
-      <find>-1.41421 1.41421</find>
-      <find>1.14412 -1.14412</find>
+      <find />
+      <find />
       <find>196</find>
-      <find>93 97</find>
-      <find>253 152</find>
+      <find />
+      <find />
       <find>253</find>
-      <find>0 24 25 136 137</find>
-      <find>0 24</find>
-      <find>[0.0, -1.9999949, 0.0, 1.9999949]</find>
+      <find />
+      <find />
+      <find />
       <find>apex</find>
       <find>consts</find>
     </findStrings>
@@ -172,12 +164,12 @@
         <option value="$PROJECT_DIR$/src/constants.rs" />
         <option value="$PROJECT_DIR$/src/hyperplane.rs" />
         <option value="$PROJECT_DIR$/src/tetrahedron.rs" />
-        <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/rotations.rs" />
-        <option value="$PROJECT_DIR$/shaders/shader.frag" />
         <option value="$PROJECT_DIR$/src/utilities.rs" />
         <option value="$PROJECT_DIR$/src/polytope.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/shaders/shader.vert" />
+        <option value="$PROJECT_DIR$/shaders/shader.frag" />
       </list>
     </option>
   </component>
@@ -355,16 +347,16 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12552084" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.12552084" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Cargo" order="3" />
       <window_info anchor="right" id="Palette&#9;" order="4" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.23311546" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.23311546" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
@@ -558,14 +550,7 @@
     <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
-          <caret line="18" column="9" lean-forward="true" selection-start-line="18" selection-start-column="9" selection-end-line="18" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="182">
-          <caret line="44" lean-forward="true" selection-start-line="44" selection-end-line="44" />
+          <caret line="18" column="9" selection-start-line="18" selection-start-column="9" selection-end-line="18" selection-end-column="9" />
         </state>
       </provider>
     </entry>
@@ -586,7 +571,7 @@
     <entry file="file://$PROJECT_DIR$/src/tetrahedron.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="493">
-          <caret line="29" column="21" lean-forward="true" selection-start-line="29" selection-start-column="21" selection-end-line="29" selection-end-column="21" />
+          <caret line="29" column="21" selection-start-line="29" selection-start-column="21" selection-end-line="29" selection-end-column="21" />
           <folding>
             <element signature="e#1174#1175#0" expanded="true" />
             <element signature="e#1211#1212#0" expanded="true" />
@@ -600,13 +585,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1258">
           <caret line="78" column="10" selection-start-line="78" selection-start-column="10" selection-end-line="78" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="560">
-          <caret line="34" column="29" lean-forward="true" selection-start-line="34" selection-start-column="29" selection-end-line="34" selection-end-column="29" />
         </state>
       </provider>
     </entry>
@@ -644,11 +622,25 @@
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="141">
-          <caret line="249" column="69" lean-forward="true" selection-start-line="249" selection-start-column="69" selection-end-line="249" selection-end-column="69" />
+          <caret line="249" column="69" selection-start-line="249" selection-start-column="69" selection-end-line="249" selection-end-column="69" />
           <folding>
             <element signature="n#!!block;n#save_frame#0" />
             <element signature="e#3346#3799#0" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="53" column="21" lean-forward="true" selection-start-line="53" selection-start-column="21" selection-end-line="53" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="475">
+          <caret line="34" lean-forward="true" selection-start-line="34" selection-end-line="34" />
         </state>
       </provider>
     </entry>
