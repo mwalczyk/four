@@ -21,7 +21,7 @@ Windows 8.1, NVIDIA GeForce GTX 970M.
 ## Credits
 The `.txt` shape files are from Paul Bourke's [website](http://paulbourke.net/geometry/hyperspace/). Eventually, these shapes will (hopefully) be generated procedurally, but for now, they are loaded offline. 
 
-Thanks to [@GSBicalho](https://github.com/GSBicalho) and [@willnode](https://github.com/willnode) for their guidance throughout this project. Their responses to my questions were vital towards my understanding the 4D slicing procedure. 
+Thanks to the author of [Eusebeia](http://eusebeia.dyndns.org/4d/), [@GSBicalho](https://github.com/GSBicalho), and [@willnode](https://github.com/willnode) for their guidance throughout this project. Their responses to my questions were vital towards my understanding the 4D slicing procedure. 
 
 ### License
 
