@@ -21,8 +21,10 @@ layout(location = 0) in vec4 position;
 
 out VS_OUT 
 {
-    float depth;
+    // a per-cell color
     vec3 color;
+
+    // model-space position, after projection from 4D -> 3D
     vec3 position;
 } vs_out;
 
@@ -31,13 +33,14 @@ float sigmoid(float x)
     return 1.0 / (1.0 + exp(-x));
 }
 
-vec3 hsb2rgb( in vec3 c ){
+vec3 hsb2rgb(in vec3 c)
+{
     vec3 rgb = clamp(abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),
                              6.0)-3.0)-1.0,
                      0.0,
                      1.0 );
-    rgb = rgb*rgb*(3.0-2.0*rgb);
-    return c.z * mix( vec3(1.0), rgb, c.y);
+    rgb = rgb * rgb * (3.0 - 2.0 * rgb);
+    return c.z * mix(vec3(1.0), rgb, c.y);
 }
 
 void main()
@@ -45,25 +48,18 @@ void main()
     const float scale = 0.75;
 
     // drop the last coordinate (w) and prepare for 3D -> 2D projection
-    vec4 p = vec4(position.xyz * scale, 1.0);
-    float depth_cue = position.z * 0.5 + 0.5;
+    vec4 projected = vec4(position.xyz * scale, 1.0);
 
     // create a color based on the centroid of this cell in 4D
-    vec3 centr = u_cell_centroid.xyz * scale;
-//    float h = atan(centr.z, centr.x) / (2.0 * pi);
-//    float s = 0.75;
-//    float b = max(0.15, centr.y * 0.5 + 0.5);
-//    vec3 rgb = hsb2rgb(vec3(h, s, b));
-
-    vec3 rgb = normalize(centr) * 0.5 + 0.5;
+    vec3 cell = u_cell_centroid.xyz * scale;
+    vec3 rgb = normalize(cell) * 0.5 + 0.5;
     rgb = max(vec3(0.15), rgb);
 
     // project 3D -> 2D
-    gl_Position = u_three_projection * u_three_view * u_three_rotation * p;
+    gl_Position = u_three_projection * u_three_view * u_three_rotation * projected;
     gl_PointSize = 6.0;
 
-    // pass 4D depth to fragment shader
-    vs_out.depth = depth_cue;
+    // pass values to fragment shader
     vs_out.color = rgb;
-    vs_out.position = p.xyz;
+    vs_out.position = projected.xyz;
 }
