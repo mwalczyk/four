@@ -135,15 +135,15 @@
       <find>rotations</find>
       <find>hyperplane</find>
       <find>Matrix4</find>
-      <find>-1.41421 1.41421</find>
-      <find>1.14412 -1.14412</find>
+      <find />
+      <find />
       <find>196</find>
-      <find>93 97</find>
-      <find>253 152</find>
+      <find />
+      <find />
       <find>253</find>
-      <find>0 24 25 136 137</find>
-      <find>0 24</find>
-      <find>[0.0, -1.9999949, 0.0, 1.9999949]</find>
+      <find />
+      <find />
+      <find />
       <find>apex</find>
       <find>consts</find>
     </findStrings>
@@ -175,7 +175,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="121" />
     <option name="y" value="-18" />
     <option name="width" value="1669" />
