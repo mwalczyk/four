@@ -28,6 +28,13 @@ NOTE: this project will only run on graphics cards that support OpenGL [Direct S
 2. Make sure 🦀 [Rust](https://www.rust-lang.org/en-US/) installed and `cargo` is in your `PATH`.
 3. Inside the repo, run: `cargo build --release`.
 
+## To Use
+To rotate the camera around the object in 3-dimensions, press + drag the left mouse button. 
+
+There are 6 possible plane rotations in a 4-dimensional space, and I haven't found a great way to expose this to the user (yet). For now, you can hold `shift` while pressing + dragging the left mouse button to rotate in the `XW` or `YW` planes. Alternatively, you can hold `ctrl` while pressing + dragging the left mouse button to rotate in the `XY` or `ZX` planes. You can change the "height" of the slicing hyperplane (effectively adjusting the `w`-coordinate of its "normal" vector) by pressing + dragging the right mouse button (without any modifiers).
+
+You can hide/show the full tetrahedral mesh by pressing `t`. You can change between wireframe and filled modes by pressing `w` and `f`.
+
 ## To Do
 - [ ] Implement a more generic approach to deriving a polytope's H-representation based on its dual
 - [ ] Implement a GPU-based slicing procedure (probably using compute shaders)
