@@ -137,7 +137,7 @@ fn main() {
 
     let mut three_rotation = Matrix4::identity();
     let three_view = Matrix4::look_at(
-        Point3::new(3.5, 0.0, 0.0),
+        Point3::new(6.0, 0.0, 0.0),
         Point3::from_value(0.0),
         Vector3::unit_y(),
     );

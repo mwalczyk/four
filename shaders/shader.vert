@@ -45,13 +45,11 @@ vec3 hsb2rgb(in vec3 c)
 
 void main()
 {
-    const float scale = 0.75;
-
     // drop the last coordinate (w) and prepare for 3D -> 2D projection
-    vec4 projected = vec4(position.xyz * scale, 1.0);
+    vec4 projected = vec4(position.xyz, 1.0);
 
     // create a color based on the centroid of this cell in 4D
-    vec3 cell = u_cell_centroid.xyz * scale;
+    vec3 cell = u_cell_centroid.xyz;
     vec3 rgb = normalize(cell) * 0.5 + 0.5;
     rgb = max(vec3(0.15), rgb);
 
