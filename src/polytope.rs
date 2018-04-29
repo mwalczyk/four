@@ -17,12 +17,12 @@ use utilities;
 
 /// A struct that describes a class of polychoron.
 pub struct Definition {
-    components_per_vertex: u32,
-    vertices_per_edge: u32,
-    vertices_per_face: u32,
-    vertices_per_solid: u32,
-    faces_per_cell: u32,
-    cells: u32,
+    pub components_per_vertex: u32,
+    pub vertices_per_edge: u32,
+    pub vertices_per_face: u32,
+    pub vertices_per_solid: u32,
+    pub faces_per_cell: u32,
+    pub cells: u32,
 }
 
 /// A polychoron is a polytope that exists in 4-dimensions. It is the 4-dimensional
