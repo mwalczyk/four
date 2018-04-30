@@ -351,27 +351,30 @@ impl Mesh {
     /// Performs of a tetrahedral decomposition of the polytope.
     pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
         let mut tetrahedrons = Vec::new();
-        let simple = true;
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
             let mut prev_len = tetrahedrons.len();
 
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
-            let (hyperplane, faces) = plane_and_faces;
+            let (hyperplane, face_indices) = plane_and_faces;
 
-            // Calculate the centroid of this cell.
-            let mut cell_centroid = Vector4::zero();
-            for index in faces.iter() {
-                let face_vertices = self.get_vertices_for_face(*index);
-                let face_centroid = face_vertices.iter().sum::<Vector4<f32>>();
-                cell_centroid += face_centroid;
-            }
-            cell_centroid /= (self.def.vertices_per_face * self.def.faces_per_cell) as f32;
+            // Calculate the centroid of this cell, which is the average of all face centroids.
+            let cell_centroid = utilities::average(
+                &faces
+                    .iter()
+                    .map(|index| {
+                        utilities::average(&self.get_vertices_for_face(*index), &Vector4::zero())
+                    })
+                    .collect::<Vec<_>>(),
+                &Vector4::zero(),
+            );
 
             // Iterate over each face of the current cell.
-            for face in faces {
-                let face_vertices = self.get_vertices_for_face(*face);
+            for face_index in face_indices {
+                // Get the vertices that make up this face.
+                let face_vertices = self.get_vertices_for_face(*face_index);
+
                 // First, we need to triangulate this face into two, non-overlapping
                 // triangles.
                 //

@@ -70,10 +70,15 @@ pub fn saturate_between(value: f32, min: f32, max: f32) -> f32 {
     value.min(max).max(min)
 }
 
+use std::ops::{Add, Div};
+
 /// Returns the average element of a list of vectors. This is useful for computing
 /// cell / face / triangle centroids, for example.
-pub fn average(values: &Vec<Vector3<f32>>) -> Vector3<f32> {
-    values.iter().sum::<Vector3<f32>>() / values.len() as f32
+pub fn average<T>(values: &[T], init: &T) -> T
+where
+    T: Copy + Add<T, Output = T> + Div<f32, Output = T>,
+{
+    values.iter().fold(*init, |acc, &item| acc + item) / (values.len() as f32)
 }
 
 /// Generates an OpenGL shader program based on the source files specified by

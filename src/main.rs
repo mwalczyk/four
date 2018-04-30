@@ -1,3 +1,9 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(unused_must_use)]
+#![allow(unused_assignments)]
+#![allow(unreachable_code)]
 extern crate cgmath;
 extern crate gl;
 extern crate glutin;

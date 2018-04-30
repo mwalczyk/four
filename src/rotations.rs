@@ -1,4 +1,4 @@
-use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4};
+use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4, Zero};
 
 use hyperplane::Hyperplane;
 use utilities;
@@ -120,7 +120,7 @@ pub fn sort_points_on_plane(
     let a = projected[0];
     let b = projected[1];
     let c = projected[2];
-    let centroid = utilities::average(&projected);
+    let centroid = utilities::average(&projected, &Vector3::zero());
 
     // Calculate the normal of this polygon by taking the cross product
     // between two of its edges.
