@@ -35,7 +35,7 @@ pub struct Definition {
 ///
 /// ```
 pub enum Polychoron {
-    Cell8, // TODO
+    Cell8,  // TODO
     Cell16, // TODO
     Cell24, // TODO
     Cell120,

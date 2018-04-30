@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::io::Read;
+use std::iter;
 use std::os::raw::c_void;
 use std::path::Path;
 
-use cgmath::{self, Vector3, Vector4, ElementWise};
+use cgmath::{self, ElementWise, Vector3, Vector4};
 use gl;
 use gl::types::*;
 use image::{self, GenericImage, ImageBuffer};
@@ -38,6 +39,37 @@ pub fn palette(
     temp.z = temp.z.cos();
 
     a + b.mul_element_wise(temp)
+}
+
+/// Returns the index of the largest component of the vector.
+pub fn index_of_largest(v: &Vector4<f32>) -> usize {
+    let mut largest_val = v.x.abs();
+    let mut largest_index = 0;
+
+    if v.y.abs() > largest_val {
+        largest_val = v.y.abs();
+        largest_index = 1;
+    }
+    if v.z.abs() > largest_val {
+        largest_val = v.z.abs();
+        largest_index = 2;
+    }
+    if v.w.abs() > largest_val {
+        largest_val = v.w.abs();
+        largest_index = 3;
+    }
+
+    largest_index
+}
+
+pub fn saturate(value: f32) -> f32 {
+    value.min(1.0).max(0.0)
+}
+
+/// Returns the average element of a list of vectors. This is useful for computing
+/// cell / face / triangle centroids, for example.
+pub fn average(values: &Vec<Vector3<f32>>) -> Vector3<f32> {
+    values.iter().sum::<Vector3<f32>>() / values.len() as f32
 }
 
 /// Generates an OpenGL shader program based on the source files specified by
@@ -78,4 +110,3 @@ pub fn save_frame(path: &Path, width: u32, height: u32) {
 
     image::save_buffer(path, &pixels, width, height, image::RGB(8)).unwrap();
 }
-

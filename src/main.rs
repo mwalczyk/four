@@ -13,8 +13,8 @@ mod camera;
 mod constants;
 mod hyperplane;
 mod interaction;
-mod polychora;
 mod mesh;
+mod polychora;
 mod program;
 mod renderer;
 mod rotations;
@@ -24,8 +24,8 @@ mod utilities;
 use camera::Camera;
 use hyperplane::Hyperplane;
 use interaction::InteractionState;
-use polychora::Polychoron;
 use mesh::Mesh;
+use polychora::Polychoron;
 use program::Program;
 use renderer::Renderer;
 use tetrahedron::Tetrahedron;
@@ -185,7 +185,11 @@ fn main() {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
-                                    utilities::save_frame(path, constants::WIDTH, constants::HEIGHT);
+                                    utilities::save_frame(
+                                        path,
+                                        constants::WIDTH,
+                                        constants::HEIGHT,
+                                    );
                                 }
                                 glutin::VirtualKeyCode::LShift => {
                                     interaction.shift_pressed = true;

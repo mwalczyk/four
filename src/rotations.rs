@@ -1,6 +1,7 @@
 use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4};
 
 use hyperplane::Hyperplane;
+use utilities;
 
 pub enum Plane {
     XY,
@@ -104,21 +105,7 @@ pub fn sort_points_on_plane(
     points: &Vec<Vector4<f32>>,
     hyperplane: &Hyperplane,
 ) -> Vec<Vector4<f32>> {
-    // Find the index of the largest component of the normal vector.
-    let mut largest_val = hyperplane.normal.x.abs();
-    let mut largest_index = 0;
-    if hyperplane.normal.y.abs() > largest_val {
-        largest_val = hyperplane.normal.y.abs();
-        largest_index = 1;
-    }
-    if hyperplane.normal.z.abs() > largest_val {
-        largest_val = hyperplane.normal.z.abs();
-        largest_index = 2;
-    }
-    if hyperplane.normal.w.abs() > largest_val {
-        largest_val = hyperplane.normal.w.abs();
-        largest_index = 3;
-    }
+    let largest_index = utilities::index_of_largest(&hyperplane.normal);
 
     // First, project the 4D points to 3D. We do this by dropping the coordinate
     // corresponding to the largest value of the hyperplane's normal vector.
@@ -126,22 +113,20 @@ pub fn sort_points_on_plane(
     // TODO: does this work all the time?
     let projected = points
         .iter()
-        .map(|pt| pt.truncate_n(largest_index))
+        .map(|pt| pt.truncate_n(largest_index as isize))
         .collect::<Vec<_>>();
 
     // Now, we are working in 3-dimensions.
     let a = projected[0];
     let b = projected[1];
     let c = projected[2];
-
-    let centroid = projected.iter().sum::<Vector3<f32>>() / projected.len() as f32;
+    let centroid = utilities::average(&projected);
 
     // Calculate the normal of this polygon by taking the cross product
     // between two of its edges.
     let ab = b - a;
     let bc = c - b;
     let polygon_normal = bc.cross(ab).normalize();
-
     let first_edge = (a - centroid).normalize();
 
     // Sort the new set of 3D points based on their signed angles.

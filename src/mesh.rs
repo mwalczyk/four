@@ -354,14 +354,14 @@ impl Mesh {
         let simple = true;
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
-            // The vertex that all tetrahedrons making up this solid will connect to.
-            let mut apex = Vector4::from_value(f32::MAX);
-
-            let (hyperplane, faces) = plane_and_faces;
             let mut prev_len = tetrahedrons.len();
 
+            // The vertex that all tetrahedrons making up this solid will connect to.
+            let mut apex = Vector4::from_value(f32::MAX);
+            let (hyperplane, faces) = plane_and_faces;
+
             // Calculate the centroid of this cell.
-            let mut cell_centroid = Vector4::from_value(0.0);
+            let mut cell_centroid = Vector4::zero();
             for index in faces.iter() {
                 let face_vertices = self.get_vertices_for_face(*index);
                 let face_centroid = face_vertices.iter().sum::<Vector4<f32>>();
@@ -384,143 +384,28 @@ impl Mesh {
                 let face_vertices_sorted =
                     rotations::sort_points_on_plane(&face_vertices, &hyperplane);
 
-                if simple {
-                    if apex.x == f32::MAX {
-                        apex = face_vertices[0];
-                    }
+                if apex.x == f32::MAX {
+                    apex = face_vertices[0];
+                }
 
-                    // We only want to tetrahedralize faces that are NOT connected to the apex.
-                    if !face_vertices.contains(&apex) {
-                        // Create a triangle fan, starting at the first vertex of the sorted list.
-                        // Connect each resulting triangle to the apex vertex to create a full
-                        // tetrahedron.
-                        for i in 1..face_vertices_sorted.len() - 1 {
-                            tetrahedrons.push(Tetrahedron::new(
-                                [
-                                    face_vertices_sorted[0],
-                                    face_vertices_sorted[i + 0],
-                                    face_vertices_sorted[i + 1],
-                                    apex,
-                                ],
-                                utilities::from_hex(0xffffff, 1.0),
-                                cell_index as u32,
-                                cell_centroid,
-                            ));
-                        }
+                // We only want to tetrahedralize faces that are NOT connected to the apex.
+                if !face_vertices.contains(&apex) {
+                    // Create a triangle fan, starting at the first vertex of the sorted list.
+                    // Connect each resulting triangle to the apex vertex to create a full
+                    // tetrahedron.
+                    for i in 1..face_vertices_sorted.len() - 1 {
+                        tetrahedrons.push(Tetrahedron::new(
+                            [
+                                face_vertices_sorted[0],
+                                face_vertices_sorted[i + 0],
+                                face_vertices_sorted[i + 1],
+                                apex,
+                            ],
+                            utilities::from_hex(0xffffff, 1.0),
+                            cell_index as u32,
+                            cell_centroid,
+                        ));
                     }
-                } else {
-
-                    //                    let face_centroid = face_vertices.iter().sum::<Vector4<f32>>();
-                    //                    let original_radius = (cell_centroid - face_centroid).magnitude();
-                    //                    println!("original radius: {}", original_radius);
-                    //
-                    //                    let thickness = 0.75;
-                    //
-                    //                    // Iterate over all of the triangles that make up this face.
-                    //                    for index in 0..face_vertices_sorted.len()-1 {
-                    //                        let mut new_faces = Vec::new();
-                    //                        let mut new_tris = Vec::new();
-                    //
-                    //                        // Grab the first triangle that makes up this face.
-                    //                        let triangle_vertices = vec![
-                    //                            face_vertices_sorted[0],
-                    //                            face_vertices_sorted[index + 0],
-                    //                            face_vertices_sorted[index + 1],
-                    //                        ];
-                    //                        let triangle_centroid =
-                    //                            triangle_vertices.iter().sum::<Vector4<f32>>() / 3.0;
-                    //
-                    //                        // Assign the apex to the first vertex of this triangle.
-                    //                        let apex = triangle_vertices[0];
-                    //
-                    //                        // Now, create a scaled copy of the original face.
-                    //                        let triangle_small = triangle_vertices
-                    //                            .iter()
-                    //                            .map(|vertex| {
-                    //                                let mut vertex_small = *vertex;
-                    //                                vertex_small -= triangle_centroid;
-                    //                                vertex_small *= thickness;
-                    //                                vertex_small += triangle_centroid;
-                    //
-                    //                                // Choose the translation amount based on the `thickness` variable.
-                    //                                let amount = original_radius * (1.0 - thickness);
-                    //                                let translation = (cell_centroid - triangle_centroid).normalize();
-                    //
-                    //                                // Move towards the cell center.
-                    //                                vertex_small + translation * amount
-                    //                            })
-                    //                            .collect::<Vec<_>>();
-                    //
-                    //                        for i in 0..3 {
-                    //                            let src = i;
-                    //                            let dst = (i + 1) % 3;
-                    //
-                    //                            new_faces.push(vec![
-                    //                                triangle_vertices[src],
-                    //                                triangle_vertices[dst],
-                    //                                triangle_small[src],
-                    //                                triangle_small[dst],
-                    //                            ]);
-                    //
-                    //                            new_tris.push((
-                    //                                (
-                    //                                    triangle_vertices[src],
-                    //                                    triangle_vertices[dst],
-                    //                                    triangle_small[src],
-                    //                                ),
-                    //                                (
-                    //                                    triangle_small[src],
-                    //                                    triangle_small[dst],
-                    //                                    triangle_vertices[dst],
-                    //                                ),
-                    //                            ));
-                    //                        }
-                    //
-                    //                        new_faces.push(vec![
-                    //                            triangle_small[0],
-                    //                            triangle_small[1],
-                    //                            triangle_small[2]
-                    //                        ]);
-                    //
-                    //                        new_tris.push((
-                    //                            (triangle_small[0], triangle_small[1], triangle_small[2]),
-                    //                            (triangle_small[0], triangle_small[1], triangle_small[2]),
-                    //                        ));
-                    //
-                    //                        for (i, face) in new_faces.iter().enumerate() {
-                    //                            if !face.contains(&apex) {
-                    //                                // Add the first tetrahedron.
-                    //                                tetrahedrons.push(Tetrahedron::new(
-                    //                                    [(new_tris[i].0).0, (new_tris[i].0).1, (new_tris[i].0).2, apex],
-                    //                                    utilities::from_hex(0xffffff, 1.0),
-                    //                                    cell_index as u32,
-                    //                                    cell_centroid,
-                    //                                ));
-                    //
-                    //                                // Add the second tetrahedron.
-                    //                                tetrahedrons.push(Tetrahedron::new(
-                    //                                    [(new_tris[i].1).0, (new_tris[i].1).1, (new_tris[i].1).2, apex],
-                    //                                    utilities::from_hex(0xffffff, 1.0),
-                    //                                    cell_index as u32,
-                    //                                    cell_centroid,
-                    //                                ));
-                    //                            }
-                    //                        }
-                    //                    }
-                    //
-                    //                    for i in 1..face_vertices_sorted.len() - 1 {
-                    //                        tetrahedrons.push(Tetrahedron::new(
-                    //                            [
-                    //                                face_vertices_sorted[0],
-                    //                                face_vertices_sorted[i + 0],
-                    //                                face_vertices_sorted[i + 1],
-                    //                                apex,
-                    //                            ],
-                    //                            utilities::from_hex(0xffffff, 1.0),
-                    //                            cell_index as u32,
-                    //                            cell_centroid,
-                    //                        ));
-                    //                    }
                 }
             }
 
