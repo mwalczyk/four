@@ -49,7 +49,7 @@ You can hide/show the full tetrahedral mesh by pressing `t`. You can change betw
 - [ ] Research Munsell color solids
 
 ## Credits
-Some of the `.txt` shape files are from Paul Bourke's [website](http://paulbourke.net/geometry/hyperspace/). Eventually, these shapes will (hopefully) be generated procedurally, but for now, they are loaded offline. 
+Some of the shape definitions in the `polychora` module are from Paul Bourke's [website](http://paulbourke.net/geometry/hyperspace/). Eventually, these shapes will (hopefully) be generated procedurally, but for now, they are hardcoded as `Vec<T>`s. 
 
 Thanks to [@GSBicalho](https://github.com/GSBicalho) and [@willnode](https://github.com/willnode) for their guidance throughout this project. Their responses to my questions were vital towards my understanding the 4D slicing procedure. 
 
