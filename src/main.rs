@@ -1,9 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(unused_must_use)]
-#![allow(unused_assignments)]
-#![allow(unreachable_code)]
 extern crate cgmath;
 extern crate gl;
 extern crate glutin;
@@ -126,13 +120,13 @@ fn main() {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::Closed => (),
                 glutin::WindowEvent::MouseMoved { position, .. } => {
+                    // Store the normalized mouse position.
                     interaction.cursor_prev = interaction.cursor_curr;
                     interaction.cursor_curr.x = position.0 as f32 / constants::WIDTH as f32;
                     interaction.cursor_curr.y = position.1 as f32 / constants::HEIGHT as f32;
 
                     if interaction.lmouse_pressed {
-                        let delta = (interaction.cursor_curr - interaction.cursor_prev)
-                            * constants::MOUSE_SENSITIVITY;
+                        let delta = interaction.get_mouse_delta() * constants::MOUSE_SENSITIVITY;
 
                         if interaction.shift_pressed {
                             let rot_xw = rotations::get_simple_rotation_matrix(

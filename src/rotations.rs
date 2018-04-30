@@ -131,9 +131,9 @@ pub fn sort_points_on_plane(
 
     // Sort the new set of 3D points based on their signed angles.
     let mut indices = Vec::new();
-    for pt in projected.iter().skip(1) {
-        let edge = (pt - centroid).normalize();
-        let angle = first_edge.dot(edge).max(-1.0).min(1.0);
+    for point in projected.iter().skip(1) {
+        let edge = (point - centroid).normalize();
+        let angle = utilities::saturate_between(first_edge.dot(edge), -1.0, 1.0);
         let mut signed_angle = angle.acos();
 
         if polygon_normal.dot(first_edge.cross(edge)) < 0.0 {

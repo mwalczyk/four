@@ -66,6 +66,10 @@ pub fn saturate(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
+pub fn saturate_between(value: f32, min: f32, max: f32) -> f32 {
+    value.min(max).max(min)
+}
+
 /// Returns the average element of a list of vectors. This is useful for computing
 /// cell / face / triangle centroids, for example.
 pub fn average(values: &Vec<Vector3<f32>>) -> Vector3<f32> {

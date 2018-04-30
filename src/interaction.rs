@@ -22,4 +22,8 @@ impl InteractionState {
             ctrl_pressed: false,
         }
     }
+
+    pub fn get_mouse_delta(&self) -> Vector2<f32> {
+        self.cursor_curr - self.cursor_prev
+    }
 }
