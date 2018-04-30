@@ -361,7 +361,7 @@ impl Mesh {
 
             // Calculate the centroid of this cell, which is the average of all face centroids.
             let cell_centroid = utilities::average(
-                &faces
+                &face_indices
                     .iter()
                     .map(|index| {
                         utilities::average(&self.get_vertices_for_face(*index), &Vector4::zero())

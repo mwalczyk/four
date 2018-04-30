@@ -42,6 +42,19 @@ pub fn palette(
 }
 
 /// Returns the index of the largest component of the vector.
+///
+/// In the future, something like this might work better:
+///
+/// '''
+/// fn index_of_largest(values: &[f32]) -> usize {
+///    values
+///        .iter()
+///        .enumerate()
+///        .max_by(|&(_, a), &(_, b)| a.partial_cmp(b).unwrap())
+///        .unwrap()
+///        .0
+/// }
+/// '''
 pub fn index_of_largest(v: &Vector4<f32>) -> usize {
     let mut largest_val = v.x.abs();
     let mut largest_index = 0;
@@ -62,10 +75,12 @@ pub fn index_of_largest(v: &Vector4<f32>) -> usize {
     largest_index
 }
 
+/// Clamps `value` so that it lies in the range `0.0 .. 1.0`.
 pub fn saturate(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
+/// Clamps `value` so that it lies in the range `min .. max`.
 pub fn saturate_between(value: f32, min: f32, max: f32) -> f32 {
     value.min(max).max(min)
 }
