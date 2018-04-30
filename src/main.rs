@@ -13,7 +13,8 @@ mod camera;
 mod constants;
 mod hyperplane;
 mod interaction;
-mod polytope;
+mod polychora;
+mod mesh;
 mod program;
 mod renderer;
 mod rotations;
@@ -23,24 +24,18 @@ mod utilities;
 use camera::Camera;
 use hyperplane::Hyperplane;
 use interaction::InteractionState;
-use polytope::{Mesh, Polychoron};
+use polychora::Polychoron;
+use mesh::Mesh;
 use program::Program;
 use renderer::Renderer;
 use tetrahedron::Tetrahedron;
 
-use std::ffi::OsStr;
-use std::fs::{self, File};
-use std::io::prelude::*;
-use std::io::{BufRead, BufReader};
-use std::os::raw::c_void;
 use std::path::Path;
-use std::str;
 use std::time::{Duration, SystemTime};
 
 use cgmath::{Array, InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, Rotation,
              SquareMatrix, Transform, Vector2, Vector3, Vector4, Zero};
 use glutin::GlContext;
-use image::{GenericImage, ImageBuffer};
 
 fn clear() {
     unsafe {
@@ -49,55 +44,7 @@ fn clear() {
     }
 }
 
-/// Generates an OpenGL shader program based on the source files specified by
-/// `vs_path` (vertex shader) and `fs_path` (fragment shader).
-fn load_shaders(vs_path: &Path, fs_path: &Path) -> Program {
-    let mut vs = File::open(vs_path).expect("File not found");
-    let mut fs = File::open(fs_path).expect("File not found");
-
-    let mut vs_src = String::new();
-    let mut fs_src = String::new();
-    vs.read_to_string(&mut vs_src)
-        .expect("Something went wrong reading the file");
-    fs.read_to_string(&mut fs_src)
-        .expect("Something went wrong reading the file");
-
-    Program::new(vs_src, fs_src).unwrap()
-}
-
-/// Saves the current frame to disk at `path` with dimensions `width`x`height`.
-fn save_frame(path: &Path, width: u32, height: u32) {
-    let mut pixels: Vec<u8> = Vec::new();
-    pixels.reserve((width * height * 3) as usize);
-
-    unsafe {
-        // We don't want any alignment padding on pixel rows.
-        gl::PixelStorei(gl::PACK_ALIGNMENT, 1);
-        gl::ReadPixels(
-            0,
-            0,
-            width as i32,
-            height as i32,
-            gl::RGB,
-            gl::UNSIGNED_BYTE,
-            pixels.as_mut_ptr() as *mut c_void,
-        );
-        pixels.set_len((width * height * 3) as usize);
-    }
-
-    image::save_buffer(path, &pixels, width, height, image::RGB(8)).unwrap();
-}
-
-fn main() {
-    let mut events_loop = glutin::EventsLoop::new();
-    let window = glutin::WindowBuilder::new()
-        .with_dimensions(constants::WIDTH, constants::HEIGHT)
-        .with_title("four");
-    let context = glutin::ContextBuilder::new().with_multisampling(8);
-    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
-    unsafe { gl_window.make_current() }.unwrap();
-    gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-
+fn set_draw_state() {
     unsafe {
         // For now, we don't really know the winding order of the tetrahedron
         // slices, so we want to disable face culling.
@@ -111,14 +58,28 @@ fn main() {
         gl::Enable(gl::BLEND);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
+        // Allow the vertex shader to set the size of point sprites.
         gl::Enable(gl::PROGRAM_POINT_SIZE);
     }
+}
+
+fn main() {
+    let mut events_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new()
+        .with_dimensions(constants::WIDTH, constants::HEIGHT)
+        .with_title("four");
+    let context = glutin::ContextBuilder::new().with_multisampling(8);
+    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+    unsafe { gl_window.make_current() }.unwrap();
+    gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+
+    set_draw_state();
 
     // Set up the slicing hyperplane.
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
     // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::from_file(Path::new("shapes/120cell.txt"), Polychoron::Cell120);
+    let mut mesh = Mesh::new(Polychoron::Cell120);
     let mut tetrahedrons = mesh.tetrahedralize();
     println!(
         "Mesh tetrahedralization resulted in {} tetrahedrons.",
@@ -146,7 +107,7 @@ fn main() {
         cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
 
     // Load the shader program that we will use for rendering.
-    let program = load_shaders(
+    let program = utilities::load_shaders(
         Path::new("shaders/shader.vert"),
         Path::new("shaders/shader.frag"),
     );
@@ -184,15 +145,15 @@ fn main() {
                             );
                             four_rotation = rot_xw * rot_yw * four_rotation;
                         } else if interaction.ctrl_pressed {
-                            let rot_xy = rotations::get_simple_rotation_matrix(
-                                rotations::Plane::XY,
+                            let rot_zw = rotations::get_simple_rotation_matrix(
+                                rotations::Plane::ZW,
                                 delta.x,
                             );
                             let rot_zx = rotations::get_simple_rotation_matrix(
                                 rotations::Plane::ZX,
                                 delta.y,
                             );
-                            four_rotation = rot_xy * rot_zx * four_rotation;
+                            four_rotation = rot_zw * rot_zx * four_rotation;
                         } else {
                             let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));
                             let rot_yz = Matrix4::from_angle_z(cgmath::Rad(delta.y));
@@ -224,7 +185,7 @@ fn main() {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
                                     let path = Path::new("frame.png");
-                                    save_frame(path, constants::WIDTH, constants::HEIGHT);
+                                    utilities::save_frame(path, constants::WIDTH, constants::HEIGHT);
                                 }
                                 glutin::VirtualKeyCode::LShift => {
                                     interaction.shift_pressed = true;

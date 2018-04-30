@@ -11,52 +11,10 @@ use gl;
 use gl::types::*;
 
 use hyperplane::Hyperplane;
+use polychora::{Definition, Polychoron};
 use rotations::{self, Plane};
 use tetrahedron::Tetrahedron;
 use utilities;
-
-/// A struct that describes a class of polychoron.
-pub struct Definition {
-    pub components_per_vertex: u32,
-    pub vertices_per_edge: u32,
-    pub vertices_per_face: u32,
-    pub vertices_per_solid: u32,
-    pub faces_per_cell: u32,
-    pub cells: u32,
-}
-
-/// A polychoron is a polytope that exists in 4-dimensions. It is the 4-dimensional
-/// analog of a polyhedron. It is made up of vertices, edges, faces, and cells. Each
-/// cell is itself a polyhedra.
-pub enum Polychoron {
-    Cell8,
-    Cell24,
-    Cell120,
-    Cell600,
-}
-
-impl Polychoron {
-    pub fn get_definition(&self) -> Definition {
-        match *self {
-            Polychoron::Cell120 => Definition {
-                components_per_vertex: 4,
-                vertices_per_edge: 2,
-                vertices_per_face: 5,
-                vertices_per_solid: 20,
-                faces_per_cell: 12,
-                cells: 120,
-            },
-            _ => Definition {
-                components_per_vertex: 0,
-                vertices_per_edge: 0,
-                vertices_per_face: 0,
-                vertices_per_solid: 0,
-                faces_per_cell: 0,
-                cells: 0,
-            },
-        }
-    }
-}
 
 /// A 4-dimensional mesh.
 pub struct Mesh {
@@ -70,103 +28,16 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    /// Loads the shape file at the specified `path`. The file
-    /// should follow the format:
-    ///
-    /// ```
-    /// number_of_vertices
-    /// x0 y0 z0 w0
-    /// x1 y1 z1 w1
-    /// ...
-    ///
-    /// number_of_edges
-    /// v0 v1
-    /// v2 v3
-    /// ...
-    ///
-    /// number_of_faces
-    /// v0 v1 v2 v3
-    /// v4 v5 v6 v7
-    /// ...
-    ///
-    /// ```
-    pub fn from_file(path: &Path, polychoron: Polychoron) -> Mesh {
-        let def = polychoron.get_definition();
-
-        let file = File::open(path).unwrap();
-        let mut reader = BufReader::new(file);
-        let mut number_of_entries = 0usize;
-        let mut entry_count = String::new();
-
-        // Load vertex data (4 entries per vertex).
-        reader.read_line(&mut entry_count);
-        number_of_entries = entry_count.trim().parse().unwrap();
-        let mut vertices =
-            Vec::with_capacity(number_of_entries * def.components_per_vertex as usize);
-
-        for _ in 0..number_of_entries {
-            let mut line = String::new();
-            reader.read_line(&mut line);
-
-            let mut all_coordinates = line.split_whitespace();
-            let x = all_coordinates.next().unwrap().trim().parse().unwrap();
-            let y = all_coordinates.next().unwrap().trim().parse().unwrap();
-            let z = all_coordinates.next().unwrap().trim().parse().unwrap();
-            let w = all_coordinates.next().unwrap().trim().parse().unwrap();
-            let vertex = Vector4::new(x, y, z, w);
-
-            vertices.push(vertex);
-        }
-        entry_count.clear();
-
-        // Load edge data (2 entries per edge).
-        reader.read_line(&mut entry_count);
-        number_of_entries = entry_count.trim().parse().unwrap();
-        let mut edges = Vec::with_capacity(number_of_entries * def.vertices_per_edge as usize);
-
-        for _ in 0..number_of_entries {
-            let mut line = String::new();
-            reader.read_line(&mut line);
-
-            for entry in line.split_whitespace() {
-                let data: u32 = entry.trim().parse().unwrap();
-                edges.push(data);
-            }
-        }
-        entry_count.clear();
-
-        // Load face data (`vertices_per_face` entries per face).
-        reader.read_line(&mut entry_count);
-        number_of_entries = entry_count.trim().parse().unwrap();
-        let mut faces = Vec::with_capacity(number_of_entries * def.vertices_per_face as usize);
-
-        for _ in 0..number_of_entries {
-            let mut line = String::new();
-            reader.read_line(&mut line);
-
-            for entry in line.split_whitespace() {
-                let data: u32 = entry.trim().parse().unwrap();
-                faces.push(data);
-            }
-        }
-        entry_count.clear();
-
+    pub fn new(polychoron: Polychoron) -> Mesh {
         let mut mesh = Mesh {
-            vertices,
-            edges,
-            faces,
-            def,
+            vertices: polychoron.get_vertices(),
+            edges: polychoron.get_edges(),
+            faces: polychoron.get_faces(),
+            def: polychoron.get_definition(),
             vao: 0,
             vbo: 0,
             ebo: 0,
         };
-
-        println!(
-            "Loaded file with {} vertices, {} edges, {} faces",
-            mesh.vertices.len(),
-            mesh.edges.len() / mesh.def.vertices_per_edge as usize,
-            mesh.faces.len() / mesh.def.vertices_per_face as usize,
-        );
 
         mesh.init_render_objects();
         mesh
@@ -480,6 +351,7 @@ impl Mesh {
     /// Performs of a tetrahedral decomposition of the polytope.
     pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
         let mut tetrahedrons = Vec::new();
+        let simple = true;
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
             // The vertex that all tetrahedrons making up this solid will connect to.
@@ -500,41 +372,155 @@ impl Mesh {
             // Iterate over each face of the current cell.
             for face in faces {
                 let face_vertices = self.get_vertices_for_face(*face);
+                // First, we need to triangulate this face into two, non-overlapping
+                // triangles.
+                //
+                // a -- b
+                // |  / |
+                // | /  |
+                // c -- d
+                //
+                // Collect all 4D vertices and sort.
+                let face_vertices_sorted =
+                    rotations::sort_points_on_plane(&face_vertices, &hyperplane);
 
-                if apex.x == f32::MAX {
-                    apex = face_vertices[0];
-                }
-
-                // We only want to tetrahedralize faces that are NOT connected to the apex.
-                if !face_vertices.contains(&apex) {
-                    // First, we need to triangulate this face into two, non-overlapping
-                    // triangles.
-                    //
-                    // a -- b
-                    // |  / |
-                    // | /  |
-                    // c -- d
-                    //
-                    // Collect all 4D vertices and sort.
-                    let face_vertices_sorted =
-                        rotations::sort_points_on_plane(&face_vertices, &hyperplane);
-
-                    // Create a triangle fan, starting at the first vertex of the sorted list.
-                    // Connect each resulting triangle to the apex vertex to create a full
-                    // tetrahedron.
-                    for i in 1..face_vertices_sorted.len() - 1 {
-                        tetrahedrons.push(Tetrahedron::new(
-                            [
-                                face_vertices_sorted[0],
-                                face_vertices_sorted[i + 0],
-                                face_vertices_sorted[i + 1],
-                                apex,
-                            ],
-                            utilities::from_hex(0xffffff, 1.0),
-                            cell_index as u32,
-                            cell_centroid,
-                        ));
+                if simple {
+                    if apex.x == f32::MAX {
+                        apex = face_vertices[0];
                     }
+
+                    // We only want to tetrahedralize faces that are NOT connected to the apex.
+                    if !face_vertices.contains(&apex) {
+                        // Create a triangle fan, starting at the first vertex of the sorted list.
+                        // Connect each resulting triangle to the apex vertex to create a full
+                        // tetrahedron.
+                        for i in 1..face_vertices_sorted.len() - 1 {
+                            tetrahedrons.push(Tetrahedron::new(
+                                [
+                                    face_vertices_sorted[0],
+                                    face_vertices_sorted[i + 0],
+                                    face_vertices_sorted[i + 1],
+                                    apex,
+                                ],
+                                utilities::from_hex(0xffffff, 1.0),
+                                cell_index as u32,
+                                cell_centroid,
+                            ));
+                        }
+                    }
+                } else {
+
+                    //                    let face_centroid = face_vertices.iter().sum::<Vector4<f32>>();
+                    //                    let original_radius = (cell_centroid - face_centroid).magnitude();
+                    //                    println!("original radius: {}", original_radius);
+                    //
+                    //                    let thickness = 0.75;
+                    //
+                    //                    // Iterate over all of the triangles that make up this face.
+                    //                    for index in 0..face_vertices_sorted.len()-1 {
+                    //                        let mut new_faces = Vec::new();
+                    //                        let mut new_tris = Vec::new();
+                    //
+                    //                        // Grab the first triangle that makes up this face.
+                    //                        let triangle_vertices = vec![
+                    //                            face_vertices_sorted[0],
+                    //                            face_vertices_sorted[index + 0],
+                    //                            face_vertices_sorted[index + 1],
+                    //                        ];
+                    //                        let triangle_centroid =
+                    //                            triangle_vertices.iter().sum::<Vector4<f32>>() / 3.0;
+                    //
+                    //                        // Assign the apex to the first vertex of this triangle.
+                    //                        let apex = triangle_vertices[0];
+                    //
+                    //                        // Now, create a scaled copy of the original face.
+                    //                        let triangle_small = triangle_vertices
+                    //                            .iter()
+                    //                            .map(|vertex| {
+                    //                                let mut vertex_small = *vertex;
+                    //                                vertex_small -= triangle_centroid;
+                    //                                vertex_small *= thickness;
+                    //                                vertex_small += triangle_centroid;
+                    //
+                    //                                // Choose the translation amount based on the `thickness` variable.
+                    //                                let amount = original_radius * (1.0 - thickness);
+                    //                                let translation = (cell_centroid - triangle_centroid).normalize();
+                    //
+                    //                                // Move towards the cell center.
+                    //                                vertex_small + translation * amount
+                    //                            })
+                    //                            .collect::<Vec<_>>();
+                    //
+                    //                        for i in 0..3 {
+                    //                            let src = i;
+                    //                            let dst = (i + 1) % 3;
+                    //
+                    //                            new_faces.push(vec![
+                    //                                triangle_vertices[src],
+                    //                                triangle_vertices[dst],
+                    //                                triangle_small[src],
+                    //                                triangle_small[dst],
+                    //                            ]);
+                    //
+                    //                            new_tris.push((
+                    //                                (
+                    //                                    triangle_vertices[src],
+                    //                                    triangle_vertices[dst],
+                    //                                    triangle_small[src],
+                    //                                ),
+                    //                                (
+                    //                                    triangle_small[src],
+                    //                                    triangle_small[dst],
+                    //                                    triangle_vertices[dst],
+                    //                                ),
+                    //                            ));
+                    //                        }
+                    //
+                    //                        new_faces.push(vec![
+                    //                            triangle_small[0],
+                    //                            triangle_small[1],
+                    //                            triangle_small[2]
+                    //                        ]);
+                    //
+                    //                        new_tris.push((
+                    //                            (triangle_small[0], triangle_small[1], triangle_small[2]),
+                    //                            (triangle_small[0], triangle_small[1], triangle_small[2]),
+                    //                        ));
+                    //
+                    //                        for (i, face) in new_faces.iter().enumerate() {
+                    //                            if !face.contains(&apex) {
+                    //                                // Add the first tetrahedron.
+                    //                                tetrahedrons.push(Tetrahedron::new(
+                    //                                    [(new_tris[i].0).0, (new_tris[i].0).1, (new_tris[i].0).2, apex],
+                    //                                    utilities::from_hex(0xffffff, 1.0),
+                    //                                    cell_index as u32,
+                    //                                    cell_centroid,
+                    //                                ));
+                    //
+                    //                                // Add the second tetrahedron.
+                    //                                tetrahedrons.push(Tetrahedron::new(
+                    //                                    [(new_tris[i].1).0, (new_tris[i].1).1, (new_tris[i].1).2, apex],
+                    //                                    utilities::from_hex(0xffffff, 1.0),
+                    //                                    cell_index as u32,
+                    //                                    cell_centroid,
+                    //                                ));
+                    //                            }
+                    //                        }
+                    //                    }
+                    //
+                    //                    for i in 1..face_vertices_sorted.len() - 1 {
+                    //                        tetrahedrons.push(Tetrahedron::new(
+                    //                            [
+                    //                                face_vertices_sorted[0],
+                    //                                face_vertices_sorted[i + 0],
+                    //                                face_vertices_sorted[i + 1],
+                    //                                apex,
+                    //                            ],
+                    //                            utilities::from_hex(0xffffff, 1.0),
+                    //                            cell_index as u32,
+                    //                            cell_centroid,
+                    //                        ));
+                    //                    }
                 }
             }
 
