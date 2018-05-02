@@ -1,5 +1,7 @@
 use cgmath::{self, Vector4};
 
+use hyperplane::Hyperplane;
+
 /// A struct that describes a class of polychoron.
 pub struct Definition {
     pub components_per_vertex: u32,
@@ -34,6 +36,7 @@ pub struct Definition {
 /// ...
 ///
 /// ```
+#[derive(Copy, Clone)]
 pub enum Polychoron {
     Cell8,  // TODO
     Cell16, // TODO
@@ -1039,5 +1042,205 @@ impl Polychoron {
             ],
             _ => vec![],
         }
+    }
+
+    /// The H-representation of a regular polchoron is the list of hyperplanes whose
+    /// intersection produces the desired shape. Together, these hyperplanes form
+    /// a "boundary" for the shape. We use this representation in order to determine
+    /// which faces belong to each of the cells that form the polychoron's surface.
+    ///
+    /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
+    pub fn get_h_representation(&self) -> Vec<Hyperplane> {
+        // The inner "radius" of this particular 600-cell is: 2φ^3, or ~8.47213.
+        let golden_ratio: f32 = (1.0 + 5.0f32.sqrt()) / 2.0;
+        let displacement = -golden_ratio.powf(3.0) * 2.0;
+
+        match *self {
+            Polychoron::Cell8 => vec![
+                Hyperplane::new(Vector4::unit_x(), 1.0),
+                Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_y(), 1.0),
+                Hyperplane::new(Vector4::unit_y() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_z(), 1.0),
+                Hyperplane::new(Vector4::unit_z() * -1.0, 1.0),
+                Hyperplane::new(Vector4::unit_w(), 1.0),
+                Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
+            ],
+            Polychoron::Cell120 => vec![
+                Hyperplane::new(Vector4::new(3.23606, 0.0, 0.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-3.23606, 0.0, 0.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 3.23606, 0.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -3.23606, 0.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 0.0, 3.23606, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 0.0, -3.23606, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, 3.23606), displacement),
+                Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, -3.23606), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(2.61803, -1.61803, -1.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, -1.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 1.0, -2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.61803, -1.0, -2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, -1.0), displacement),
+                Hyperplane::new(Vector4::new(1.0, 2.61803, -1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, -2.61803, -1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, -1.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 1.0, -2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 0.0, -1.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, -1.0, -2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, -1.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 1.61803, -1.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, -1.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, -1.0, -0.0, -1.61803), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, -1.61803, -1.0, -0.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, -1.61803, 1.0, -0.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, -1.0, 0.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(-2.61803, 1.61803, 1.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, 1.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, -1.0, 2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, -0.0, -1.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 1.0, 2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, 1.0), displacement),
+                Hyperplane::new(Vector4::new(-1.0, -2.61803, 1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, -2.61803), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 2.61803, -1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(-1.0, 2.61803, 1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, -2.61803, -1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.0, -2.61803, 1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.0, 2.61803, 1.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, 1.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, -1.0, 2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, 2.61803), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 1.0, 2.61803, 0.0), displacement),
+                Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, 1.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, -1.61803, 1.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, 1.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, 1.61803), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 1.61803, -1.0, 0.0), displacement),
+                Hyperplane::new(Vector4::new(2.61803, 1.61803, 1.0, 0.0), displacement),
+                Hyperplane::new(
+                    Vector4::new(1.61803, 1.61803, 1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, 1.61803, 1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, -1.61803, 1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, 1.61803, -1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, 1.61803, 1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, -1.61803, 1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, 1.61803, -1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, 1.61803, 1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, -1.61803, -1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, -1.61803, 1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, 1.61803, -1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, -1.61803, -1.61803, 1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, -1.61803, 1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, 1.61803, -1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(1.61803, -1.61803, -1.61803, -1.61803),
+                    displacement,
+                ),
+                Hyperplane::new(
+                    Vector4::new(-1.61803, -1.61803, -1.61803, -1.61803),
+                    displacement,
+                ),
+            ],
+            _ => vec![],
+        }
+    }
+
+    pub fn get_v_representation(&self) -> Vec<Vector4<f32>> {
+        self.get_vertices()
     }
 }

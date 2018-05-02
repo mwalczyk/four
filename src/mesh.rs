@@ -21,6 +21,7 @@ pub struct Mesh {
     pub vertices: Vec<Vector4<f32>>,
     pub edges: Vec<u32>,
     pub faces: Vec<u32>,
+    pub polychoron: Polychoron,
     pub def: Definition,
     vao: u32,
     vbo: u32,
@@ -33,6 +34,7 @@ impl Mesh {
             vertices: polychoron.get_vertices(),
             edges: polychoron.get_edges(),
             faces: polychoron.get_faces(),
+            polychoron,
             def: polychoron.get_definition(),
             vao: 0,
             vbo: 0,
@@ -88,180 +90,13 @@ impl Mesh {
         vertices
     }
 
-    /// The H-representation of a convex polytope is the list of hyperplanes whose
-    /// intersection produces the desired shape. Together, these hyperplanes form
-    /// a "boundary" for the polytope. We use this representation in order to determine
-    /// which faces belong to each of the cells that form the polytope's surface.
-    ///
-    /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
-    pub fn get_h_representation(&self) -> Vec<Hyperplane> {
-        // The circumradius of the 120-cell is: 2√2, ~2.828
-
-        // The inner "radius" of this particular 120-cell is: -2 * φ^2
-        let golden_ratio: f32 = (1.0 + 5.0f32.sqrt()) / 2.0;
-        let displacement = -golden_ratio.powf(2.0) * 2.0;
-        let d2 = -8.47213;
-
-        let representation = vec![
-            Hyperplane::new(Vector4::new(2.0, 0.0, 0.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(-2.0, 0.0, 0.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, 2.0, 0.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, -2.0, 0.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, 0.0, 2.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, 0.0, -2.0, 0.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, 2.0), displacement),
-            Hyperplane::new(Vector4::new(0.0, 0.0, 0.0, -2.0), displacement),
-            Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(2.61803, -1.61803, -1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, -1.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, 1.0, -2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(1.61803, -1.0, -2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, -1.0), d2),
-            Hyperplane::new(Vector4::new(1.0, 2.61803, -1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, -1.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, -1.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, -2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, -2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, -2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, -2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, -1.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, -1.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, -2.61803, -1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, -1.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 1.0, -2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 0.0, -1.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.61803, -1.0, -2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, -1.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 1.61803, -1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, -1.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, -1.0, -0.0, -1.61803), d2),
-            Hyperplane::new(Vector4::new(-2.61803, -1.61803, -1.0, -0.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, -1.61803, 1.0, -0.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, -1.0, 0.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 0.0, -1.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 0.0, 1.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 1.0, 0.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(-2.61803, 1.61803, 1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, -2.61803, 0.0, 1.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, -1.0, 2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, -0.0, -1.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 0.0, 1.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 1.0, 2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.61803, 2.61803, 0.0, 1.0), d2),
-            Hyperplane::new(Vector4::new(-1.0, -2.61803, 1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.0, -1.61803, 0.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 0.0, -2.61803, 1.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 0.0, 2.61803, 1.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 1.61803, 0.0, -2.61803), d2),
-            Hyperplane::new(Vector4::new(-1.0, 2.61803, -1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(-1.0, 2.61803, 1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(0.0, -2.61803, -1.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -2.61803, 1.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.61803, -2.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.61803, 2.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.0, -1.61803, 2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, -1.0, 1.61803, 2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.0, -1.61803, 2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.0, 1.61803, 2.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.61803, -2.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, 1.61803, 2.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(0.0, 2.61803, -1.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(0.0, 2.61803, 1.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, -2.61803, -1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.0, -2.61803, 1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.0, -1.61803, 0.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 0.0, -2.61803, 1.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 0.0, 2.61803, 1.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 1.61803, 0.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(1.0, 2.61803, 1.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, -2.61803, 0.0, 1.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, -1.0, 2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, 0.0, -1.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(1.61803, 0.0, 1.0, 2.61803), d2),
-            Hyperplane::new(Vector4::new(1.61803, 1.0, 2.61803, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.61803, 2.61803, 0.0, 1.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, -1.61803, 1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, -1.0, 0.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(2.61803, 0.0, -1.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, 0.0, 1.61803, 1.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, 1.0, 0.0, 1.61803), d2),
-            Hyperplane::new(Vector4::new(2.61803, 1.61803, -1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(2.61803, 1.61803, 1.0, 0.0), d2),
-            Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, 1.0, 1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, -1.0, 1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, 1.0, -1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, 1.0, 1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, -1.0, 1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, 1.0, -1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, 1.0, 1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, -1.0, -1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, -1.0, 1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, 1.0, -1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, -1.0, -1.0, 1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, -1.0, 1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, 1.0, -1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(1.0, -1.0, -1.0, -1.0), displacement),
-            Hyperplane::new(Vector4::new(-1.0, -1.0, -1.0, -1.0), displacement),
-        ];
-
-        println!(
-            "Number of hyperplanes in 120-cell's H-representation: {}",
-            representation.len()
-        );
-
-        let hypercube = false;
-        if hypercube {
-            return vec![
-                Hyperplane::new(Vector4::unit_x(), 1.0),
-                Hyperplane::new(Vector4::unit_x() * -1.0, 1.0),
-                Hyperplane::new(Vector4::unit_y(), 1.0),
-                Hyperplane::new(Vector4::unit_y() * -1.0, 1.0),
-                Hyperplane::new(Vector4::unit_z(), 1.0),
-                Hyperplane::new(Vector4::unit_z() * -1.0, 1.0),
-                Hyperplane::new(Vector4::unit_w(), 1.0),
-                Hyperplane::new(Vector4::unit_w() * -1.0, 1.0),
-            ];
-        } else {
-            return representation;
-        }
-    }
-
-    /// The V-representation of a convex polytope is simply the list of vertices,
-    /// which form the convex hull of the volume spanned by the polytope.
-    ///
-    /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Vertex_representation_(convex_hull)`
-    pub fn get_v_representation(&self) -> &Vec<Vector4<f32>> {
-        &self.vertices
-    }
-
     /// Given the H-representation of this polytope, return a list of lists, where
     /// each sub-list contains the indices of all faces that are inside of the `i`th
     /// hyperplane.
     pub fn gather_cells(&self) -> Vec<(Hyperplane, Vec<u32>)> {
         let mut solids = Vec::new();
 
-        for hyperplane in self.get_h_representation().iter() {
+        for hyperplane in self.polychoron.get_h_representation().iter() {
             let mut faces_in_hyperplane = Vec::new();
 
             // Iterate over all of the faces of this polytope. For the 120-cell, for example,
