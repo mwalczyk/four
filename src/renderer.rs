@@ -89,7 +89,9 @@ impl Renderer {
             );
 
             gl::BindVertexArray(self.vao);
-            gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
+            // gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
+
+            gl::DrawArrays(gl::POINTS, 0, 4);
         }
     }
 

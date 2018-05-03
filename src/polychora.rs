@@ -38,7 +38,7 @@ pub struct Definition {
 /// ```
 #[derive(Copy, Clone)]
 pub enum Polychoron {
-    Cell8,  // TODO
+    Cell8,
     Cell16, // TODO
     Cell24, // TODO
     Cell120,
@@ -48,6 +48,14 @@ pub enum Polychoron {
 impl Polychoron {
     pub fn get_definition(&self) -> Definition {
         match *self {
+            Polychoron::Cell8 => Definition {
+                components_per_vertex: 4,
+                vertices_per_edge: 2,
+                vertices_per_face: 4,
+                vertices_per_cell: 8,
+                faces_per_cell: 6,
+                cells: 8,
+            },
             Polychoron::Cell120 => Definition {
                 components_per_vertex: 4,
                 vertices_per_edge: 2,
@@ -69,6 +77,24 @@ impl Polychoron {
 
     pub fn get_vertices(&self) -> Vec<Vector4<f32>> {
         match *self {
+            Polychoron::Cell8 => vec![
+                Vector4::new(-1.0, -1.0, -1.0, -1.0),
+                Vector4::new(-1.0, -1.0, -1.0, 1.0),
+                Vector4::new(-1.0, -1.0, 1.0, -1.0),
+                Vector4::new(-1.0, -1.0, 1.0, 1.0),
+                Vector4::new(-1.0, 1.0, -1.0, -1.0),
+                Vector4::new(-1.0, 1.0, -1.0, 1.0),
+                Vector4::new(-1.0, 1.0, 1.0, -1.0),
+                Vector4::new(-1.0, 1.0, 1.0, 1.0),
+                Vector4::new(1.0, -1.0, -1.0, -1.0),
+                Vector4::new(1.0, -1.0, -1.0, 1.0),
+                Vector4::new(1.0, -1.0, 1.0, -1.0),
+                Vector4::new(1.0, -1.0, 1.0, 1.0),
+                Vector4::new(1.0, 1.0, -1.0, -1.0),
+                Vector4::new(1.0, 1.0, -1.0, 1.0),
+                Vector4::new(1.0, 1.0, 1.0, -1.0),
+                Vector4::new(1.0, 1.0, 1.0, 1.0),
+            ],
             Polychoron::Cell120 => vec![
                 Vector4::new(2.0, 2.0, 0.0, 0.0),
                 Vector4::new(2.0, -2.0, 0.0, 0.0),
@@ -677,6 +703,11 @@ impl Polychoron {
 
     pub fn get_edges(&self) -> Vec<u32> {
         match *self {
+            Polychoron::Cell8 => vec![
+                0, 2, 2, 3, 3, 1, 1, 0, 0, 4, 4, 5, 5, 1, 4, 6, 6, 2, 0, 8, 8, 9, 9, 1, 8, 10, 10,
+                2, 8, 12, 12, 4, 6, 7, 7, 5, 7, 3, 10, 11, 11, 3, 9, 11, 9, 13, 13, 5, 12, 13, 12,
+                14, 14, 10, 14, 6, 14, 15, 15, 13, 15, 11, 15, 7,
+            ],
             Polychoron::Cell120 => vec![
                 305, 401, 25, 585, 401, 585, 25, 153, 153, 305, 307, 403, 27, 587, 403, 587, 27,
                 155, 155, 307, 17, 401, 17, 403, 305, 307, 137, 425, 139, 427, 137, 139, 321, 427,
@@ -826,6 +857,12 @@ impl Polychoron {
 
     pub fn get_faces(&self) -> Vec<u32> {
         match *self {
+            Polychoron::Cell8 => vec![
+                0, 2, 3, 1, 0, 4, 5, 1, 0, 4, 6, 2, 0, 8, 9, 1, 0, 8, 10, 2, 0, 8, 12, 4, 4, 6, 7,
+                5, 2, 6, 7, 3, 1, 5, 7, 3, 2, 10, 11, 3, 1, 9, 11, 3, 1, 9, 13, 5, 8, 10, 11, 9, 8,
+                12, 13, 9, 8, 12, 14, 10, 4, 12, 13, 5, 4, 12, 14, 6, 2, 10, 14, 6, 12, 14, 15, 13,
+                10, 14, 15, 11, 9, 13, 15, 11, 6, 14, 15, 7, 5, 13, 15, 7, 3, 11, 15, 7,
+            ],
             Polychoron::Cell120 => vec![
                 25, 153, 305, 401, 585, 27, 155, 307, 403, 587, 17, 305, 307, 401, 403, 137, 139,
                 321, 425, 427, 25, 137, 425, 553, 585, 27, 139, 427, 555, 587, 17, 385, 401, 553,
@@ -1044,7 +1081,7 @@ impl Polychoron {
         }
     }
 
-    /// The H-representation of a regular polchoron is the list of hyperplanes whose
+    /// The H-representation of a regular polychoron is the list of hyperplanes whose
     /// intersection produces the desired shape. Together, these hyperplanes form
     /// a "boundary" for the shape. We use this representation in order to determine
     /// which faces belong to each of the cells that form the polychoron's surface.
@@ -1240,7 +1277,21 @@ impl Polychoron {
         }
     }
 
+    /// The V-representation of a polychoron is simple its list of vertices.
     pub fn get_v_representation(&self) -> Vec<Vector4<f32>> {
         self.get_vertices()
+    }
+
+    /// Returns the dual of the regular polychoron, which is itself another regular
+    /// polychoron with a vertex at the center of each cell of the original polychoron.
+    /// A polychoron is self-dual if it is its own dual (such as the 24-cell).
+    pub fn get_dual(&self) -> Polychoron {
+        match *self {
+            Polychoron::Cell8 => Polychoron::Cell16,
+            Polychoron::Cell16 => Polychoron::Cell8,
+            Polychoron::Cell24 => Polychoron::Cell24,
+            Polychoron::Cell120 => Polychoron::Cell600,
+            Polychoron::Cell600 => Polychoron::Cell120,
+        }
     }
 }

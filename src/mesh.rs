@@ -168,7 +168,7 @@ impl Mesh {
 
             let binding = 0;
             gl::EnableVertexArrayAttrib(self.vao, 0);
-            gl::VertexArrayAttribFormat(self.vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribFormat(self.vao, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0);
             gl::VertexArrayAttribBinding(self.vao, 0, binding);
             gl::VertexArrayElementBuffer(self.vao, self.ebo);
 
