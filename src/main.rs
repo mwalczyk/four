@@ -289,6 +289,7 @@ fn main() {
         if show_tetrahedrons {
             program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
             for tetra in tetrahedrons.iter() {
+                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
                 renderer.draw_tetrahedron(&tetra);
             }
         }
