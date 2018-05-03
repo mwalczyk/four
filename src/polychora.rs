@@ -2,7 +2,9 @@ use cgmath::{self, Vector4};
 
 use hyperplane::Hyperplane;
 
-/// A struct that describes a class of polychoron.
+/// A struct that describes a regular polychoron (4-polytope).
+///
+/// See: `https://en.wikipedia.org/wiki/4-polytope`
 pub struct Definition {
     pub components_per_vertex: u32,
     pub vertices_per_edge: u32,
