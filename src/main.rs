@@ -80,11 +80,6 @@ fn main() {
 
     // Load the 120-cell and compute its tetrahedral decomposition.
     let mut mesh = Mesh::new(Polychoron::Cell120);
-    let mut tetrahedrons = mesh.tetrahedralize();
-    println!(
-        "Mesh tetrahedralization resulted in {} tetrahedrons.",
-        tetrahedrons.len()
-    );
 
     // Set up the 4D camera - we don't really use this anymore, since we are performing an
     // orthographic projection to go from 4D -> 3D (see the shader).
@@ -107,10 +102,10 @@ fn main() {
         cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
 
     // Load the shader program that we will use for rendering.
-    let program = utilities::load_shaders(
-        Path::new("shaders/shader.vert"),
-        Path::new("shaders/shader.frag"),
-    );
+    let vs = utilities::load_file_as_string(Path::new("shaders/shader.vert"));
+    let fs = utilities::load_file_as_string(Path::new("shaders/shader.frag"));
+    let program = Program::two_stage(vs, fs).unwrap();
+
     program.bind();
 
     let renderer = Renderer::new();
@@ -253,7 +248,7 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
-        for tetra in tetrahedrons.iter_mut() {
+        for tetra in mesh.tetrahedrons.iter_mut() {
             if tetra.cell < reveal_cells {
                 program.uniform_4f("u_draw_color", &tetra.color);
                 program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
@@ -288,7 +283,7 @@ fn main() {
         // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh.
         if show_tetrahedrons {
             program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
-            for tetra in tetrahedrons.iter() {
+            for tetra in mesh.tetrahedrons.iter() {
                 program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
                 renderer.draw_tetrahedron(&tetra);
             }

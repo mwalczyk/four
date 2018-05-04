@@ -1,4 +1,5 @@
-#version 430
+#version 450
+#extension GL_ARB_shading_language_420pack : enable
 
 uniform vec4 u_draw_color;
 

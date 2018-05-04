@@ -12,6 +12,7 @@ use gl::types::*;
 
 use hyperplane::Hyperplane;
 use polychora::{Definition, Polychoron};
+use program::Program;
 use rotations::{self, Plane};
 use tetrahedron::Tetrahedron;
 use utilities;
@@ -23,24 +24,33 @@ pub struct Mesh {
     pub faces: Vec<u32>,
     pub polychoron: Polychoron,
     pub def: Definition,
+    pub tetrahedrons: Vec<Tetrahedron>,
+    pub slice_program: Program,
     vao: u32,
     vbo: u32,
     ebo: u32,
+    ssbo: u32,
 }
 
 impl Mesh {
     pub fn new(polychoron: Polychoron) -> Mesh {
+        let cs = utilities::load_file_as_string(Path::new("shaders/compute_slice.glsl"));
+
         let mut mesh = Mesh {
             vertices: polychoron.get_vertices(),
             edges: polychoron.get_edges(),
             faces: polychoron.get_faces(),
             polychoron,
             def: polychoron.get_definition(),
+            tetrahedrons: Vec::new(),
+            slice_program: Program::single_stage(cs).unwrap(),
             vao: 0,
             vbo: 0,
             ebo: 0,
+            ssbo: 0,
         };
 
+        mesh.tetrahedralize();
         mesh.init_render_objects();
         mesh
     }
@@ -180,11 +190,28 @@ impl Mesh {
                 offset,
                 (mem::size_of::<Vector4<f32>>() as usize) as i32,
             );
+
+            // Initialize the SSBO that will hold this mesh's tetrahedra.
+            let mut all_tetrahedra_points = Vec::new();
+            for tetra in self.tetrahedrons.iter() {
+                all_tetrahedra_points.extend_from_slice(&tetra.vertices);
+            }
+            println!("Size of tetrahedra data store: {}", all_tetrahedra_points.len());
+            let ssbo_size = mem::size_of::<Vector4<f32>>() * 4usize * 3240usize;
+            gl::CreateBuffers(1, &mut self.ssbo);
+            gl::NamedBufferData(
+                self.ssbo,
+                ssbo_size as isize,
+                all_tetrahedra_points.as_ptr() as *const GLvoid,
+                gl::STATIC_DRAW,
+            );
+
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.ssbo);
         }
     }
 
     /// Performs of a tetrahedral decomposition of the polytope.
-    pub fn tetrahedralize(&mut self) -> Vec<Tetrahedron> {
+    pub fn tetrahedralize(&mut self) {
         let mut tetrahedrons = Vec::new();
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
@@ -254,6 +281,11 @@ impl Mesh {
             );
         }
 
-        tetrahedrons
+        println!(
+            "Mesh tetrahedralization resulted in {} tetrahedrons.",
+            tetrahedrons.len()
+        );
+
+        self.tetrahedrons = tetrahedrons;
     }
 }

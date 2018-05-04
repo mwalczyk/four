@@ -96,20 +96,13 @@ where
     values.iter().fold(*init, |acc, &item| acc + item) / (values.len() as f32)
 }
 
-/// Generates an OpenGL shader program based on the source files specified by
-/// `vs_path` (vertex shader) and `fs_path` (fragment shader).
-pub fn load_shaders(vs_path: &Path, fs_path: &Path) -> Program {
-    let mut vs = File::open(vs_path).expect("File not found");
-    let mut fs = File::open(fs_path).expect("File not found");
-
-    let mut vs_src = String::new();
-    let mut fs_src = String::new();
-    vs.read_to_string(&mut vs_src)
-        .expect("Something went wrong reading the file");
-    fs.read_to_string(&mut fs_src)
+pub fn load_file_as_string(path: &Path) -> String {
+    let mut file = File::open(path).expect("File not found");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
         .expect("Something went wrong reading the file");
 
-    Program::new(vs_src, fs_src).unwrap()
+    contents
 }
 
 /// Saves the current frame to disk at `path` with dimensions `width`x`height`.

@@ -98,8 +98,8 @@ impl Renderer {
     pub fn draw_tetrahedron_slice(&self, slice_vertices: &Vec<Vector4<f32>>) {
         unsafe {
             const COMPONENTS_PER_VERTEX: usize = 4;
-            const NUMBER_OF_INDICES: usize = 6;
-            let slice_indices = Tetrahedron::get_quad_indices();
+            const NUMBER_OF_INDICES: usize = 4;
+            let slice_indices = [0u32, 1u32, 2u32, 3u32];// Tetrahedron::get_quad_indices();
 
             // Each tetrahedron has 4 vertices, each of which has 4 components.
             let vbo_upload_size = (COMPONENTS_PER_VERTEX * slice_vertices.len()
@@ -130,7 +130,7 @@ impl Renderer {
                 _ => 0,
             };
             gl::DrawElements(
-                gl::TRIANGLES,
+                gl::TRIANGLE_STRIP,
                 number_of_elements as i32,
                 gl::UNSIGNED_INT,
                 ptr::null(),

@@ -15,8 +15,6 @@ pub struct UniformEntry {
 
 pub struct Program {
     pub id: GLuint,
-    vs_src: String,
-    fs_src: String,
 }
 
 impl Program {
@@ -61,7 +59,44 @@ impl Program {
         Ok(shader)
     }
 
-    fn link_program(vs: GLuint, fs: GLuint) -> Result<GLuint, String> {
+    fn link_single_stage_program(cs: GLuint) -> Result<GLuint, String> {
+        unsafe {
+            let program = gl::CreateProgram();
+            gl::AttachShader(program, cs);
+            gl::LinkProgram(program);
+
+            // Get the link status.
+            let mut status = gl::FALSE as GLint;
+            gl::GetProgramiv(program, gl::LINK_STATUS, &mut status);
+
+            // If there was an error, return the error string.
+            if status != (gl::TRUE as GLint) {
+                let mut len: GLint = 0;
+                gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut len);
+                let mut buffer = Vec::with_capacity(len as usize);
+
+                // Subtract 1 to skip the trailing null character.
+                buffer.set_len((len as usize) - 1);
+
+                gl::GetProgramInfoLog(
+                    program,
+                    len,
+                    ptr::null_mut(),
+                    buffer.as_mut_ptr() as *mut GLchar,
+                );
+                gl::DeleteShader(cs);
+
+                let error = String::from_utf8(buffer)
+                    .ok()
+                    .expect("ProgramInfoLog not valid utf8");
+                return Err(error);
+            }
+
+            Ok(program)
+        }
+    }
+
+    fn link_two_stage_program(vs: GLuint, fs: GLuint) -> Result<GLuint, String> {
         unsafe {
             let program = gl::CreateProgram();
             gl::AttachShader(program, vs);
@@ -102,7 +137,7 @@ impl Program {
 
     fn perform_reflection(src: &str) {}
 
-    pub fn new(vs_src: String, fs_src: String) -> Option<Program> {
+    pub fn two_stage(vs_src: String, fs_src: String) -> Option<Program> {
         // Make sure that compiling each of the shaders was successful.
         let compile_vs_res = Program::compile_shader(&vs_src, gl::VERTEX_SHADER);
         let compile_fs_res = Program::compile_shader(&fs_src, gl::FRAGMENT_SHADER);
@@ -110,9 +145,9 @@ impl Program {
         match (compile_vs_res, compile_fs_res) {
             (Ok(vs_id), Ok(fs_id)) => {
                 // Make sure that linking the shader program was successful.
-                if let Ok(id) = Program::link_program(vs_id, fs_id) {
+                if let Ok(id) = Program::link_two_stage_program(vs_id, fs_id) {
                     // If everything went ok, return the shader program.
-                    return Some(Program { id, vs_src, fs_src });
+                    return Some(Program { id });
                 } else {
                     return None;
                 }
@@ -131,6 +166,24 @@ impl Program {
             // The fragment shader resulted in an error.
             (Ok(_), Err(fs_err)) => {
                 println!("{}", fs_err);
+                return None;
+            }
+        }
+    }
+
+    pub fn single_stage(cs_src: String) -> Option<Program> {
+        let compile_cs_res = Program::compile_shader(&cs_src, gl::VERTEX_SHADER);
+
+        match compile_cs_res {
+            Ok(cs_id) => {
+                if let Ok(id) = Program::link_single_stage_program(cs_id) {
+                    return Some(Program { id });
+                } else {
+                    return None;
+                }
+            },
+            Err(cs_err) => {
+                println!("{}", cs_err);
                 return None;
             }
         }

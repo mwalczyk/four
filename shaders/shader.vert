@@ -1,4 +1,5 @@
-#version 430
+#version 450
+#extension GL_ARB_shading_language_420pack : enable
 
 #define pi 3.1415926535897932384626433832795
 
