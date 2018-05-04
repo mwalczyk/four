@@ -167,7 +167,7 @@ impl Mesh {
 
             gl::DrawElements(
                 gl::TRIANGLE_STRIP,
-                (4 * 3240) as i32,
+                (6 * 3240) as i32,
                 gl::UNSIGNED_INT,
                 ptr::null(),
             );

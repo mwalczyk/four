@@ -34,11 +34,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="tetrahedron.rs" pinned="false" current-in-tab="true">
+          <file leaf-file-name="tetrahedron.rs" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/tetrahedron.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="510">
-                  <caret line="76" lean-forward="true" selection-start-line="76" selection-end-line="86" selection-end-column="5" />
+                <state relative-caret-position="285">
+                  <caret line="61" lean-forward="true" selection-start-line="61" selection-end-line="61" />
                   <folding>
                     <element signature="e#2518#2519#0" expanded="true" />
                     <element signature="e#2553#2554#0" expanded="true" />
@@ -65,11 +65,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="mesh.rs" pinned="false" current-in-tab="false">
+          <file leaf-file-name="mesh.rs" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/mesh.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="115">
-                  <caret line="39" column="8" lean-forward="true" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="89" />
+                <state relative-caret-position="130">
+                  <caret line="169" column="18" selection-start-line="169" selection-start-column="18" selection-end-line="169" selection-end-column="18" />
                   <folding>
                     <element signature="e#1720#1721#0" expanded="true" />
                     <element signature="e#1754#1755#0" expanded="true" />
@@ -188,12 +188,12 @@
         <option value="$PROJECT_DIR$/src/program.rs" />
         <option value="$PROJECT_DIR$/src/polychora.rs" />
         <option value="$PROJECT_DIR$/src/utilities.rs" />
-        <option value="$PROJECT_DIR$/src/mesh.rs" />
         <option value="$PROJECT_DIR$/shaders/shader.frag" />
         <option value="$PROJECT_DIR$/shaders/compute_slice.glsl" />
         <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/tetrahedron.rs" />
+        <option value="$PROJECT_DIR$/src/mesh.rs" />
       </list>
     </option>
   </component>
@@ -360,7 +360,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="55" y="25" width="1865" height="1055" extended-state="6" />
+    <frame x="55" y="25" width="1865" height="1055" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -596,20 +596,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/mesh.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="39" column="8" lean-forward="true" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="89" />
-          <folding>
-            <element signature="e#1720#1721#0" expanded="true" />
-            <element signature="e#1754#1755#0" expanded="true" />
-            <element signature="e#2213#2214#0" expanded="true" />
-            <element signature="e#2253#2254#0" expanded="true" />
-            <element signature="e#8042#11027#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="175">
@@ -626,11 +612,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/tetrahedron.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="76" lean-forward="true" selection-start-line="76" selection-end-line="86" selection-end-column="5" />
+        <state relative-caret-position="285">
+          <caret line="61" lean-forward="true" selection-start-line="61" selection-end-line="61" />
           <folding>
             <element signature="e#2518#2519#0" expanded="true" />
             <element signature="e#2553#2554#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/mesh.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="130">
+          <caret line="169" column="18" selection-start-line="169" selection-start-column="18" selection-end-line="169" selection-end-column="18" />
+          <folding>
+            <element signature="e#1720#1721#0" expanded="true" />
+            <element signature="e#1754#1755#0" expanded="true" />
+            <element signature="e#2213#2214#0" expanded="true" />
+            <element signature="e#2253#2254#0" expanded="true" />
+            <element signature="e#8042#11027#0" />
           </folding>
         </state>
       </provider>
