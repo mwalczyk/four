@@ -6,7 +6,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, Array, InnerSpace, Vector3, Vector4, Zero};
+use cgmath::{self, Matrix4, Vector3, Vector4, Array, InnerSpace, Zero};
 use gl;
 use gl::types::*;
 
@@ -29,7 +29,10 @@ pub struct Mesh {
     vao: u32,
     vbo: u32,
     ebo: u32,
-    ssbo: u32,
+    ssbo_tetrahedra: u32,
+    vbo_slice_colors: u32,
+    ssbo_slice_vertices: u32,
+    ssbo_slice_indices: u32,
 }
 
 impl Mesh {
@@ -47,7 +50,10 @@ impl Mesh {
             vao: 0,
             vbo: 0,
             ebo: 0,
-            ssbo: 0,
+            ssbo_tetrahedra: 0,
+            vbo_slice_colors: 0,
+            ssbo_slice_vertices: 0,
+            ssbo_slice_indices: 0,
         };
 
         mesh.tetrahedralize();
@@ -145,9 +151,23 @@ impl Mesh {
         unsafe {
             gl::BindVertexArray(self.vao);
 
+            gl::VertexArrayElementBuffer(self.vao, self.ssbo_slice_indices);
+
+            let binding = 0;
+            let offset = 0;
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                binding,
+                self.ssbo_slice_vertices,
+                offset,
+                (mem::size_of::<Vector4<f32>>() as usize) as i32,
+            );
+
+            gl::VertexArrayVertexBuffer(self.vao, 1, self.vbo_slice_colors, 0, (mem::size_of::<Vector4<f32>>() as usize) as i32);
+
             gl::DrawElements(
-                gl::LINES,
-                self.edges.len() as i32,
+                gl::TRIANGLE_STRIP,
+                (4 * 3240) as i32,
                 gl::UNSIGNED_INT,
                 ptr::null(),
             );
@@ -158,56 +178,103 @@ impl Mesh {
         unsafe {
             gl::CreateVertexArrays(1, &mut self.vao);
 
-            let mut size = (self.vertices.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
-            gl::CreateBuffers(1, &mut self.vbo);
+            let binding = 0;
+            gl::EnableVertexArrayAttrib(self.vao, 0);
+            gl::VertexArrayAttribFormat(self.vao, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0); // positions
+            gl::VertexArrayAttribBinding(self.vao, 0, binding);
+
+            gl::EnableVertexArrayAttrib(self.vao, 1);
+            gl::VertexArrayAttribFormat(self.vao, 1, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0); // colors
+            gl::VertexArrayAttribBinding(self.vao, 1, binding + 1);
+
+            gl::VertexArrayVertexBuffer(self.vao, 1, self.vbo_slice_colors, 0, (mem::size_of::<Vector4<f32>>() as usize) as i32);
+
+            gl::Enable(gl::PRIMITIVE_RESTART);
+            gl::PrimitiveRestartIndex(0xFFFF);
+            println!("Enabled primitive restart with index: {}", 0xFFFF);
+
+            // Initialize the SSBO that will hold this mesh's tetrahedra.
+            let mut vertices = Vec::new();
+            let mut colors = Vec::new();
+            for tetra in self.tetrahedrons.iter() {
+                vertices.extend_from_slice(&tetra.vertices);
+
+                // TODO: for now, we have to do this 4 times. Probably something to do with vertex attributes.
+                colors.push(tetra.cell_centroid);
+                colors.push(tetra.cell_centroid);
+                colors.push(tetra.cell_centroid);
+                colors.push(tetra.cell_centroid);
+            }
+            let total_tetrahedra = self.def.cells * (self.def.faces_per_cell - 3) * (self.def.vertices_per_face - 2);
+            const VERTICES_PER_TETRAHEDRON: usize = 4;
+
+            let vertices_size = mem::size_of::<Vector4<f32>>() * 4 * total_tetrahedra as usize;
+            let colors_size = mem::size_of::<Vector4<f32>>() * 4 * total_tetrahedra as usize;
+            println!("Size of data store for {} : {}", total_tetrahedra, vertices.len());
+
+            // The SSBO that will be bound at index 0 and read from.
+            gl::CreateBuffers(1, &mut self.ssbo_tetrahedra);
             gl::NamedBufferData(
-                self.vbo,
-                size,
-                self.vertices.as_ptr() as *const GLvoid,
+                self.ssbo_tetrahedra,
+                vertices_size as isize,
+                vertices.as_ptr() as *const GLvoid,
                 gl::DYNAMIC_DRAW,
             );
 
-            size = (self.edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
-            gl::CreateBuffers(1, &mut self.ebo);
+            // The VBO that will be associated with the vertex attribute at index 1, which does not
+            // change throughout the lifetime of the program (thus, we use the flag `STATIC_DRAW` below).
+            gl::CreateBuffers(1, &mut self.vbo_slice_colors);
             gl::NamedBufferData(
-                self.ebo,
-                size,
-                self.edges.as_ptr() as *const GLvoid,
+                self.vbo_slice_colors,
+                colors_size as isize,
+                colors.as_ptr() as *const GLvoid,
                 gl::STATIC_DRAW,
             );
 
-            let binding = 0;
-            gl::EnableVertexArrayAttrib(self.vao, 0);
-            gl::VertexArrayAttribFormat(self.vao, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0);
-            gl::VertexArrayAttribBinding(self.vao, 0, binding);
-            gl::VertexArrayElementBuffer(self.vao, self.ebo);
+            // Items that will be written to on the GPU (more or less every frame).
+            // ...
 
-            let offset = 0;
-            gl::VertexArrayVertexBuffer(
-                self.vao,
-                binding,
-                self.vbo,
-                offset,
-                (mem::size_of::<Vector4<f32>>() as usize) as i32,
-            );
-
-            // Initialize the SSBO that will hold this mesh's tetrahedra.
-            let mut all_tetrahedra_points = Vec::new();
-            for tetra in self.tetrahedrons.iter() {
-                all_tetrahedra_points.extend_from_slice(&tetra.vertices);
-            }
-            println!("Size of tetrahedra data store: {}", all_tetrahedra_points.len());
-            let ssbo_size = mem::size_of::<Vector4<f32>>() * 4usize * 3240usize;
-            gl::CreateBuffers(1, &mut self.ssbo);
+            // The SSBO of slice vertices that will be written to whenever the slicing hyperplane moves.
+            gl::CreateBuffers(1, &mut self.ssbo_slice_vertices);
             gl::NamedBufferData(
-                self.ssbo,
-                ssbo_size as isize,
-                all_tetrahedra_points.as_ptr() as *const GLvoid,
-                gl::STATIC_DRAW,
+                self.ssbo_slice_vertices,
+                vertices_size as isize,
+                ptr::null() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
             );
 
-            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.ssbo);
+            // The SSBO of slice triangle indices that will be written to whenever the slicing hyperplane moves.
+            let indices_size = mem::size_of::<u32>() * 4usize * total_tetrahedra as usize;
+            gl::CreateBuffers(1, &mut self.ssbo_slice_indices);
+            gl::NamedBufferData(
+                self.ssbo_slice_indices,
+                indices_size as isize,
+                ptr::null() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            // Set up SSBO bind points.
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.ssbo_tetrahedra);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.ssbo_slice_vertices);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.ssbo_slice_indices);
         }
+    }
+
+    pub fn slice(&mut self, rot: &Matrix4<f32>, hyperplane: &Hyperplane) {
+        self.slice_program.bind();
+        self.slice_program.uniform_4f("u_hyperplane_normal", &hyperplane.normal);
+        self.slice_program.uniform_1f("u_hyperplane_displacement", hyperplane.displacement);
+        self.slice_program.uniform_matrix_4f("u_rotation", rot);
+
+        unsafe {
+
+            // TODO: find the optimal value to launch here.
+            gl::DispatchCompute(3240, 1, 1);
+            gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT);
+
+        }
+
+        self.slice_program.unbind();
     }
 
     /// Performs of a tetrahedral decomposition of the polytope.

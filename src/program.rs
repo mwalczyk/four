@@ -172,7 +172,7 @@ impl Program {
     }
 
     pub fn single_stage(cs_src: String) -> Option<Program> {
-        let compile_cs_res = Program::compile_shader(&cs_src, gl::VERTEX_SHADER);
+        let compile_cs_res = Program::compile_shader(&cs_src, gl::COMPUTE_SHADER);
 
         match compile_cs_res {
             Ok(cs_id) => {

@@ -101,11 +101,13 @@ fn main() {
     let three_projection =
         cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
 
+
+    mesh.slice(&four_rotation, &hyperplane);
+
     // Load the shader program that we will use for rendering.
     let vs = utilities::load_file_as_string(Path::new("shaders/shader.vert"));
     let fs = utilities::load_file_as_string(Path::new("shaders/shader.frag"));
     let program = Program::two_stage(vs, fs).unwrap();
-
     program.bind();
 
     let renderer = Renderer::new();
@@ -248,26 +250,29 @@ fn main() {
         program.uniform_matrix_4f("u_three_projection", &three_projection);
         clear();
 
-        for tetra in mesh.tetrahedrons.iter_mut() {
-            if tetra.cell < reveal_cells {
-                program.uniform_4f("u_draw_color", &tetra.color);
-                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
-
-                // First, set this tetrahedron's transform matrix
-                tetra.set_transform(&four_rotation);
-
-                // Then, render the slice
-                renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
-            }
-        }
-
-        // Draw the full polytope - for now, we leave this disabled.
-        let draw_polytope = false;
-        if draw_polytope {
-            program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
-            mesh.draw();
-        }
-
+        mesh.slice(&four_rotation, &hyperplane);
+        program.bind();
+        mesh.draw();
+//        for tetra in mesh.tetrahedrons.iter_mut() {
+//            if tetra.cell < reveal_cells {
+//                program.uniform_4f("u_draw_color", &tetra.color);
+//                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
+//
+//                // First, set this tetrahedron's transform matrix
+//                tetra.set_transform(&four_rotation);
+//
+//                // Then, render the slice
+//                renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
+//            }
+//        }
+//
+//        // Draw the full polytope - for now, we leave this disabled.
+//        let draw_polytope = false;
+//        if draw_polytope {
+//            program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
+//            mesh.draw();
+//        }
+//
         // Pressing the right mouse button and moving left <-> right will translate the
         // slicing hyperplane away from the origin.
         if interaction.rmouse_pressed {
@@ -279,15 +284,15 @@ fn main() {
                 hyperplane.displacement += constants::EPSILON;
             }
         }
-
-        // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh.
-        if show_tetrahedrons {
-            program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
-            for tetra in mesh.tetrahedrons.iter() {
-                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
-                renderer.draw_tetrahedron(&tetra);
-            }
-        }
+//
+//        // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh.
+//        if show_tetrahedrons {
+//            program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
+//            for tetra in mesh.tetrahedrons.iter() {
+//                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
+//                renderer.draw_tetrahedron(&tetra);
+//            }
+//        }
 
         gl_window.swap_buffers().unwrap();
     }

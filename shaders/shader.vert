@@ -1,4 +1,4 @@
-#version 450
+#version 430
 #extension GL_ARB_shading_language_420pack : enable
 
 #define pi 3.1415926535897932384626433832795
@@ -19,6 +19,7 @@ uniform mat4 u_three_projection;
 uniform vec4 u_cell_centroid;
 
 layout(location = 0) in vec4 position;
+layout(location = 1) in vec4 color;
 
 out VS_OUT 
 {
@@ -50,7 +51,7 @@ void main()
     vec4 projected = vec4(position.xyz, 1.0);
 
     // create a color based on the centroid of this cell in 4D
-    vec3 cell = u_cell_centroid.xyz;
+    vec3 cell = color.rgb; //TODO u_cell_centroid.xyz;
     vec3 rgb = normalize(cell) * 0.5 + 0.5;
     rgb = max(vec3(0.15), rgb);
 
