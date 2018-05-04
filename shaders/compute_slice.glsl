@@ -13,7 +13,7 @@ struct Tetrahedron
     vec4 vertices[4];
 };
 
-struct SliceBatch
+struct Slice
 {
     vec4 vertices[6];
 };
@@ -35,7 +35,7 @@ layout(std430, binding = 0) buffer BUFF_tetrahedra
 // Read + write.
 layout(std430, binding = 1) buffer BUFF_slice_vertices
 {
-    SliceBatch slice_vertices[];
+    Slice slice_vertices[];
 };
 
 layout(std430, binding = 2) buffer BUFF_indirect
@@ -56,7 +56,6 @@ float saturate(float value)
 
 void main()
 {
-    const uint prim_restart = 65535; // 0xFFFF
     const uvec2 edge_indices[] =
     {
         { 0, 1 },
@@ -70,11 +69,17 @@ void main()
     // Grab the appropriate tetrahedron based on this invocations local ID.
     uint local_id = gl_GlobalInvocationID.x;
     uint slice_id = 0;
-    Tetrahedron tetra = tetrahedra[local_id];
     vec3 slice_centroid = vec3(0.0);
+    Tetrahedron tetra = tetrahedra[local_id];
 
-    vec4 intersections[4] = {
-        vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0)
+    // This array will be filled out with up to 4 unique points of intersection
+    // in the for-loop below.
+    vec4 intersections[4] =
+    {
+        vec4(0.0),
+        vec4(0.0),
+        vec4(0.0),
+        vec4(0.0)
     };
 
     // Loop through all of this tetrahedron's edges.
@@ -92,11 +97,10 @@ void main()
             vec4 intersection = a + (b - a) * t;
             intersection = vec4(intersection.xyz, 1.0);
 
-            slice_centroid += intersection.xyz;
-
             // Store the point of intersection.
             intersections[slice_id] = intersection;
 
+            slice_centroid += intersection.xyz;
             slice_id++;
         }
     }
@@ -185,7 +189,7 @@ void main()
     }
     else
     {
-        // TODO: we should never get here...I don't think?
+        // We should never get here...
         indirect[local_id] = DrawCommand(0, 0, local_id * 6, 0);
     }
 }

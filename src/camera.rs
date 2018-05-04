@@ -1,4 +1,5 @@
 use cgmath::{self, InnerSpace, Matrix4, SquareMatrix, Vector4};
+
 use std::f32;
 
 use rotations::cross;

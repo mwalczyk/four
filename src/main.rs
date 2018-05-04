@@ -32,8 +32,8 @@ use program::Program;
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
-use cgmath::{Array, Matrix4, Perspective, Point2, Point3, Rotation, SquareMatrix, Transform, Vector3,
-             Vector4, Zero};
+use cgmath::{Array, Matrix4, Perspective, Point2, Point3, Rotation, SquareMatrix, Transform,
+             Vector3, Vector4, Zero};
 use glutin::GlContext;
 
 /// Clears the default OpenGL framebuffer (color and depth).

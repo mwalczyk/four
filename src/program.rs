@@ -135,8 +135,6 @@ impl Program {
         }
     }
 
-    fn perform_reflection(src: &str) {}
-
     pub fn two_stage(vs_src: String, fs_src: String) -> Option<Program> {
         // Make sure that compiling each of the shaders was successful.
         let compile_vs_res = Program::compile_shader(&vs_src, gl::VERTEX_SHADER);
