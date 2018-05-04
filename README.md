@@ -20,7 +20,26 @@ So, we start with our 4D polytope, whose "faces" (usually referred to as "cells"
 
 Why do we do this? It turns out that slicing a tetrahedron in 4-dimensions is much simpler than slicing the full cells that make up the surface of a polytope. In particular, a sliced tetrahedron (embedded in 4-dimensions) will always produce zero, 3, or 4 vertices, which makes things quite a bit easier (particularly, when it comes to computing vertex indices for OpenGL rendering).
 
-In terms of implementation: each `mesh` in `four` maintains a GPU-side buffer that holds all of its tetrahedra (each of which is an array of 4 vertices). The slicing operation is performed via a compute shader that ultimately generates a new set of vertices (the "slice") for each tetrahedron. The same compute shader also generates draw commands on the GPU, which are later dispatched via `glMultiDrawArraysIndirect`. Essentially, each tetrahedron will generate its own unique draw command that renders either 0, 1, or 2 triangles, depending on whether the slicing operation returned an empty intersection (0), a single triangle (1), or a quad (2).
+In terms of implementation: each `mesh` in `four` maintains a GPU-side buffer that holds all of its tetrahedra (each of which is an array of 4 vertices). The slicing operation is performed via a compute shader that ultimately generates a new set of vertices (the "slice") for each tetrahedron. The same compute shader also generates draw commands on the GPU, which are later dispatched via `glMultiDrawArraysIndirect`. Essentially, each tetrahedron will generate its own unique draw command that renders either 0, 1, or 2 triangles, depending on whether the slicing operation returned an empty intersection (0), a single triangle (1), or a quad (2). 
+
+In the case where a tetrahedron's slice is a quad, care needs to be taken in order to ensure a proper vertex winding order. This too is handled in the compute shader: the 4 vertices are sorted based on their signed angle with the polygon's normal. This is accomplished via a simple insertion sort. In GLSL, this looks something like:
+
+```glsl
+uint i = 1;
+while(i < array.length())
+{
+    uint j = i;
+    while(j > 0 && (array[j - 1] > array[j]))
+    {
+        vec2 temp = array[j];
+        array[j] = array[j - 1];
+        array[j - 1] = temp;
+
+        j--;
+    }
+    i++;
+}
+```
 
 ## Tested On
 - Windows 8.1, Windows 10
