@@ -14,7 +14,7 @@ pub struct UniformEntry {
 }
 
 pub struct Program {
-    pub id: GLuint,
+    id: GLuint,
 }
 
 impl Program {
@@ -181,7 +181,7 @@ impl Program {
                 } else {
                     return None;
                 }
-            },
+            }
             Err(cs_err) => {
                 println!("{}", cs_err);
                 return None;

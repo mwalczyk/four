@@ -5,34 +5,44 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 uniform vec4 u_hyperplane_normal;
 uniform float u_hyperplane_displacement;
-uniform mat4 u_rotation;
+
+uniform mat4 u_transform;
 
 struct Tetrahedron
 {
     vec4 vertices[4];
 };
 
-struct VertGroup
+struct SliceBatch
 {
-    vec4 vertices[4];
+    vec4 vertices[6];
+};
+
+struct DrawCommand
+{
+    uint count;
+    uint instance_count;
+    uint first;
+    uint base_instance;
 };
 
 // Read only.
 layout(std430, binding = 0) buffer BUFF_tetrahedra
 {
-    Tetrahedron tetrahedra[3240];
+    Tetrahedron tetrahedra[];
 };
 
 // Read + write.
 layout(std430, binding = 1) buffer BUFF_slice_vertices
 {
-    VertGroup slice_vertices[3240];
+    SliceBatch slice_vertices[];
 };
 
-layout(std430, binding = 2) buffer BUFF_slice_indices
+layout(std430, binding = 2) buffer BUFF_indirect
 {
-    uvec4 slice_indices[3240];
+    DrawCommand indirect[];
 };
+
 
 float side(in vec4 point)
 {
@@ -63,16 +73,16 @@ void main()
     Tetrahedron tetra = tetrahedra[local_id];
     vec3 slice_centroid = vec3(0.0);
 
-    if (local_id > 3239)
-    {
-        return;
-    }
+    vec4 intersections[4] = {
+        vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0)
+    };
+
     // Loop through all of this tetrahedron's edges.
     for (uint i = 0; i < edge_indices.length(); ++i)
     {
         uvec2 edge = edge_indices[i];
-        vec4 a = u_rotation * tetra.vertices[edge.x];
-        vec4 b = u_rotation * tetra.vertices[edge.y];
+        vec4 a = u_transform * tetra.vertices[edge.x];
+        vec4 b = u_transform * tetra.vertices[edge.y];
 
         float t = -side(a) / (side(b) - side(a));
 
@@ -85,7 +95,7 @@ void main()
             slice_centroid += intersection.xyz;
 
             // Store the point of intersection.
-            slice_vertices[local_id].vertices[slice_id] = intersection;
+            intersections[slice_id] = intersection;
 
             slice_id++;
         }
@@ -97,24 +107,17 @@ void main()
     // 0, 1, 2, 3 or 4.
     if (slice_id == 0)
     {
-        slice_indices[local_id] = uvec4(prim_restart);
-
-        slice_vertices[local_id].vertices[0] = vec4(0.0);
-        slice_vertices[local_id].vertices[1] = vec4(0.0);
-        slice_vertices[local_id].vertices[2] = vec4(0.0);
-        slice_vertices[local_id].vertices[3] = vec4(0.0);
+        indirect[local_id] = DrawCommand(0, 0, local_id * 6, 0);
     }
     else if (slice_id == 3)
     {
         // Tri
-        slice_indices[local_id] = uvec4(
-            0 + local_id * 4,
-            1 + local_id * 4,
-            2 + local_id * 4,
-            prim_restart
-        );
+        slice_vertices[local_id].vertices[0] = intersections[0];
+        slice_vertices[local_id].vertices[1] = intersections[1];
+        slice_vertices[local_id].vertices[2] = intersections[2];
 
-        slice_vertices[local_id].vertices[3] = vec4(0.0);
+        // 3, 4, 5 are ignored...
+        indirect[local_id] = DrawCommand(3, 1, local_id * 6, 0);
     }
     else if (slice_id == 4)
     {
@@ -127,9 +130,9 @@ void main()
             vec2(3.0, 0.0)
         };
 
-        vec3 a = slice_vertices[local_id].vertices[0].xyz;
-        vec3 b = slice_vertices[local_id].vertices[1].xyz;
-        vec3 c = slice_vertices[local_id].vertices[2].xyz;
+        vec3 a = intersections[0].xyz;
+        vec3 b = intersections[1].xyz;
+        vec3 c = intersections[2].xyz;
 
         vec3 ab = b - a;
         vec3 bc = c - b;
@@ -138,7 +141,7 @@ void main()
 
         for (int i = 1; i < 4; ++i)
         {
-            vec3 p = slice_vertices[local_id].vertices[i].xyz;
+            vec3 p = intersections[i].xyz;
             vec3 edge = normalize(p - slice_centroid);
 
             float angle = saturate(dot(first_edge, edge));
@@ -168,16 +171,21 @@ void main()
             i++;
         }
 
-        slice_indices[local_id] = uvec4(
-            uint(angles[0].x) + local_id * 4,
-            uint(angles[1].x) + local_id * 4,
-            uint(angles[3].x) + local_id * 4,
-            uint(angles[2].x) + local_id * 4
-        );
+        // First triangle...(0, 1, 2)
+        slice_vertices[local_id].vertices[0] = intersections[uint(angles[0].x)];
+        slice_vertices[local_id].vertices[1] = intersections[uint(angles[1].x)];
+        slice_vertices[local_id].vertices[2] = intersections[uint(angles[2].x)];
+
+        // First triangle...(0, 2, 3)
+        slice_vertices[local_id].vertices[3] = intersections[uint(angles[0].x)];
+        slice_vertices[local_id].vertices[4] = intersections[uint(angles[2].x)];
+        slice_vertices[local_id].vertices[5] = intersections[uint(angles[3].x)];
+
+        indirect[local_id] = DrawCommand(6, 1, local_id * 6, 0);
     }
     else
     {
         // TODO: we should never get here...I don't think?
-        slice_indices[local_id] = uvec4(prim_restart);
+        indirect[local_id] = DrawCommand(0, 0, local_id * 6, 0);
     }
 }

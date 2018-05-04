@@ -1,12 +1,10 @@
 use std::f32;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::mem;
 use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, Matrix4, Vector3, Vector4, Array, InnerSpace, Zero};
+use cgmath::{self, Array, InnerSpace, Matrix4, SquareMatrix, Vector3, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -17,27 +15,60 @@ use rotations::{self, Plane};
 use tetrahedron::Tetrahedron;
 use utilities;
 
+/// A struct representing an entry in the indirect draw buffer.
+#[repr(C)]
+struct DrawCommand {
+    count: u32,
+    instance_count: u32,
+    first: u32,
+    base_instance: u32,
+}
+
 /// A 4-dimensional mesh.
 pub struct Mesh {
+    /// The vertices of the 4-dimensional mesh.
     pub vertices: Vec<Vector4<f32>>,
+
+    /// The edges of the 4-dimensional mesh.
     pub edges: Vec<u32>,
+
+    /// The faces of the 4-dimensional mesh.
     pub faces: Vec<u32>,
+
+    /// The type of polychoron that this mesh represents.
     pub polychoron: Polychoron,
+
+    /// The topology (definition) of the polychoron that this mesh represents.
     pub def: Definition,
-    pub tetrahedrons: Vec<Tetrahedron>,
-    pub slice_program: Program,
+
+    /// A list of tetrahedra (embedded in 4-dimensions) that make up this mesh.
+    tetrahedra: Vec<Tetrahedron>,
+
+    /// The current transform (translation, rotation, scale) of this mesh.
+    transform: Matrix4<f32>,
+
+    /// The compute shader that is used to compute 3-dimensional slices of this mesh.
+    compute: Program,
+
+    /// The vertex array object (VAO) that is used for drawing this mesh.
     vao: u32,
-    vbo: u32,
-    ebo: u32,
-    ssbo_tetrahedra: u32,
-    vbo_slice_colors: u32,
-    ssbo_slice_vertices: u32,
-    ssbo_slice_indices: u32,
+
+    /// A GPU-side buffer that contains all of vertices of all of the tetrahedra that make up this mesh.
+    buffer_tetrahedra: u32,
+
+    /// A GPU-side buffer that contains all of the colors used to render 3-dimensional slices of this mesh.
+    buffer_slice_colors: u32,
+
+    /// A GPU-side buffer that contains all of the vertices that make up the active 3-dimensional cross-section of this mesh.
+    buffer_slice_vertices: u32,
+
+    /// A GPU-side buffer that will be filled with indirect drawing commands via the `compute` program.
+    buffer_indirect_commands: u32,
 }
 
 impl Mesh {
     pub fn new(polychoron: Polychoron) -> Mesh {
-        let cs = utilities::load_file_as_string(Path::new("shaders/compute_slice.glsl"));
+        let compute = utilities::load_file_as_string(Path::new("shaders/compute_slice.glsl"));
 
         let mut mesh = Mesh {
             vertices: polychoron.get_vertices(),
@@ -45,15 +76,14 @@ impl Mesh {
             faces: polychoron.get_faces(),
             polychoron,
             def: polychoron.get_definition(),
-            tetrahedrons: Vec::new(),
-            slice_program: Program::single_stage(cs).unwrap(),
+            tetrahedra: Vec::new(),
+            transform: Matrix4::identity(),
+            compute: Program::single_stage(compute).unwrap(),
             vao: 0,
-            vbo: 0,
-            ebo: 0,
-            ssbo_tetrahedra: 0,
-            vbo_slice_colors: 0,
-            ssbo_slice_vertices: 0,
-            ssbo_slice_indices: 0,
+            buffer_tetrahedra: 0,
+            buffer_slice_colors: 0,
+            buffer_slice_vertices: 0,
+            buffer_indirect_commands: 0,
         };
 
         mesh.tetrahedralize();
@@ -106,20 +136,80 @@ impl Mesh {
         vertices
     }
 
+    /// Set this mesh's current transform (in 4-dimensions). This will affect how the
+    /// mesh is sliced.
+    pub fn set_transform(&mut self, transform: &Matrix4<f32>) {
+        self.transform = *transform;
+    }
+
+    /// Slice this mesh with a 4-dimensional `hyperplane`.
+    pub fn slice(&mut self, hyperplane: &Hyperplane) {
+        self.compute.bind();
+        self.compute
+            .uniform_4f("u_hyperplane_normal", &hyperplane.normal);
+        self.compute
+            .uniform_1f("u_hyperplane_displacement", hyperplane.displacement);
+
+        self.compute
+            .uniform_matrix_4f("u_transform", &self.transform);
+
+        unsafe {
+            // TODO: find the optimal value to launch here.
+            gl::DispatchCompute(self.tetrahedra.len() as u32, 1, 1);
+            gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT);
+        }
+
+        self.compute.unbind();
+    }
+
+    /// Draws a 3-dimensional slice of the underlying 4-dimensional mesh.
+    pub fn draw(&self) {
+        unsafe {
+            gl::BindVertexArray(self.vao);
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                0,
+                self.buffer_slice_vertices,
+                0,
+                mem::size_of::<Vector4<f32>>() as i32,
+            );
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                1,
+                self.buffer_slice_colors,
+                0,
+                mem::size_of::<Vector4<f32>>() as i32,
+            );
+
+            // Bind the buffer that contains indirect draw commands.
+            gl::BindBuffer(gl::DRAW_INDIRECT_BUFFER, self.buffer_indirect_commands);
+
+            gl::MultiDrawArraysIndirect(
+                gl::TRIANGLES,
+                ptr::null() as *const GLvoid,
+                self.tetrahedra.len() as i32,
+                mem::size_of::<DrawCommand>() as i32,
+            );
+        }
+    }
+
     /// Given the H-representation of this polytope, return a list of lists, where
-    /// each sub-list contains the indices of all faces that are inside of the `i`th
+    /// each sub-list contains the indices of all faces that are inside the `i`th
     /// hyperplane.
-    pub fn gather_cells(&self) -> Vec<(Hyperplane, Vec<u32>)> {
+    ///
+    /// Here, we take a relatively brute-force approach by iterating over all of the faces
+    /// of this polytope. For the 120-cell, for example, there are 720 faces. For each
+    /// face, we check if all of its vertices are inside of the current hyperplane. If so,
+    /// we know that this face is part of the cell that is bounded by the current hyper-
+    /// plane.
+    fn gather_cells(&self) -> Vec<(Hyperplane, Vec<u32>)> {
         let mut solids = Vec::new();
 
         for hyperplane in self.polychoron.get_h_representation().iter() {
             let mut faces_in_hyperplane = Vec::new();
 
-            // Iterate over all of the faces of this polytope. For the 120-cell, for example,
-            // there are 720 faces, each of which has 5 vertices associated with it.
             for face_index in 0..self.get_number_of_faces() {
                 let face_vertices = self.get_vertices_for_face(face_index as u32);
-
                 assert_eq!(face_vertices.len(), self.def.vertices_per_face as usize);
 
                 // Check if all of the vertices of this face are inside the bounding hyperplane.
@@ -136,9 +226,9 @@ impl Mesh {
             }
 
             println!(
-                "{} faces found for hyperplane with normal {:?}",
+                "{} faces found inside of the hyperplane: {:?}",
                 faces_in_hyperplane.len(),
-                hyperplane.normal
+                hyperplane
             );
 
             solids.push((*hyperplane, faces_in_hyperplane));
@@ -147,138 +237,8 @@ impl Mesh {
         solids
     }
 
-    pub fn draw(&self) {
-        unsafe {
-            gl::BindVertexArray(self.vao);
-
-            gl::VertexArrayElementBuffer(self.vao, self.ssbo_slice_indices);
-
-            let binding = 0;
-            let offset = 0;
-            gl::VertexArrayVertexBuffer(
-                self.vao,
-                binding,
-                self.ssbo_slice_vertices,
-                offset,
-                (mem::size_of::<Vector4<f32>>() as usize) as i32,
-            );
-
-            gl::VertexArrayVertexBuffer(self.vao, 1, self.vbo_slice_colors, 0, (mem::size_of::<Vector4<f32>>() as usize) as i32);
-
-            gl::DrawElements(
-                gl::TRIANGLE_STRIP,
-                (6 * 3240) as i32,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-            );
-        }
-    }
-
-    fn init_render_objects(&mut self) {
-        unsafe {
-            gl::CreateVertexArrays(1, &mut self.vao);
-
-            let binding = 0;
-            gl::EnableVertexArrayAttrib(self.vao, 0);
-            gl::VertexArrayAttribFormat(self.vao, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0); // positions
-            gl::VertexArrayAttribBinding(self.vao, 0, binding);
-
-            gl::EnableVertexArrayAttrib(self.vao, 1);
-            gl::VertexArrayAttribFormat(self.vao, 1, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0); // colors
-            gl::VertexArrayAttribBinding(self.vao, 1, binding + 1);
-
-            gl::VertexArrayVertexBuffer(self.vao, 1, self.vbo_slice_colors, 0, (mem::size_of::<Vector4<f32>>() as usize) as i32);
-
-            gl::Enable(gl::PRIMITIVE_RESTART);
-            gl::PrimitiveRestartIndex(0xFFFF);
-            println!("Enabled primitive restart with index: {}", 0xFFFF);
-
-            // Initialize the SSBO that will hold this mesh's tetrahedra.
-            let mut vertices = Vec::new();
-            let mut colors = Vec::new();
-            for tetra in self.tetrahedrons.iter() {
-                vertices.extend_from_slice(&tetra.vertices);
-
-                // TODO: for now, we have to do this 4 times. Probably something to do with vertex attributes.
-                colors.push(tetra.cell_centroid);
-                colors.push(tetra.cell_centroid);
-                colors.push(tetra.cell_centroid);
-                colors.push(tetra.cell_centroid);
-            }
-            let total_tetrahedra = self.def.cells * (self.def.faces_per_cell - 3) * (self.def.vertices_per_face - 2);
-            const VERTICES_PER_TETRAHEDRON: usize = 4;
-
-            let vertices_size = mem::size_of::<Vector4<f32>>() * 4 * total_tetrahedra as usize;
-            let colors_size = mem::size_of::<Vector4<f32>>() * 4 * total_tetrahedra as usize;
-            println!("Size of data store for {} : {}", total_tetrahedra, vertices.len());
-
-            // The SSBO that will be bound at index 0 and read from.
-            gl::CreateBuffers(1, &mut self.ssbo_tetrahedra);
-            gl::NamedBufferData(
-                self.ssbo_tetrahedra,
-                vertices_size as isize,
-                vertices.as_ptr() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
-            );
-
-            // The VBO that will be associated with the vertex attribute at index 1, which does not
-            // change throughout the lifetime of the program (thus, we use the flag `STATIC_DRAW` below).
-            gl::CreateBuffers(1, &mut self.vbo_slice_colors);
-            gl::NamedBufferData(
-                self.vbo_slice_colors,
-                colors_size as isize,
-                colors.as_ptr() as *const GLvoid,
-                gl::STATIC_DRAW,
-            );
-
-            // Items that will be written to on the GPU (more or less every frame).
-            // ...
-
-            // The SSBO of slice vertices that will be written to whenever the slicing hyperplane moves.
-            gl::CreateBuffers(1, &mut self.ssbo_slice_vertices);
-            gl::NamedBufferData(
-                self.ssbo_slice_vertices,
-                vertices_size as isize,
-                ptr::null() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
-            );
-
-            // The SSBO of slice triangle indices that will be written to whenever the slicing hyperplane moves.
-            let indices_size = mem::size_of::<u32>() * 4usize * total_tetrahedra as usize;
-            gl::CreateBuffers(1, &mut self.ssbo_slice_indices);
-            gl::NamedBufferData(
-                self.ssbo_slice_indices,
-                indices_size as isize,
-                ptr::null() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
-            );
-
-            // Set up SSBO bind points.
-            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.ssbo_tetrahedra);
-            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.ssbo_slice_vertices);
-            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.ssbo_slice_indices);
-        }
-    }
-
-    pub fn slice(&mut self, rot: &Matrix4<f32>, hyperplane: &Hyperplane) {
-        self.slice_program.bind();
-        self.slice_program.uniform_4f("u_hyperplane_normal", &hyperplane.normal);
-        self.slice_program.uniform_1f("u_hyperplane_displacement", hyperplane.displacement);
-        self.slice_program.uniform_matrix_4f("u_rotation", rot);
-
-        unsafe {
-
-            // TODO: find the optimal value to launch here.
-            gl::DispatchCompute(3240, 1, 1);
-            gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT);
-
-        }
-
-        self.slice_program.unbind();
-    }
-
     /// Performs of a tetrahedral decomposition of the polytope.
-    pub fn tetrahedralize(&mut self) {
+    fn tetrahedralize(&mut self) {
         let mut tetrahedrons = Vec::new();
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
@@ -353,6 +313,129 @@ impl Mesh {
             tetrahedrons.len()
         );
 
-        self.tetrahedrons = tetrahedrons;
+        self.tetrahedra = tetrahedrons;
+    }
+
+    /// Initializes all OpenGL objects (VAOs, buffers, etc.).
+    fn init_render_objects(&mut self) {
+        unsafe {
+            gl::CreateVertexArrays(1, &mut self.vao);
+
+            // Set up attribute #0: positions.
+            const ATTR_POS: u32 = 0;
+            const BINDING_POS: u32 = 0;
+            gl::EnableVertexArrayAttrib(self.vao, ATTR_POS);
+            gl::VertexArrayAttribFormat(
+                self.vao,
+                0,
+                self.def.components_per_vertex as i32,
+                gl::FLOAT,
+                gl::FALSE,
+                0,
+            );
+            gl::VertexArrayAttribBinding(self.vao, ATTR_POS, BINDING_POS);
+
+            // Set up attribute #1: colors.
+            const ATTR_COL: u32 = 1;
+            const BINDING_COL: u32 = 1;
+            gl::EnableVertexArrayAttrib(self.vao, ATTR_COL);
+            gl::VertexArrayAttribFormat(
+                self.vao,
+                1,
+                self.def.components_per_vertex as i32,
+                gl::FLOAT,
+                gl::FALSE,
+                0,
+            );
+            gl::VertexArrayAttribBinding(self.vao, ATTR_COL, BINDING_COL);
+
+            // TODO: we should be able to use this: gl::VertexArrayBindingDivisor(self.vao, 1, 6);
+
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                BINDING_COL,
+                self.buffer_slice_colors,
+                0,
+                (mem::size_of::<Vector4<f32>>() as usize) as i32,
+            );
+
+            // Initialize the buffer that will hold this mesh's tetrahedra.
+            let mut vertices = Vec::new();
+            let mut colors = Vec::new();
+            const VERTICES_PER_TETRAHEDRON: usize = 4;
+            const FACES_SHARED_PER_VERTEX: u32 = 3;
+            const MAX_VERTICES_PER_SLICE: usize = 6;
+
+            for tetra in self.tetrahedra.iter() {
+                vertices.extend_from_slice(&tetra.vertices);
+
+                // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
+                for i in 0..MAX_VERTICES_PER_SLICE {
+                    colors.push(tetra.cell_centroid);
+                }
+            }
+
+            let total_tetrahedra = self.def.cells
+                * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
+                * (self.def.vertices_per_face - 2);
+
+            let vertices_size = mem::size_of::<Vector4<f32>>() * VERTICES_PER_TETRAHEDRON
+                * total_tetrahedra as usize;
+            let colors_size =
+                mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
+
+            println!(
+                "Size of data store for {} : {}",
+                total_tetrahedra,
+                vertices.len()
+            );
+
+            // The buffer that will be bound at index #0 and read from.
+            gl::CreateBuffers(1, &mut self.buffer_tetrahedra);
+            gl::NamedBufferData(
+                self.buffer_tetrahedra,
+                vertices_size as isize,
+                vertices.as_ptr() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            // The VBO that will be associated with the vertex attribute #1, which does not change
+            // throughout the lifetime of the program (thus, we use the flag `STATIC_DRAW` below).
+            gl::CreateBuffers(1, &mut self.buffer_slice_colors);
+            gl::NamedBufferData(
+                self.buffer_slice_colors,
+                colors_size as isize,
+                colors.as_ptr() as *const GLvoid,
+                gl::STATIC_DRAW,
+            );
+
+            // Items that will be written to on the GPU (more or less every frame).
+            // ...
+
+            // The SSBO of slice vertices that will be written to whenever the slicing hyperplane moves.
+            let mut alloc_size =
+                mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
+            gl::CreateBuffers(1, &mut self.buffer_slice_vertices);
+            gl::NamedBufferData(
+                self.buffer_slice_vertices,
+                alloc_size as isize,
+                ptr::null() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            alloc_size = mem::size_of::<DrawCommand>() * total_tetrahedra as usize;
+            gl::CreateBuffers(1, &mut self.buffer_indirect_commands);
+            gl::NamedBufferData(
+                self.buffer_indirect_commands,
+                alloc_size as isize,
+                ptr::null() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            // Set up SSBO bind points.
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.buffer_tetrahedra);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.buffer_slice_vertices);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.buffer_indirect_commands);
+        }
     }
 }

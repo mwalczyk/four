@@ -1,12 +1,10 @@
 #version 430
 #extension GL_ARB_shading_language_420pack : enable
 
-uniform vec4 u_draw_color;
-
 in VS_OUT 
 {
-    vec3 color;
     vec3 position;
+    vec3 color;
 } fs_in;
 
 layout(location = 0) out vec4 o_color;

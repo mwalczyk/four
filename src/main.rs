@@ -9,6 +9,7 @@ extern crate gl;
 extern crate glutin;
 extern crate image;
 
+// Module imports.
 mod camera;
 mod constants;
 mod hyperplane;
@@ -21,22 +22,21 @@ mod rotations;
 mod tetrahedron;
 mod utilities;
 
-use camera::Camera;
+// Struct and function imports.
 use hyperplane::Hyperplane;
 use interaction::InteractionState;
 use mesh::Mesh;
 use polychora::Polychoron;
 use program::Program;
-use renderer::Renderer;
-use tetrahedron::Tetrahedron;
 
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
-use cgmath::{Array, InnerSpace, Matrix2, Matrix3, Matrix4, Perspective, Point2, Point3, Rotation,
-             SquareMatrix, Transform, Vector2, Vector3, Vector4, Zero};
+use cgmath::{Array, Matrix4, Perspective, Point2, Point3, Rotation, SquareMatrix, Transform, Vector3,
+             Vector4, Zero};
 use glutin::GlContext;
 
+/// Clears the default OpenGL framebuffer (color and depth).
 fn clear() {
     unsafe {
         gl::ClearColor(0.1, 0.05, 0.05, 1.0);
@@ -44,6 +44,7 @@ fn clear() {
     }
 }
 
+/// Sets project specific draw state.
 fn set_draw_state() {
     unsafe {
         // For now, we don't really know the winding order of the tetrahedron
@@ -80,37 +81,24 @@ fn main() {
 
     // Load the 120-cell and compute its tetrahedral decomposition.
     let mut mesh = Mesh::new(Polychoron::Cell120);
+    let mut rotation_in_4d = Matrix4::identity();
 
-    // Set up the 4D camera - we don't really use this anymore, since we are performing an
-    // orthographic projection to go from 4D -> 3D (see the shader).
-    let four_cam = Camera::new(
-        Vector4::unit_x() * 3.0,
-        Vector4::zero(),
-        Vector4::unit_y(),
-        Vector4::unit_z(),
-    );
-    let mut four_rotation = Matrix4::identity();
+    // Set up the 3D transformation matrices.
+    let mut model = Matrix4::identity();
 
-    // Set up the 3D camera.
-    let mut three_rotation = Matrix4::identity();
-    let three_view = Matrix4::look_at(
-        Point3::new(6.0, 0.0, 0.0),
-        Point3::from_value(0.0),
-        Vector3::unit_y(),
-    );
-    let three_projection =
-        cgmath::perspective(cgmath::Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 1000.0);
+    let eye = Point3::new(5.0, 0.0, 0.0);
+    let target = Point3::from_value(0.0);
+    let up = Vector3::unit_y();
+    let view = Matrix4::look_at(eye, target, up);
 
-
-    mesh.slice(&four_rotation, &hyperplane);
+    let fov = cgmath::Rad(std::f32::consts::FRAC_PI_2);
+    let projection = cgmath::perspective(fov, 1.0, 0.1, 1000.0);
 
     // Load the shader program that we will use for rendering.
-    let vs = utilities::load_file_as_string(Path::new("shaders/shader.vert"));
-    let fs = utilities::load_file_as_string(Path::new("shaders/shader.frag"));
-    let program = Program::two_stage(vs, fs).unwrap();
-    program.bind();
-
-    let renderer = Renderer::new();
+    let program = Program::two_stage(
+        utilities::load_file_as_string(Path::new("shaders/shader.vert")),
+        utilities::load_file_as_string(Path::new("shaders/shader.frag")),
+    ).unwrap();
 
     let mut interaction = InteractionState::new();
     let mut show_tetrahedrons = false;
@@ -140,7 +128,7 @@ fn main() {
                                 rotations::Plane::YW,
                                 delta.y,
                             );
-                            four_rotation = rot_xw * rot_yw * four_rotation;
+                            rotation_in_4d = rot_xw * rot_yw * rotation_in_4d;
                         } else if interaction.ctrl_pressed {
                             let rot_zw = rotations::get_simple_rotation_matrix(
                                 rotations::Plane::ZW,
@@ -150,11 +138,11 @@ fn main() {
                                 rotations::Plane::ZX,
                                 delta.y,
                             );
-                            four_rotation = rot_zw * rot_zx * four_rotation;
+                            rotation_in_4d = rot_zw * rot_zx * rotation_in_4d;
                         } else {
                             let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));
                             let rot_yz = Matrix4::from_angle_z(cgmath::Rad(delta.y));
-                            three_rotation = rot_yz * rot_xz * three_rotation;
+                            model = rot_yz * rot_xz * model;
                         }
                     }
                 }
@@ -238,41 +226,18 @@ fn main() {
         let milliseconds = (seconds as f32) / 1000.0;
         program.uniform_1f("u_time", milliseconds);
 
-        // Uniforms for 4D -> 3D projection.
-        program.uniform_4f("u_four_from", &four_cam.from);
-        program.uniform_matrix_4f("u_four_rotation", &four_rotation);
-        program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
-        program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
-
         // Uniforms for 3D -> 2D projection.
-        program.uniform_matrix_4f("u_three_rotation", &three_rotation);
-        program.uniform_matrix_4f("u_three_view", &three_view);
-        program.uniform_matrix_4f("u_three_projection", &three_projection);
+        program.uniform_matrix_4f("u_model", &model);
+        program.uniform_matrix_4f("u_view", &view);
+        program.uniform_matrix_4f("u_projection", &projection);
         clear();
 
-        mesh.slice(&four_rotation, &hyperplane);
+        mesh.set_transform(&rotation_in_4d);
+        mesh.slice(&hyperplane);
+
         program.bind();
         mesh.draw();
-//        for tetra in mesh.tetrahedrons.iter_mut() {
-//            if tetra.cell < reveal_cells {
-//                program.uniform_4f("u_draw_color", &tetra.color);
-//                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
-//
-//                // First, set this tetrahedron's transform matrix
-//                tetra.set_transform(&four_rotation);
-//
-//                // Then, render the slice
-//                renderer.draw_tetrahedron_slice(&tetra.slice(&hyperplane));
-//            }
-//        }
-//
-//        // Draw the full polytope - for now, we leave this disabled.
-//        let draw_polytope = false;
-//        if draw_polytope {
-//            program.uniform_4f("u_draw_color", &Vector4::new(0.2, 0.5, 0.8, 1.0));
-//            mesh.draw();
-//        }
-//
+
         // Pressing the right mouse button and moving left <-> right will translate the
         // slicing hyperplane away from the origin.
         if interaction.rmouse_pressed {
@@ -284,15 +249,6 @@ fn main() {
                 hyperplane.displacement += constants::EPSILON;
             }
         }
-//
-//        // Finally, draw the wireframe of all tetrahedrons that make up this 4D mesh.
-//        if show_tetrahedrons {
-//            program.uniform_4f("u_draw_color", &Vector4::new(0.0, 1.0, 0.0, 0.25));
-//            for tetra in mesh.tetrahedrons.iter() {
-//                program.uniform_4f("u_cell_centroid", &tetra.cell_centroid);
-//                renderer.draw_tetrahedron(&tetra);
-//            }
-//        }
 
         gl_window.swap_buffers().unwrap();
     }

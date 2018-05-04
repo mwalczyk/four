@@ -31,7 +31,7 @@ impl Renderer {
         unsafe {
             gl::CreateVertexArrays(1, &mut self.vao);
 
-            let mut size = (256 * mem::size_of::<f32>()) as GLsizeiptr;
+            let mut size = (1024 * mem::size_of::<f32>()) as GLsizeiptr;
             gl::CreateBuffers(1, &mut self.vbo);
             gl::NamedBufferData(
                 self.vbo,
@@ -40,7 +40,7 @@ impl Renderer {
                 gl::DYNAMIC_DRAW,
             );
 
-            size = (256 * mem::size_of::<u32>()) as GLsizeiptr;
+            size = (1024 * mem::size_of::<u32>()) as GLsizeiptr;
             gl::CreateBuffers(1, &mut self.ebo);
             gl::NamedBufferData(
                 self.ebo,
@@ -49,18 +49,16 @@ impl Renderer {
                 gl::DYNAMIC_DRAW,
             );
 
-            let binding = 0;
             gl::EnableVertexArrayAttrib(self.vao, 0);
             gl::VertexArrayAttribFormat(self.vao, 0, 4, gl::FLOAT, gl::FALSE, 0);
-            gl::VertexArrayAttribBinding(self.vao, 0, binding);
+            gl::VertexArrayAttribBinding(self.vao, 0, 0);
             gl::VertexArrayElementBuffer(self.vao, self.ebo);
 
-            let offset = 0;
             gl::VertexArrayVertexBuffer(
                 self.vao,
-                binding,
+                0,
                 self.vbo,
-                offset,
+                0,
                 (mem::size_of::<f32>() * 4 as usize) as i32,
             );
         }
@@ -68,18 +66,17 @@ impl Renderer {
 
     pub fn draw_tetrahedron(&self, tetra: &Tetrahedron) {
         unsafe {
-            let transformed_vertices = tetra.get_transformed_vertices();
-
             // Each tetrahedron has 4 vertices, each of which has 4 components.
-            let vbo_upload_size = (4 * 4 * mem::size_of::<GLfloat>()) as GLsizeiptr;
+            let vbo_upload_size = (mem::size_of::<Vector4<f32>>() * 4) as GLsizeiptr;
             gl::NamedBufferSubData(
                 self.vbo,
                 0,
                 vbo_upload_size,
-                transformed_vertices.as_ptr() as *const c_void,
+                tetra.vertices.as_ptr() as *const c_void,
             );
 
             let edges = Tetrahedron::get_edge_indices();
+
             let ebo_upload_size = (edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
             gl::NamedBufferSubData(
                 self.ebo,
@@ -89,52 +86,8 @@ impl Renderer {
             );
 
             gl::BindVertexArray(self.vao);
-            // gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
-
+            gl::DrawElements(gl::LINES, 6 * 2 as i32, gl::UNSIGNED_INT, ptr::null());
             gl::DrawArrays(gl::POINTS, 0, 4);
-        }
-    }
-
-    pub fn draw_tetrahedron_slice(&self, slice_vertices: &Vec<Vector4<f32>>) {
-        unsafe {
-            const COMPONENTS_PER_VERTEX: usize = 4;
-            const NUMBER_OF_INDICES: usize = 4;
-            let slice_indices = [0u32, 1u32, 2u32, 3u32];// Tetrahedron::get_quad_indices();
-
-            // Each tetrahedron has 4 vertices, each of which has 4 components.
-            let vbo_upload_size = (COMPONENTS_PER_VERTEX * slice_vertices.len()
-                * mem::size_of::<GLfloat>()) as GLsizeiptr;
-            gl::NamedBufferSubData(
-                self.vbo,
-                0,
-                vbo_upload_size,
-                slice_vertices.as_ptr() as *const c_void,
-            );
-
-            let ebo_upload_size = (NUMBER_OF_INDICES * mem::size_of::<u32>()) as GLsizeiptr;
-            gl::NamedBufferSubData(
-                self.ebo,
-                0,
-                ebo_upload_size,
-                slice_indices.as_ptr() as *const GLvoid,
-            );
-
-            // First, draw each vertex of the slice as a point.
-            gl::BindVertexArray(self.vao);
-
-            // Then, draw the triangle or quadrilateral, depending on the number of vertices passed
-            // to this function.
-            let number_of_elements = match slice_vertices.len() {
-                3 => 3,
-                4 => 6,
-                _ => 0,
-            };
-            gl::DrawElements(
-                gl::TRIANGLE_STRIP,
-                number_of_elements as i32,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-            );
         }
     }
 }

@@ -45,44 +45,4 @@ impl Tetrahedron {
     pub fn get_quad_indices() -> [(u32, u32, u32); 2] {
         [(0, 1, 2), (0, 2, 3)]
     }
-
-    /// Returns the result of slicing the tetrahedron with `hyperplane`. Note that
-    /// this will always return either an empty intersection, a single triangle,
-    /// or a single quadrilateral.
-    pub fn slice(&self, hyperplane: &Hyperplane) -> Vec<Vector4<f32>> {
-        let mut intersections = Vec::new();
-
-        for (a, b) in Tetrahedron::get_edge_indices().iter() {
-            let vertex_a = self.transform * self.vertices[*a as usize];
-            let vertex_b = self.transform * self.vertices[*b as usize];
-
-            // TODO: explain this math.
-            let t = -hyperplane.side(&vertex_a)
-                / (hyperplane.side(&vertex_b) - hyperplane.side(&vertex_a));
-
-            if t >= 0.0 && t <= 1.0 {
-                let intersection = vertex_a + (vertex_b - vertex_a) * t;
-                intersections.push(intersection);
-            }
-        }
-
-        if intersections.len() == 4 {
-            return rotations::sort_points_on_plane(&intersections, hyperplane);
-        }
-
-        assert!(intersections.len() == 0 || intersections.len() == 3 || intersections.len() == 4);
-
-        intersections
-    }
-
-    pub fn set_transform(&mut self, t: &Matrix4<f32>) {
-        self.transform = *t;
-    }
-
-    pub fn get_transformed_vertices(&self) -> Vec<Vector4<f32>> {
-        self.vertices
-            .iter()
-            .map(|pt| self.transform * pt)
-            .collect::<Vec<_>>()
-    }
 }
