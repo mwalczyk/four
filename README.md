@@ -20,6 +20,8 @@ So, we start with our 4D polytope, whose "faces" (usually referred to as "cells"
 
 Why do we do this? It turns out that slicing a tetrahedron in 4-dimensions is much simpler than slicing the full cells that make up the surface of a polytope. In particular, a sliced tetrahedron (embedded in 4-dimensions) will always produce zero, 3, or 4 vertices, which makes things quite a bit easier (particularly, when it comes to computing vertex indices for OpenGL rendering).
 
+In terms of implementation: each `mesh` in `four` maintains a GPU-side buffer that holds all of its tetrahedra (each of which is an array of 4 vertices). The slicing operation is performed via a compute shader that ultimately generates a new set of vertices (the "slice") for each tetrahedron. The same compute shader also generates draw commands on the GPU, which are later dispatched via `glMultiDrawArraysIndirect`. Essentially, each tetrahedron will generate its own unique draw command that renders either 0, 1, or 2 triangles, depending on whether the slicing operation returned an empty intersection (0), a single triangle (1), or a quad (2).
+
 ## Tested On
 - Windows 8.1, Windows 10
 - NVIDIA GeForce GTX 970M, NVIDIA GeForce GTX 980
@@ -37,7 +39,7 @@ To rotate the camera around the object in 3-dimensions, press + drag the left mo
 
 There are 6 possible plane rotations in a 4-dimensional space, and I haven't found a great way to expose this to the user (yet). For now, you can hold `shift` while pressing + dragging the left mouse button to rotate in the `XW` or `YW` planes. Alternatively, you can hold `ctrl` while pressing + dragging the left mouse button to rotate in the `XY` or `ZX` planes. You can change the "height" of the slicing hyperplane (effectively adjusting the `w`-coordinate of its "normal" vector) by pressing + dragging the right mouse button (without any modifiers).
 
-You can hide/show the full tetrahedral mesh by pressing `t`. You can change between wireframe and filled modes by pressing `w` and `f`.
+You can change between wireframe and filled modes by pressing `w` and `f`.
 
 ## To Do
 - [ ] Implement a more generic approach to deriving a polytope's H-representation based on its dual
