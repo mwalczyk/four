@@ -53,7 +53,7 @@ pub struct Mesh {
     /// The vertex array object (VAO) that is used for drawing this mesh.
     vao: u32,
 
-    /// A GPU-side buffer that contains all of vertices of all of the tetrahedra that make up this mesh.
+    /// A GPU-side buffer that contains all of the tetrahedra that make up this mesh.
     buffer_tetrahedra: u32,
 
     /// A GPU-side buffer that contains all of the colors used to render 3-dimensional slices of this mesh.
@@ -156,7 +156,7 @@ impl Mesh {
         unsafe {
             // TODO: find the optimal value to launch here.
             gl::DispatchCompute(self.tetrahedra.len() as u32, 1, 1);
-            gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT);
+            gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT | gl::COMMAND_BARRIER_BIT);
         }
 
         self.compute.unbind();
