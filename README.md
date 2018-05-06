@@ -62,7 +62,7 @@ You can change between wireframe and filled modes by pressing `w` and `f`.
 
 ## To Do
 - [ ] Implement a more generic approach to deriving a polytope's H-representation based on its dual
-- [ ] Implement a GPU-based slicing procedure (probably using compute shaders)
+- [x] Implement a GPU-based slicing procedure (probably using compute shaders)
 - [ ] Add additional polytopes (8-cell, 24-cell, 600-cell, etc.)
 - [ ] Add 4-dimensional "extrusion" (i.e. things like spherinders)
 - [ ] Add "hollow"-cell variants of each polytope
