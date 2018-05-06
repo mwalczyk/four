@@ -43,12 +43,13 @@ layout(std430, binding = 2) buffer BUFF_indirect
     DrawCommand indirect[];
 };
 
-
+// Determined the signed distance between `point` and the hyperplane.
 float side(in vec4 point)
 {
     return dot(u_hyperplane_normal, point) + u_hyperplane_displacement;
 }
 
+// Clamp `value` between -1..1.
 float saturate(float value)
 {
     return min(1.0, max(-1.0, value));
@@ -65,6 +66,9 @@ void main()
         { 1, 3 },
         { 2, 3 }
     };
+
+    const uint max_intersections = 4;
+    const uint max_new_vertices = 6;
 
     // Grab the appropriate tetrahedron based on this invocations local ID.
     uint local_id = gl_GlobalInvocationID.x;
@@ -108,42 +112,43 @@ void main()
 
     // The variable `slice_id` is an integer corresponding to the number of valid
     // intersections that were found. Realistically, this should ONLY ever be
-    // 0, 1, 2, 3 or 4.
-    if (slice_id == 0)
+    // 0, 3, or 4.
+    if (slice_id == 0) // Empty intersection (0-count draw call)
     {
-        indirect[local_id] = DrawCommand(0, 0, local_id * 6, 0);
+        indirect[local_id] = DrawCommand(0, 0, local_id * max_new_vertices, 0);
     }
-    else if (slice_id == 3)
+    else if (slice_id == 3) // Tri
     {
-        // Tri
         slice_vertices[local_id].vertices[0] = intersections[0];
         slice_vertices[local_id].vertices[1] = intersections[1];
         slice_vertices[local_id].vertices[2] = intersections[2];
 
         // 3, 4, 5 are ignored...
-        indirect[local_id] = DrawCommand(3, 1, local_id * 6, 0);
+        indirect[local_id] = DrawCommand(3, 1, local_id * max_new_vertices, 0);
     }
-    else if (slice_id == 4)
+    else if (slice_id == 4) // Quad
     {
-        // Quad
-        vec2 angles[4] =
+        // We have to use `vec2`s here instead of `uvec2`s because the signed angles
+        // will be floating-point values.
+        vec2 angles[max_intersections] =
         {
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(2.0, 0.0),
-            vec2(3.0, 0.0)
+            { 0.0, 0.0 },
+            { 1.0, 0.0 },
+            { 2.0, 0.0 },
+            { 3.0, 0.0 }
         };
 
+        // Compute the slice normal (in 3-dimensions).
         vec3 a = intersections[0].xyz;
         vec3 b = intersections[1].xyz;
         vec3 c = intersections[2].xyz;
-
         vec3 ab = b - a;
         vec3 bc = c - b;
         vec3 n = normalize(cross(bc, ab));
+
         vec3 first_edge = normalize(a - slice_centroid);
 
-        for (int i = 1; i < 4; ++i)
+        for (int i = 1; i < angles.length(); ++i)
         {
             vec3 p = intersections[i].xyz;
             vec3 edge = normalize(p - slice_centroid);
@@ -161,7 +166,7 @@ void main()
 
         // Perform an insertion sort.
         uint i = 1;
-        while(i < 4)
+        while(i < angles.length())
         {
             uint j = i;
             while(j > 0 && (angles[j - 1].y > angles[j].y))
@@ -185,11 +190,11 @@ void main()
         slice_vertices[local_id].vertices[4] = intersections[uint(angles[2].x)];
         slice_vertices[local_id].vertices[5] = intersections[uint(angles[3].x)];
 
-        indirect[local_id] = DrawCommand(6, 1, local_id * 6, 0);
+        indirect[local_id] = DrawCommand(max_new_vertices, 1, local_id * max_new_vertices, 0);
     }
     else
     {
         // We should never get here...
-        indirect[local_id] = DrawCommand(0, 0, local_id * 6, 0);
+        indirect[local_id] = DrawCommand(0, 0, local_id * max_new_vertices, 0);
     }
 }

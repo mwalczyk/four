@@ -1,7 +1,4 @@
-use cgmath::{self, Matrix4, SquareMatrix, Vector4};
-
-use hyperplane::Hyperplane;
-use rotations;
+use cgmath::{self, Vector4};
 
 pub trait Tetrahedralize {
     fn generate() -> Vec<Tetrahedron>;
@@ -11,26 +8,17 @@ pub trait Tetrahedralize {
 /// is the building block for all 4-dimensional meshes in the `four` renderer.
 pub struct Tetrahedron {
     pub vertices: [Vector4<f32>; 4],
-    pub color: Vector4<f32>,
-    pub transform: Matrix4<f32>,
-    pub cell: u32,
+    pub cell_index: u32,
     pub cell_centroid: Vector4<f32>,
 }
 
 impl Tetrahedron {
     /// Create a new tetrahedron from an array of 4 vertices embedded in a 4-dimensional
     /// space.
-    pub fn new(
-        vertices: [Vector4<f32>; 4],
-        color: Vector4<f32>,
-        cell: u32,
-        cell_centroid: Vector4<f32>,
-    ) -> Tetrahedron {
+    pub fn new(vertices: [Vector4<f32>; 4], cell_index: u32, cell_centroid: Vector4<f32>) -> Tetrahedron {
         Tetrahedron {
             vertices,
-            color,
-            transform: Matrix4::identity(),
-            cell,
+            cell_index,
             cell_centroid,
         }
     }

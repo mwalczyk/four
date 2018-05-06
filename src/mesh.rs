@@ -11,7 +11,7 @@ use gl::types::*;
 use hyperplane::Hyperplane;
 use polychora::{Definition, Polychoron};
 use program::Program;
-use rotations::{self, Plane};
+use rotations;
 use tetrahedron::Tetrahedron;
 use utilities;
 
@@ -44,7 +44,7 @@ pub struct Mesh {
     /// A list of tetrahedra (embedded in 4-dimensions) that make up this mesh.
     tetrahedra: Vec<Tetrahedron>,
 
-    /// The current transform (translation, rotation, scale) of this mesh.
+    /// The current transform (translation, rotation, scale) of this mesh (in 4-dimensions).
     transform: Matrix4<f32>,
 
     /// The compute shader that is used to compute 3-dimensional slices of this mesh.
@@ -264,7 +264,7 @@ impl Mesh {
                 // Get the vertices that make up this face.
                 let face_vertices = self.get_vertices_for_face(*face_index);
 
-                // First, we need to triangulate this face into two, non-overlapping
+                // First, we need to triangulate this face into several, non-overlapping
                 // triangles.
                 //
                 // a -- b
@@ -272,7 +272,10 @@ impl Mesh {
                 // | /  |
                 // c -- d
                 //
-                // Collect all 4D vertices and sort.
+                // We can do this by create a triangle fan, starting a one of the face
+                // vertices. However, this assumes that our vertices are sorted in
+                // some order (clockwise or counter-clockwise). So, the first thing we
+                // do is, collect all of the face vertices and sort them.
                 let face_vertices_sorted =
                     rotations::sort_points_on_plane(&face_vertices, &hyperplane);
 
@@ -282,7 +285,8 @@ impl Mesh {
 
                 // We only want to tetrahedralize faces that are NOT connected to the apex.
                 if !face_vertices.contains(&apex) {
-                    // Create a triangle fan, starting at the first vertex of the sorted list.
+                    // Create a triangle fan, starting at the first vertex in the (sorted) list.
+                    //
                     // Connect each resulting triangle to the apex vertex to create a full
                     // tetrahedron.
                     for i in 1..face_vertices_sorted.len() - 1 {
@@ -293,7 +297,6 @@ impl Mesh {
                                 face_vertices_sorted[i + 1],
                                 apex,
                             ],
-                            utilities::from_hex(0xffffff, 1.0),
                             cell_index as u32,
                             cell_centroid,
                         ));
@@ -396,7 +399,7 @@ impl Mesh {
                 self.buffer_tetrahedra,
                 vertices_size as isize,
                 vertices.as_ptr() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
+                gl::STATIC_DRAW,
             );
 
             // The VBO that will be associated with the vertex attribute #1, which does not change
@@ -412,7 +415,7 @@ impl Mesh {
             // Items that will be written to on the GPU (more or less every frame).
             // ...
 
-            // The SSBO of slice vertices that will be written to whenever the slicing hyperplane moves.
+            // The buffer of slice vertices that will be written to whenever the slicing hyperplane moves.
             let mut alloc_size =
                 mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
             gl::CreateBuffers(1, &mut self.buffer_slice_vertices);
@@ -420,16 +423,17 @@ impl Mesh {
                 self.buffer_slice_vertices,
                 alloc_size as isize,
                 ptr::null() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
+                gl::STREAM_DRAW,
             );
 
+            // The buffer of draw commands that will be filled out by the compute shader dispatch.
             alloc_size = mem::size_of::<DrawCommand>() * total_tetrahedra as usize;
             gl::CreateBuffers(1, &mut self.buffer_indirect_commands);
             gl::NamedBufferData(
                 self.buffer_indirect_commands,
                 alloc_size as isize,
                 ptr::null() as *const GLvoid,
-                gl::DYNAMIC_DRAW,
+                gl::STREAM_DRAW,
             );
 
             // Set up SSBO bind points.

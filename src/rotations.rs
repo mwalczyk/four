@@ -12,7 +12,10 @@ pub enum Plane {
     ZW,
 }
 
-/// Takes a 4D cross product between `u`, `v`, and `w`.
+/// Takes a 4D cross product between `u`, `v`, and `w`. The result is a vector in
+/// 4-dimensions that is simultaneously orthogonal to `u`, `v`, and `w`.
+///
+/// Reference: `https://ef.gy/linear-algebra:normal-vectors-in-higher-dimensional-spaces`
 pub fn cross(u: &Vector4<f32>, v: &Vector4<f32>, w: &Vector4<f32>) -> Vector4<f32> {
     let a = (v[0] * w[1]) - (v[1] * w[0]);
     let b = (v[0] * w[2]) - (v[2] * w[0]);
@@ -80,6 +83,9 @@ pub fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
 /// Returns a "double rotation" matrix, which represents two planes of rotation.
 /// The only fixed point is the origin. If `alpha` and `beta` are equal and non-zero,
 /// then the rotation is called an isoclinic rotation.
+///
+/// In this case, we return a matrix that represents a rotation by `alpha` in the
+/// XY-plane and `beta` in the ZW-plane.
 ///
 /// Reference: `https://en.wikipedia.org/wiki/Plane_of_rotation#Double_rotations`
 pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
@@ -159,7 +165,9 @@ pub fn sort_points_on_plane(
 }
 
 /// Construct a 4x4 matrix representing a series of plane rotations that cause
-/// the vector <1, 1, 1, 1> to align with the x-axis, <1, 0, 0, 0>.
+/// the vector <1, 1, 1, 1> to align with the x-axis, <1, 0, 0, 0>. This is useful
+/// for projecting points from 4D -> 3D, if we decide to slice corner-first (which
+/// is currently not the case).
 ///
 /// Reference: `https://en.wikipedia.org/wiki/User:Tetracube/Coordinates_of_uniform_polytopes#Mapping_coordinates_back_to_n-space`
 pub fn align_corner_to_x_axis() -> Matrix4<f32> {
