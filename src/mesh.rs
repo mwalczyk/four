@@ -154,36 +154,25 @@ impl Mesh {
             .uniform_matrix_4f("u_transform", &self.transform);
 
         unsafe {
-            // TODO: find the optimal value to launch here.
-            gl::DispatchCompute(self.tetrahedra.len() as u32, 1, 1);
+            let dispatch = (self.tetrahedra.len() as f32 / 128.0).ceil();
+            gl::DispatchCompute(dispatch as u32, 1, 1);
+
+            // Barrier against subsequent SSBO reads and indirect drawing commands.
             gl::MemoryBarrier(gl::SHADER_STORAGE_BARRIER_BIT | gl::COMMAND_BARRIER_BIT);
         }
 
         self.compute.unbind();
     }
 
-    /// Draws a 3-dimensional slice of the underlying 4-dimensional mesh.
+    /// Draws a 3-dimensional slice of the 4-dimensional mesh.
     pub fn draw(&self) {
         unsafe {
             gl::BindVertexArray(self.vao);
-            gl::VertexArrayVertexBuffer(
-                self.vao,
-                0,
-                self.buffer_slice_vertices,
-                0,
-                mem::size_of::<Vector4<f32>>() as i32,
-            );
-            gl::VertexArrayVertexBuffer(
-                self.vao,
-                1,
-                self.buffer_slice_colors,
-                0,
-                mem::size_of::<Vector4<f32>>() as i32,
-            );
 
             // Bind the buffer that contains indirect draw commands.
             gl::BindBuffer(gl::DRAW_INDIRECT_BUFFER, self.buffer_indirect_commands);
 
+            // Dispatch indirect draw commands.
             gl::MultiDrawArraysIndirect(
                 gl::TRIANGLES,
                 ptr::null() as *const GLvoid,
@@ -330,7 +319,7 @@ impl Mesh {
             gl::EnableVertexArrayAttrib(self.vao, ATTR_POS);
             gl::VertexArrayAttribFormat(
                 self.vao,
-                0,
+                ATTR_POS,
                 self.def.components_per_vertex as i32,
                 gl::FLOAT,
                 gl::FALSE,
@@ -344,7 +333,7 @@ impl Mesh {
             gl::EnableVertexArrayAttrib(self.vao, ATTR_COL);
             gl::VertexArrayAttribFormat(
                 self.vao,
-                1,
+                ATTR_COL,
                 self.def.components_per_vertex as i32,
                 gl::FLOAT,
                 gl::FALSE,
@@ -353,14 +342,6 @@ impl Mesh {
             gl::VertexArrayAttribBinding(self.vao, ATTR_COL, BINDING_COL);
 
             // TODO: we should be able to use this: gl::VertexArrayBindingDivisor(self.vao, 1, 6);
-
-            gl::VertexArrayVertexBuffer(
-                self.vao,
-                BINDING_COL,
-                self.buffer_slice_colors,
-                0,
-                (mem::size_of::<Vector4<f32>>() as usize) as i32,
-            );
 
             // Initialize the buffer that will hold this mesh's tetrahedra.
             let mut vertices = Vec::new();
@@ -440,6 +421,26 @@ impl Mesh {
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.buffer_tetrahedra);
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.buffer_slice_vertices);
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.buffer_indirect_commands);
+
+            // Setup vertex attribute bindings.
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                BINDING_POS,
+                self.buffer_slice_vertices,
+                0,
+                mem::size_of::<Vector4<f32>>() as i32,
+            );
+            gl::VertexArrayVertexBuffer(
+                self.vao,
+                BINDING_COL,
+                self.buffer_slice_colors,
+                0,
+                mem::size_of::<Vector4<f32>>() as i32,
+            );
+
+            let mut local_size: [i32; 3] = [0; 3];
+            gl::GetProgramiv(self.compute.get_id(), gl::COMPUTE_WORK_GROUP_SIZE, local_size.as_mut_ptr());
+            println!("Compute shader local work group size: {:?}", local_size);
         }
     }
 }

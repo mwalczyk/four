@@ -18,6 +18,11 @@ pub struct Program {
 }
 
 impl Program {
+
+    pub fn get_id(&self) -> GLuint {
+        self.id
+    }
+
     /// Compiles a shader of type `stage` from the source held in `src`.
     fn compile_shader(src: &String, stage: GLenum) -> Result<GLuint, String> {
         let shader;
