@@ -18,7 +18,6 @@ pub struct Program {
 }
 
 impl Program {
-
     pub fn get_id(&self) -> GLuint {
         self.id
     }

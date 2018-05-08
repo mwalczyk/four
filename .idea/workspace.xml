@@ -3,9 +3,12 @@
   <component name="ChangeListManager">
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/compute_slice.glsl" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/compute_slice.glsl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/mesh.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/mesh.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/polychora.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/polychora.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/program.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/program.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rotations.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rotations.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tetrahedron.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tetrahedron.rs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -22,29 +25,46 @@
         <entry file="file://$PROJECT_DIR$/shaders/compute_slice.glsl">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="252">
-              <caret line="18" column="2" lean-forward="true" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
+              <caret line="18" column="2" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mesh.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="mesh.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/mesh.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="156" column="73" selection-start-line="156" selection-start-column="73" selection-end-line="156" selection-end-column="73" />
+            <state relative-caret-position="280">
+              <caret line="190" column="47" selection-start-line="190" selection-start-column="47" selection-end-line="190" selection-end-column="47" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="program.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/program.rs">
+      <file leaf-file-name="polychora.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/polychora.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="24" selection-start-line="24" selection-end-line="24" />
+            <state relative-caret-position="616">
+              <caret line="74" column="26" selection-start-line="74" selection-start-column="26" selection-end-line="74" selection-end-column="26" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="633">
+              <caret line="88" column="27" selection-start-line="88" selection-start-column="27" selection-end-line="88" selection-end-column="27" />
               <folding>
-                <element signature="e#320#321#0" expanded="true" />
-                <element signature="e#337#338#0" expanded="true" />
+                <element signature="n#!!block;n#set_draw_state#0" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="constants.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/constants.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="28">
+              <caret line="2" column="29" selection-start-line="2" selection-start-column="29" selection-end-line="2" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -93,32 +113,32 @@
         <option value="D:/Firefox Downloads/120cell_1trunc.ascii" />
         <option value="$PROJECT_DIR$/shapes/8cell.txt" />
         <option value="$PROJECT_DIR$/shapes/120cell.txt" />
-        <option value="$PROJECT_DIR$/src/constants.rs" />
         <option value="$PROJECT_DIR$/src/polychorons.rs" />
         <option value="$PROJECT_DIR$/src/polytope.rs" />
         <option value="$PROJECT_DIR$/src/interaction.rs" />
         <option value="$PROJECT_DIR$/shaders/slice.comp.glsl" />
-        <option value="$PROJECT_DIR$/src/polychora.rs" />
         <option value="$PROJECT_DIR$/src/utilities.rs" />
         <option value="$PROJECT_DIR$/src/renderer.rs" />
         <option value="$PROJECT_DIR$/shaders/shader.frag" />
         <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/hyperplane.rs" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/camera.rs" />
         <option value="$PROJECT_DIR$/src/tetrahedron.rs" />
         <option value="$PROJECT_DIR$/src/rotations.rs" />
         <option value="$PROJECT_DIR$/shaders/compute_slice.glsl" />
         <option value="$PROJECT_DIR$/src/program.rs" />
         <option value="$PROJECT_DIR$/src/mesh.rs" />
+        <option value="$PROJECT_DIR$/src/constants.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/polychora.rs" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-43" />
-    <option name="y" value="27" />
-    <option name="width" value="1659" />
-    <option name="height" value="942" />
+    <option name="x" value="2022" />
+    <option name="y" value="-17" />
+    <option name="width" value="1660" />
+    <option name="height" value="1033" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -126,6 +146,7 @@
     </navigator>
     <panes>
       <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -147,7 +168,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -277,40 +297,28 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="851" extended-state="6" />
+    <frame x="1911" y="-9" width="1938" height="1184" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17773438" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.08385417" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Cargo" order="3" />
       <window_info anchor="right" id="Palette&#9;" order="4" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.18190387" />
       <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.24390244" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="9" />
-      <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="right" id="Cargo" order="3" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.10509384" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.23548046" />
-      <window_info id="Designer" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="right" id="Palette&#9;" order="4" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32897604" />
-      <window_info anchor="bottom" id="Terminal" order="9" />
-      <window_info id="Favorites" order="3" side_tool="true" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -436,13 +444,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/shapes/120cell.txt" />
     <entry file="file://$USER_HOME$/Desktop/shapes/ignore/8cell.txt" />
-    <entry file="file://$PROJECT_DIR$/src/constants.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="70">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/option.rs" />
     <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
       <provider selected="true" editor-type-id="text-editor">
@@ -455,13 +456,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="140">
           <caret line="10" lean-forward="true" selection-start-line="10" selection-end-line="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="28">
-          <caret line="2" column="14" lean-forward="true" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
         </state>
       </provider>
     </entry>
@@ -486,13 +480,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="37" selection-start-line="37" selection-end-line="37" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/tetrahedron.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
@@ -511,45 +498,58 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-962">
           <caret line="100" column="40" lean-forward="true" selection-start-line="100" selection-start-column="40" selection-end-line="100" selection-end-column="40" />
-          <folding>
-            <element signature="n#!!block;n#cross#0" />
-            <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/polychora.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="542">
-          <caret line="1107" column="40" lean-forward="true" selection-start-line="1107" selection-start-column="40" selection-end-line="1107" selection-end-column="40" />
-          <folding>
-            <element signature="e#41360#55614#0" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/shaders/compute_slice.glsl">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
-          <caret line="18" column="2" lean-forward="true" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
+          <caret line="18" column="2" selection-start-line="18" selection-start-column="2" selection-end-line="18" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/constants.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="28">
+          <caret line="2" column="29" selection-start-line="2" selection-start-column="29" selection-end-line="2" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="28">
+          <caret line="2" column="14" lean-forward="true" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="24" selection-start-line="24" selection-end-line="24" />
-          <folding>
-            <element signature="e#320#321#0" expanded="true" />
-            <element signature="e#337#338#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="392">
+          <caret line="66" selection-start-line="66" selection-end-line="66" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/mesh.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="156" column="73" selection-start-line="156" selection-start-column="73" selection-end-line="156" selection-end-column="73" />
+        <state relative-caret-position="280">
+          <caret line="190" column="47" selection-start-line="190" selection-start-column="47" selection-end-line="190" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="633">
+          <caret line="88" column="27" selection-start-line="88" selection-start-column="27" selection-end-line="88" selection-end-column="27" />
+          <folding>
+            <element signature="n#!!block;n#set_draw_state#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/polychora.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="616">
+          <caret line="74" column="26" selection-start-line="74" selection-start-column="26" selection-end-line="74" selection-end-column="26" />
         </state>
       </provider>
     </entry>

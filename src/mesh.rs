@@ -439,7 +439,11 @@ impl Mesh {
             );
 
             let mut local_size: [i32; 3] = [0; 3];
-            gl::GetProgramiv(self.compute.get_id(), gl::COMPUTE_WORK_GROUP_SIZE, local_size.as_mut_ptr());
+            gl::GetProgramiv(
+                self.compute.get_id(),
+                gl::COMPUTE_WORK_GROUP_SIZE,
+                local_size.as_mut_ptr(),
+            );
             println!("Compute shader local work group size: {:?}", local_size);
         }
     }

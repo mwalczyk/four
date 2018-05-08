@@ -15,7 +15,11 @@ pub struct Tetrahedron {
 impl Tetrahedron {
     /// Create a new tetrahedron from an array of 4 vertices embedded in a 4-dimensional
     /// space.
-    pub fn new(vertices: [Vector4<f32>; 4], cell_index: u32, cell_centroid: Vector4<f32>) -> Tetrahedron {
+    pub fn new(
+        vertices: [Vector4<f32>; 4],
+        cell_index: u32,
+        cell_centroid: Vector4<f32>,
+    ) -> Tetrahedron {
         Tetrahedron {
             vertices,
             cell_index,

@@ -86,7 +86,7 @@ fn main() {
     // Set up the 3D transformation matrices.
     let mut model = Matrix4::identity();
 
-    let eye = Point3::new(5.0, 0.0, 0.0);
+    let eye = Point3::new(2.0, 0.0, 0.0);
     let target = Point3::from_value(0.0);
     let up = Vector3::unit_y();
     let view = Matrix4::look_at(eye, target, up);
