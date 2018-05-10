@@ -1475,8 +1475,13 @@ impl Polychoron {
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         let displacement = match *self {
-            _ => -0.925614,
+            Polychoron::Cell120 => -0.925614,
+            Polychoron::Cell600 => -0.309017,
+            _ => 0.1
         };
+
+        // Calculate the midpoint of any edge, find its distance to the origin and use this
+        // as the displacement?
 
         let mut bounding_hyperplanes = Vec::new();
         for vertex in self.get_dual().get_vertices().iter() {
