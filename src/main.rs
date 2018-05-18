@@ -234,6 +234,7 @@ fn main() {
 
         mesh.set_transform(&rotation_in_4d);
         mesh.slice(&hyperplane);
+        mesh.compute.uniform_1f("u_time", milliseconds);
 
         program.bind();
         mesh.draw();

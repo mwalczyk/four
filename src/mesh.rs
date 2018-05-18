@@ -48,7 +48,7 @@ pub struct Mesh {
     transform: Matrix4<f32>,
 
     /// The compute shader that is used to compute 3-dimensional slices of this mesh.
-    compute: Program,
+    pub compute: Program,
 
     /// The vertex array object (VAO) that is used for drawing this mesh.
     vao: u32,
@@ -242,11 +242,15 @@ impl Mesh {
                 &face_indices
                     .iter()
                     .map(|index| {
-                        utilities::average(&self.get_vertices_for_face(*index), &Vector4::zero())
+                        let face_centroid = utilities::average(&self.get_vertices_for_face(*index), &Vector4::zero());
+
+                        face_centroid
                     })
                     .collect::<Vec<_>>(),
                 &Vector4::zero(),
             );
+
+            println!("Length of face centroid: {}", cell_centroid.magnitude());
 
             // Iterate over each face of the current cell.
             for face_index in face_indices {
@@ -352,6 +356,7 @@ impl Mesh {
 
             for tetra in self.tetrahedra.iter() {
                 vertices.extend_from_slice(&tetra.vertices);
+                vertices.push(tetra.cell_centroid);
 
                 // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
                 for i in 0..MAX_VERTICES_PER_SLICE {
@@ -363,7 +368,7 @@ impl Mesh {
                 * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
                 * (self.def.vertices_per_face - 2);
 
-            let vertices_size = mem::size_of::<Vector4<f32>>() * VERTICES_PER_TETRAHEDRON
+            let vertices_size = mem::size_of::<Vector4<f32>>() * (VERTICES_PER_TETRAHEDRON + 1)
                 * total_tetrahedra as usize;
             let colors_size =
                 mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;

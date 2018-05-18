@@ -1476,7 +1476,7 @@ impl Polychoron {
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         let displacement = match *self {
             Polychoron::Cell120 => -0.925614,
-            Polychoron::Cell600 => -0.309017,
+            Polychoron::Cell600 => -1.080363,
             _ => 0.1
         };
 
