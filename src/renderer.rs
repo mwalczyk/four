@@ -72,7 +72,7 @@ impl Renderer {
                 self.vbo,
                 0,
                 vbo_upload_size,
-                tetra.vertices.as_ptr() as *const c_void,
+                tetra.get_vertices().as_ptr() as *const c_void,
             );
 
             let edges = Tetrahedron::get_edge_indices();

@@ -91,6 +91,10 @@ impl Mesh {
         mesh
     }
 
+    pub fn get_tetrahedra(&self) -> &Vec<Tetrahedron> {
+        &self.tetrahedra
+    }
+
     /// Returns the number of unique vertices in this mesh.
     pub fn get_number_of_vertices(&self) -> usize {
         self.vertices.len()
@@ -355,7 +359,7 @@ impl Mesh {
             const MAX_VERTICES_PER_SLICE: usize = 6;
 
             for tetra in self.tetrahedra.iter() {
-                vertices.extend_from_slice(&tetra.vertices);
+                vertices.extend_from_slice(tetra.get_vertices());
                 vertices.push(tetra.cell_centroid);
 
                 // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.

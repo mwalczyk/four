@@ -7,7 +7,7 @@ pub trait Tetrahedralize {
 /// A struct representing a tetrahedron (3-simplex) embedded in 4-dimensions. This
 /// is the building block for all 4-dimensional meshes in the `four` renderer.
 pub struct Tetrahedron {
-    pub vertices: [Vector4<f32>; 4],
+    vertices: [Vector4<f32>; 4],
     pub cell_index: u32,
     pub cell_centroid: Vector4<f32>,
 }
@@ -25,6 +25,10 @@ impl Tetrahedron {
             cell_index,
             cell_centroid,
         }
+    }
+
+    pub fn get_vertices(&self) -> &[Vector4<f32>; 4] {
+        &self.vertices
     }
 
     /// Note that OpenGL expects these to be `u32`s.

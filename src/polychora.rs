@@ -88,22 +88,33 @@ impl Polychoron {
     pub fn get_vertices(&self) -> Vec<Vector4<f32>> {
         match *self {
             Polychoron::Cell8 => vec![
-                Vector4::new(-1.0, -1.0, -1.0, -1.0),
-                Vector4::new(-1.0, -1.0, -1.0, 1.0),
-                Vector4::new(-1.0, -1.0, 1.0, -1.0),
-                Vector4::new(-1.0, -1.0, 1.0, 1.0),
-                Vector4::new(-1.0, 1.0, -1.0, -1.0),
-                Vector4::new(-1.0, 1.0, -1.0, 1.0),
-                Vector4::new(-1.0, 1.0, 1.0, -1.0),
-                Vector4::new(-1.0, 1.0, 1.0, 1.0),
-                Vector4::new(1.0, -1.0, -1.0, -1.0),
-                Vector4::new(1.0, -1.0, -1.0, 1.0),
-                Vector4::new(1.0, -1.0, 1.0, -1.0),
-                Vector4::new(1.0, -1.0, 1.0, 1.0),
-                Vector4::new(1.0, 1.0, -1.0, -1.0),
-                Vector4::new(1.0, 1.0, -1.0, 1.0),
-                Vector4::new(1.0, 1.0, 1.0, -1.0),
-                Vector4::new(1.0, 1.0, 1.0, 1.0),
+                Vector4::new(-0.5, -0.5, -0.5, -0.5),
+                Vector4::new(-0.5, -0.5, -0.5, 0.5),
+                Vector4::new(-0.5, -0.5, 0.5, -0.5),
+                Vector4::new(-0.5, -0.5, 0.5, 0.5),
+                Vector4::new(-0.5, 0.5, -0.5, -0.5),
+                Vector4::new(-0.5, 0.5, -0.5, 0.5),
+                Vector4::new(-0.5, 0.5, 0.5, -0.5),
+                Vector4::new(-0.5, 0.5, 0.5, 0.5),
+                Vector4::new(0.5, -0.5, -0.5, -0.5),
+                Vector4::new(0.5, -0.5, -0.5, 0.5),
+                Vector4::new(0.5, -0.5, 0.5, -0.5),
+                Vector4::new(0.5, -0.5, 0.5, 0.5),
+                Vector4::new(0.5, 0.5, -0.5, -0.5),
+                Vector4::new(0.5, 0.5, -0.5, 0.5),
+                Vector4::new(0.5, 0.5, 0.5, -0.5),
+                Vector4::new(0.5, 0.5, 0.5, 0.5),
+            ],
+            Polychoron::Cell16 => vec![
+                // From: `http://paulbourke.net/geometry/hyperspace/`
+                Vector4::new(-1.0, 0.0, 0.0, 0.0),
+                Vector4::new(0.0, -1.0, 0.0, 0.0),
+                Vector4::new(0.0, 0.0, -1.0, 0.0),
+                Vector4::new(0.0, 0.0, 0.0, -1.0),
+                Vector4::new(1.0, 0.0, 0.0,	0.0),
+                Vector4::new(0.0, 1.0, 0.0, 0.0),
+                Vector4::new(0.0, 0.0, 1.0,	0.0),
+                Vector4::new(0.0, 0.0, 0.0,	1.0),
             ],
             Polychoron::Cell120 => vec![
                 Vector4::new(0.707107, 0.707107, 0.0, 0.0),
@@ -1475,6 +1486,7 @@ impl Polychoron {
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         let displacement = match *self {
+            Polychoron::Cell8 => 0.5,
             Polychoron::Cell120 => -0.925614,
             Polychoron::Cell600 => -1.080363,
             _ => 0.1

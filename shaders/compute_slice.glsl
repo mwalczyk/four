@@ -1,5 +1,4 @@
-#version 430
-#extension GL_ARB_shading_language_420pack : enable
+#version 450
 
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}

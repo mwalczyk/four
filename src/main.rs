@@ -23,11 +23,13 @@ mod tetrahedron;
 mod utilities;
 
 // Struct and function imports.
+use camera::{FourCamera, ThreeCamera};
 use hyperplane::Hyperplane;
 use interaction::InteractionState;
 use mesh::Mesh;
 use polychora::Polychoron;
 use program::Program;
+use renderer::Renderer;
 
 use std::path::Path;
 use std::time::{Duration, SystemTime};
@@ -86,13 +88,18 @@ fn main() {
     // Set up the 3D transformation matrices.
     let mut model = Matrix4::identity();
 
-    let eye = Point3::new(2.0, 0.0, 0.0);
-    let target = Point3::from_value(0.0);
-    let up = Vector3::unit_y();
-    let view = Matrix4::look_at(eye, target, up);
+    let four_cam = FourCamera::new(
+        Vector4::unit_x() * 1.25,
+        Vector4::zero(),
+        Vector4::unit_y(),
+        Vector4::unit_z(),
+    );
 
-    let fov = cgmath::Rad(std::f32::consts::FRAC_PI_2);
-    let projection = cgmath::perspective(fov, 1.0, 0.1, 1000.0);
+    let three_cam = ThreeCamera::new(
+        Point3::new(2.0, 0.0, 0.0),
+        Point3::from_value(0.0),
+        Vector3::unit_y()
+    );
 
     // Load the shader program that we will use for rendering.
     let program = Program::two_stage(
@@ -100,9 +107,20 @@ fn main() {
         utilities::load_file_as_string(Path::new("shaders/shader.frag")),
     ).unwrap();
 
+    let projections_program = Program::two_stage(
+        utilities::load_file_as_string(Path::new("shaders/projections.vert")),
+        utilities::load_file_as_string(Path::new("shaders/projections.frag")),
+    ).unwrap();
+
+
+
+
+
     let mut interaction = InteractionState::new();
-    let mut show_tetrahedrons = false;
+    let mut show_slice = false;
     let mut reveal_cells = mesh.def.cells;
+
+    let renderer = Renderer::new();
 
     let start = SystemTime::now();
 
@@ -183,7 +201,7 @@ fn main() {
                                     interaction.ctrl_pressed = true;
                                 }
                                 glutin::VirtualKeyCode::T => {
-                                    show_tetrahedrons = !show_tetrahedrons;
+                                    show_slice = !show_slice;
                                 }
                                 glutin::VirtualKeyCode::W => unsafe {
                                     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
@@ -224,20 +242,51 @@ fn main() {
         let elapsed = start.elapsed().unwrap();
         let seconds = elapsed.as_secs() * 1000 + elapsed.subsec_nanos() as u64 / 1_000_000;
         let milliseconds = (seconds as f32) / 1000.0;
-        program.uniform_1f("u_time", milliseconds);
-
-        // Uniforms for 3D -> 2D projection.
-        program.uniform_matrix_4f("u_model", &model);
-        program.uniform_matrix_4f("u_view", &view);
-        program.uniform_matrix_4f("u_projection", &projection);
         clear();
 
-        mesh.set_transform(&rotation_in_4d);
-        mesh.slice(&hyperplane);
-        mesh.compute.uniform_1f("u_time", milliseconds);
 
-        program.bind();
-        mesh.draw();
+        if show_slice {
+            // (1) Draw the results of the slicing operation.
+
+            program.uniform_1f("u_time", milliseconds);
+
+            // Uniforms for 3D -> 2D projection.
+            program.uniform_matrix_4f("u_model", &model);
+            program.uniform_matrix_4f("u_view", &three_cam.look_at);
+            program.uniform_matrix_4f("u_projection", &three_cam.projection);
+
+            mesh.set_transform(&rotation_in_4d);
+            mesh.slice(&hyperplane);
+            mesh.compute.uniform_1f("u_time", milliseconds);
+
+            program.bind();
+            mesh.draw();
+        } else {
+            // (2) Draw the wireframes of all of the tetrahedra that make up this polychoron.
+
+            // Uniforms for 4D -> 3D projection.
+            projections_program.uniform_4f("u_four_from", &four_cam.from);
+            projections_program.uniform_matrix_4f("u_four_rotation", &rotation_in_4d);
+            projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
+            projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
+
+            // Uniforms for 3D -> 2D projection.
+            projections_program.uniform_matrix_4f("u_three_model", &model);
+            projections_program.uniform_matrix_4f("u_three_view", &three_cam.look_at);
+            projections_program.uniform_matrix_4f("u_three_projection", &three_cam.projection);
+            projections_program.bind();
+
+            for tetra in mesh.get_tetrahedra().iter() {
+                if tetra.cell_index < reveal_cells {
+                    renderer.draw_tetrahedron(&tetra);
+                }
+            }
+        }
+
+
+
+
+
 
         // Pressing the right mouse button and moving left <-> right will translate the
         // slicing hyperplane away from the origin.

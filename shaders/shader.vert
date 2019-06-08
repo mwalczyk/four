@@ -1,5 +1,4 @@
-#version 430
-#extension GL_ARB_shading_language_420pack : enable
+#version 450
 
 const float pi = 3.1415926535897932384626433832795;
 
