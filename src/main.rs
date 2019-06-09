@@ -82,7 +82,7 @@ fn main() {
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
     // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::new(Polychoron::Cell120);
+    let mut mesh = Mesh::new(Polychoron::Cell8);
     let mut rotation_in_4d = Matrix4::identity();
 
     // Set up the 3D transformation matrices.
@@ -138,6 +138,8 @@ fn main() {
                         let delta = interaction.get_mouse_delta() * constants::MOUSE_SENSITIVITY;
 
                         if interaction.shift_pressed {
+                            let rot = true;
+
                             let rot_xw = rotations::get_simple_rotation_matrix(
                                 rotations::Plane::XW,
                                 delta.x,
@@ -209,6 +211,9 @@ fn main() {
                                 glutin::VirtualKeyCode::F => unsafe {
                                     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
                                 },
+                                glutin::VirtualKeyCode::H => {
+                                    rotation_in_4d = Matrix4::identity();
+                                },
                                 glutin::VirtualKeyCode::LBracket => {
                                     if reveal_cells > 0 {
                                         reveal_cells -= 1;
@@ -264,9 +269,11 @@ fn main() {
         } else {
             // (2) Draw the wireframes of all of the tetrahedra that make up this polychoron.
 
+            projections_program.uniform_1f("u_time", milliseconds);
+
             // Uniforms for 4D -> 3D projection.
             projections_program.uniform_4f("u_four_from", &four_cam.from);
-            projections_program.uniform_matrix_4f("u_four_rotation", &rotation_in_4d);
+            projections_program.uniform_matrix_4f("u_four_model", &rotation_in_4d);
             projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
             projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
 
