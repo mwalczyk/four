@@ -82,7 +82,7 @@ fn main() {
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
     // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::new(Polychoron::Cell8);
+    let mut mesh = Mesh::new(Polychoron::Cell120);
     let mut rotation_in_4d = Matrix4::identity();
 
     // Set up the 3D transformation matrices.
@@ -265,7 +265,7 @@ fn main() {
             mesh.compute.uniform_1f("u_time", milliseconds);
 
             program.bind();
-            mesh.draw();
+            mesh.draw_slice();
         } else {
             // (2) Draw the wireframes of all of the tetrahedra that make up this polychoron.
 
@@ -282,6 +282,8 @@ fn main() {
             projections_program.uniform_matrix_4f("u_three_view", &three_cam.look_at);
             projections_program.uniform_matrix_4f("u_three_projection", &three_cam.projection);
             projections_program.bind();
+
+            mesh.draw_tetrahedra();
 
             for tetra in mesh.get_tetrahedra().iter() {
                 if tetra.cell_index < reveal_cells {

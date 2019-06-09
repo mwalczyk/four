@@ -36,6 +36,10 @@ impl Tetrahedron {
         [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
     }
 
+    pub fn get_number_of_edges() -> usize {
+        6
+    }
+
     /// Returns the indices for a quadrilateral slice, which is constructed from two
     /// triangles.
     pub fn get_quad_indices() -> [(u32, u32, u32); 2] {

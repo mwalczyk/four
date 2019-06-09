@@ -15,6 +15,10 @@ use rotations;
 use tetrahedron::Tetrahedron;
 use utilities;
 
+const VERTICES_PER_TETRAHEDRON: usize = 4;
+const FACES_SHARED_PER_VERTEX: u32 = 3;
+const MAX_VERTICES_PER_SLICE: usize = 6;
+
 /// A struct representing an entry in the indirect draw buffer.
 #[repr(C)]
 struct DrawCommand {
@@ -50,8 +54,14 @@ pub struct Mesh {
     /// The compute shader that is used to compute 3-dimensional slices of this mesh.
     pub compute: Program,
 
-    /// The vertex array object (VAO) that is used for drawing this mesh.
-    vao: u32,
+    /// The vertex array object (VAO) that is used for drawing a 3D slice of this mesh.
+    vao_slice: u32,
+
+    /// The VAO that is used for drawing all of the tetrahedra that make up this mesh.
+    vao_tetrahedra: u32,
+
+    /// The EBO that is used for drawing all of the edges of the tetrahedra that make up this mesh.
+    ebo_tetrahedra: u32,
 
     /// A GPU-side buffer that contains all of the tetrahedra that make up this mesh.
     buffer_tetrahedra: u32,
@@ -79,7 +89,9 @@ impl Mesh {
             tetrahedra: Vec::new(),
             transform: Matrix4::identity(),
             compute: Program::single_stage(compute).unwrap(),
-            vao: 0,
+            vao_slice: 0,
+            vao_tetrahedra: 0,
+            ebo_tetrahedra: 0,
             buffer_tetrahedra: 0,
             buffer_slice_colors: 0,
             buffer_slice_vertices: 0,
@@ -169,9 +181,9 @@ impl Mesh {
     }
 
     /// Draws a 3-dimensional slice of the 4-dimensional mesh.
-    pub fn draw(&self) {
+    pub fn draw_slice(&self) {
         unsafe {
-            gl::BindVertexArray(self.vao);
+            gl::BindVertexArray(self.vao_slice);
 
             // Bind the buffer that contains indirect draw commands.
             gl::BindBuffer(gl::DRAW_INDIRECT_BUFFER, self.buffer_indirect_commands);
@@ -183,6 +195,15 @@ impl Mesh {
                 self.tetrahedra.len() as i32,
                 mem::size_of::<DrawCommand>() as i32,
             );
+        }
+    }
+
+    /// Draws a 3-dimensional projection of the 4-dimensional tetrahedra that make up this
+    /// mesh.
+    pub fn draw_tetrahedra(&self) {
+        unsafe {
+            gl::BindVertexArray(self.vao_tetrahedra);
+            gl::DrawElements(gl::LINES, (Tetrahedron::get_number_of_edges() * 2 * self.tetrahedra.len()) as i32, gl::UNSIGNED_INT, ptr::null());
         }
     }
 
@@ -235,7 +256,7 @@ impl Mesh {
         let mut tetrahedrons = Vec::new();
 
         for (cell_index, plane_and_faces) in self.gather_cells().iter().enumerate() {
-            let mut prev_len = tetrahedrons.len();
+            let prev_len = tetrahedrons.len();
 
             // The vertex that all tetrahedrons making up this solid will connect to.
             let mut apex = Vector4::from_value(f32::MAX);
@@ -316,57 +337,83 @@ impl Mesh {
         self.tetrahedra = tetrahedrons;
     }
 
+    /// Gathers all of the necessary vertex attributes required to render the tetrahedra
+    /// that make up this mesh. In particular, this function returns the vertex positions,
+    /// edge indices (for rendering wireframes), and colors.
+    fn gather_tetrahedra_attributes(&self) -> (Vec<Vector4<f32>>, Vec<u32>, Vec<Vector4<f32>>) {
+        // Set up CPU-side buffers.
+        let mut vertices = Vec::new();
+        let mut indices = Vec::new();
+        let mut colors = Vec::new();
+
+        // Gather the base indices used for drawing a tetrahedron, i.e.
+        // `[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]`, and apply
+        // relative offsets.
+        let local_indices = Tetrahedron::get_edge_indices();
+
+        for (i, tetra) in self.tetrahedra.iter().enumerate() {
+            // First, push back all of this tetrahedron's vertices.
+            vertices.extend_from_slice(tetra.get_vertices());
+            vertices.push(tetra.cell_centroid);
+
+            // Next, generate a new set of edge indices for this tetrahedron.
+            for (a, b) in local_indices.iter() {
+                // Create a new set of indices to draw the current tetrahedron. First,
+                // we add `4 * i`, since each tetrahedron has 4 vertices. Next, we
+                // add `i` to account for the extra vertex entry per tetrahedron
+                // (`cell_centroid`).
+                let offset = (VERTICES_PER_TETRAHEDRON * i + i) as u32;
+
+                indices.push(a + offset);
+                indices.push(b + offset);
+            }
+
+            // Finally, push back all of this tetrahedron's colors (currently, we are
+            // using the cell centroid to generate some sort of shading / colors).
+            // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
+            for i in 0..MAX_VERTICES_PER_SLICE {
+                colors.push(tetra.cell_centroid);
+            }
+        }
+
+        (vertices, indices, colors)
+    }
+
     /// Initializes all OpenGL objects (VAOs, buffers, etc.).
     fn init_render_objects(&mut self) {
         unsafe {
-            gl::CreateVertexArrays(1, &mut self.vao);
+            gl::CreateVertexArrays(1, &mut self.vao_slice);
 
             // Set up attribute #0: positions.
             const ATTR_POS: u32 = 0;
             const BINDING_POS: u32 = 0;
-            gl::EnableVertexArrayAttrib(self.vao, ATTR_POS);
+            gl::EnableVertexArrayAttrib(self.vao_slice, ATTR_POS);
             gl::VertexArrayAttribFormat(
-                self.vao,
+                self.vao_slice,
                 ATTR_POS,
                 self.def.components_per_vertex as i32,
                 gl::FLOAT,
                 gl::FALSE,
                 0,
             );
-            gl::VertexArrayAttribBinding(self.vao, ATTR_POS, BINDING_POS);
+            gl::VertexArrayAttribBinding(self.vao_slice, ATTR_POS, BINDING_POS);
 
+            // TODO: we should be able to use this: gl::VertexArrayBindingDivisor(self.vao, 1, 6)
             // Set up attribute #1: colors.
             const ATTR_COL: u32 = 1;
             const BINDING_COL: u32 = 1;
-            gl::EnableVertexArrayAttrib(self.vao, ATTR_COL);
+            gl::EnableVertexArrayAttrib(self.vao_slice, ATTR_COL);
             gl::VertexArrayAttribFormat(
-                self.vao,
+                self.vao_slice,
                 ATTR_COL,
                 self.def.components_per_vertex as i32,
                 gl::FLOAT,
                 gl::FALSE,
                 0,
             );
-            gl::VertexArrayAttribBinding(self.vao, ATTR_COL, BINDING_COL);
+            gl::VertexArrayAttribBinding(self.vao_slice, ATTR_COL, BINDING_COL);
 
-            // TODO: we should be able to use this: gl::VertexArrayBindingDivisor(self.vao, 1, 6);
-
-            // Initialize the buffer that will hold this mesh's tetrahedra.
-            let mut vertices = Vec::new();
-            let mut colors = Vec::new();
-            const VERTICES_PER_TETRAHEDRON: usize = 4;
-            const FACES_SHARED_PER_VERTEX: u32 = 3;
-            const MAX_VERTICES_PER_SLICE: usize = 6;
-
-            for tetra in self.tetrahedra.iter() {
-                vertices.extend_from_slice(tetra.get_vertices());
-                vertices.push(tetra.cell_centroid);
-
-                // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
-                for i in 0..MAX_VERTICES_PER_SLICE {
-                    colors.push(tetra.cell_centroid);
-                }
-            }
+            let (vertices, indices, colors) = self.gather_tetrahedra_attributes();
 
             let total_tetrahedra = self.def.cells
                 * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
@@ -383,15 +430,6 @@ impl Mesh {
                 vertices.len()
             );
 
-            // The buffer that will be bound at index #0 and read from.
-            gl::CreateBuffers(1, &mut self.buffer_tetrahedra);
-            gl::NamedBufferData(
-                self.buffer_tetrahedra,
-                vertices_size as isize,
-                vertices.as_ptr() as *const GLvoid,
-                gl::STATIC_DRAW,
-            );
-
             // The VBO that will be associated with the vertex attribute #1, which does not change
             // throughout the lifetime of the program (thus, we use the flag `STATIC_DRAW` below).
             gl::CreateBuffers(1, &mut self.buffer_slice_colors);
@@ -399,6 +437,15 @@ impl Mesh {
                 self.buffer_slice_colors,
                 colors_size as isize,
                 colors.as_ptr() as *const GLvoid,
+                gl::STATIC_DRAW,
+            );
+
+            // The buffer that will be bound at index #0 and read from.
+            gl::CreateBuffers(1, &mut self.buffer_tetrahedra);
+            gl::NamedBufferData(
+                self.buffer_tetrahedra,
+                vertices_size as isize,
+                vertices.as_ptr() as *const GLvoid,
                 gl::STATIC_DRAW,
             );
 
@@ -433,14 +480,14 @@ impl Mesh {
 
             // Setup vertex attribute bindings.
             gl::VertexArrayVertexBuffer(
-                self.vao,
+                self.vao_slice,
                 BINDING_POS,
                 self.buffer_slice_vertices,
                 0,
                 mem::size_of::<Vector4<f32>>() as i32,
             );
             gl::VertexArrayVertexBuffer(
-                self.vao,
+                self.vao_slice,
                 BINDING_COL,
                 self.buffer_slice_colors,
                 0,
@@ -454,6 +501,44 @@ impl Mesh {
                 local_size.as_mut_ptr(),
             );
             println!("Compute shader local work group size: {:?}", local_size);
+
+
+            // Finally, set up objects for the tetrahedra VAO.
+            gl::CreateVertexArrays(1, &mut self.vao_tetrahedra);
+
+            let size = (3240 * 6 * 2 * mem::size_of::<u32>()) as GLsizeiptr;
+            gl::CreateBuffers(1, &mut self.ebo_tetrahedra);
+            gl::NamedBufferData(
+                self.ebo_tetrahedra,
+                size,
+                indices.as_ptr() as *const GLvoid,
+                gl::DYNAMIC_DRAW,
+            );
+
+            gl::EnableVertexArrayAttrib(self.vao_tetrahedra, 0);
+            gl::VertexArrayAttribFormat(self.vao_tetrahedra, 0, 4, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribBinding(self.vao_tetrahedra, 0, 0);
+            gl::VertexArrayElementBuffer(self.vao_tetrahedra, self.ebo_tetrahedra);
+
+            gl::VertexArrayVertexBuffer(
+                self.vao_tetrahedra,
+                0,
+                self.buffer_tetrahedra,
+                0,
+                (mem::size_of::<f32>() * 4 as usize) as i32,
+            );
         }
+    }
+
+    fn init_slice_objects() {
+
+    }
+
+    fn init_tetrahedra_objects() {
+
+    }
+
+    fn init_wireframe_objects() {
+
     }
 }

@@ -13,5 +13,5 @@ void main()
 {
     float modified_depth = fs_in.depth_cue;
 
-    o_color = vec4(vec3(modified_depth), 0.925);
+    o_color = vec4(vec3(modified_depth, 0.5, 1.0), 0.125);
 }
