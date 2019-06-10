@@ -68,11 +68,11 @@ impl Camera for FourCamera {
 }
 
 pub struct ThreeCamera {
-    pub from: Point3<f32>,
-    pub to: Point3<f32>,
-    pub up: Vector3<f32>,
-    pub look_at: Matrix4<f32>,
-    pub projection: Matrix4<f32>,
+    from: Point3<f32>,
+    to: Point3<f32>,
+    up: Vector3<f32>,
+    look_at: Matrix4<f32>,
+    projection: Matrix4<f32>,
 }
 
 impl ThreeCamera {
@@ -92,6 +92,15 @@ impl ThreeCamera {
         cam.build_projection();
 
         cam
+    }
+
+    pub fn get_from(&self) -> Point3<f32> {
+        self.from
+    }
+
+    pub fn set_from(&mut self, from: &Point3<f32>) {
+        self.from = *from;
+        self.build_look_at();
     }
 }
 

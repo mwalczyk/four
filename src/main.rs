@@ -22,7 +22,7 @@ mod tetrahedron;
 mod utilities;
 
 // Struct and function imports.
-use camera::{FourCamera, ThreeCamera};
+use camera::{Camera, FourCamera, ThreeCamera};
 use hyperplane::Hyperplane;
 use interaction::InteractionState;
 use mesh::Mesh;
@@ -80,7 +80,7 @@ fn main() {
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
     // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::new(Polychoron::Cell16);
+    let mut mesh = Mesh::new(Polychoron::Cell120);
     let mut rotation_in_4d = Matrix4::identity();
 
     // Set up the 3D transformation matrices.
@@ -93,7 +93,7 @@ fn main() {
         Vector4::unit_z(),
     );
 
-    let three_cam = ThreeCamera::new(
+    let mut three_cam = ThreeCamera::new(
         Point3::new(2.0, 0.0, 0.0),
         Point3::from_value(0.0),
         Vector3::unit_y()
@@ -230,6 +230,19 @@ fn main() {
                         }
                     }
                 }
+                glutin::WindowEvent::MouseWheel { delta, .. } => {
+                    if let glutin::MouseScrollDelta::LineDelta(_, line_y) = delta {
+                        let mut current_from = three_cam.get_from();
+
+                        if line_y == 1.0 {
+                            current_from.x -= constants::ZOOM_INCREMENT;
+                        } else {
+                            current_from.x += constants::ZOOM_INCREMENT;
+                        }
+
+                        three_cam.set_from(&current_from);
+                    }
+                }
                 _ => (),
             },
             _ => (),
@@ -249,8 +262,8 @@ fn main() {
 
             // Uniforms for 3D -> 2D projection.
             program.uniform_matrix_4f("u_model", &model);
-            program.uniform_matrix_4f("u_view", &three_cam.look_at);
-            program.uniform_matrix_4f("u_projection", &three_cam.projection);
+            program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
+            program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
 
             mesh.set_transform(&rotation_in_4d);
             mesh.slice(&hyperplane);
@@ -271,8 +284,8 @@ fn main() {
 
             // Uniforms for 3D -> 2D projection.
             projections_program.uniform_matrix_4f("u_three_model", &model);
-            projections_program.uniform_matrix_4f("u_three_view", &three_cam.look_at);
-            projections_program.uniform_matrix_4f("u_three_projection", &three_cam.projection);
+            projections_program.uniform_matrix_4f("u_three_view", &three_cam.get_look_at());
+            projections_program.uniform_matrix_4f("u_three_projection", &three_cam.get_projection());
             projections_program.bind();
 
             mesh.draw_tetrahedra();

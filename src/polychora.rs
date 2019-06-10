@@ -6,11 +6,22 @@ use hyperplane::Hyperplane;
 ///
 /// See: `https://en.wikipedia.org/wiki/4-polytope`
 pub struct Definition {
+    /// The number of components (i.e. x, y, z, w, ...) per vertex: this should always be 4
     pub components_per_vertex: u32,
+
+    /// The number of vertices per edge: this should always be 2
     pub vertices_per_edge: u32,
+
+    /// The number of vertices per face, i.e. 3 for a polychoron with cells made up of triangular faces
     pub vertices_per_face: u32,
+
+    /// The number of vertices per cell, i.e. 4 for a polychoron made up of tetrahedral cells (like the 16-cell)
     pub vertices_per_cell: u32,
+
+    /// The number of faces per cell, i.e. 8 for a polychoron made up of cube cells (like the 8-cell "tesseract")
     pub faces_per_cell: u32,
+
+    /// The number of cells, i.e. 8 for the 8-cell
     pub cells: u32,
 }
 
@@ -38,16 +49,19 @@ pub struct Definition {
 /// ...
 ///
 /// ```
+///
+/// Reference: `http://paulbourke.net/geometry/hyperspace/`
 #[derive(Copy, Clone)]
 pub enum Polychoron {
     Cell8,
-    Cell16, // TODO
+    Cell16,
     Cell24, // TODO
     Cell120,
     Cell600, // TODO
 }
 
 impl Polychoron {
+    /// Returns a topological definition corresponding to this polychoron.
     pub fn get_definition(&self) -> Definition {
         match *self {
             Polychoron::Cell8 => Definition {
@@ -116,7 +130,6 @@ impl Polychoron {
                 Vector4::new(0.5, 0.5, 0.5, 0.5),
             ],
             Polychoron::Cell16 => vec![
-                // From: `http://paulbourke.net/geometry/hyperspace/`
                 Vector4::new(-1.0, 0.0, 0.0, 0.0),
                 Vector4::new(0.0, -1.0, 0.0, 0.0),
                 Vector4::new(0.0, 0.0, -1.0, 0.0),
@@ -127,7 +140,7 @@ impl Polychoron {
                 Vector4::new(0.0, 0.0, 0.0,	1.0),
             ],
             Polychoron::Cell120 => vec![
-                Vector4::new(0.707107, 0.707107, 0.0, 0.0),
+                Vector4::new(0.707107, 0.707107, 0.0, 0.0), // TODO: use std::f64::consts::FRAC_1_SQRT_2 ?
                 Vector4::new(0.707107, -0.707107, 0.0, 0.0),
                 Vector4::new(-0.707107, 0.707107, 0.0, 0.0),
                 Vector4::new(-0.707107, -0.707107, 0.0, 0.0),
@@ -854,6 +867,10 @@ impl Polychoron {
         }
     }
 
+    /// Returns a list of the edge indices that correspond to this polychoron. Indices
+    /// should *always* be considered in pairs, as each edge of any polychoron consists
+    /// of 2 vertices. Each of these pairs of indices can be used to index into the array
+    /// returned by `get_vertices(...)` to obtain the two vertices that make up that edge.
     pub fn get_edges(&self) -> Vec<u32> {
         match *self {
             Polychoron::Cell8 => vec![
@@ -1086,6 +1103,12 @@ impl Polychoron {
         }
     }
 
+    /// Returns a list of the face indices that correspond to this polychoron. Each
+    /// index corresponds to an edge. For example, if a polychoron has cells with triangular
+    /// faces, then the indices returned by this function should be considered in
+    /// groups of 3, where each of these 3 indices corresponds to one of that triangle's
+    /// edges. In other words, each set of 3 indices can be used to index into the array
+    /// returned by `get_edges(...)` to obtain the 3 edges that make up that face.
     pub fn get_faces(&self) -> Vec<u32> {
         match *self {
             Polychoron::Cell8 => vec![
@@ -1505,19 +1528,46 @@ impl Polychoron {
     ///
     /// See: `https://en.wikipedia.org/wiki/Convex_polytope#Intersection_of_half-spaces`
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
+        // By definition, a polychoron's dual has a vertex at the center of each of the
+        // "original" polychoron's cells. We can exploit this information in order to find
+        // the distance from each of the bounding hyperplanes in this polychoron's H-representation
+        // to the origin.
         let displacement = match *self {
             Polychoron::Cell8 => 0.5,
             Polychoron::Cell16 => 0.5,
-            Polychoron::Cell120 => -0.925614,
-            Polychoron::Cell600 => -1.080363,
-            _ => 0.1
+            Polychoron::Cell24 => 0.0, // TODO
+            Polychoron::Cell120 => -0.925615, // See email snippet below as to where this comes from
+            Polychoron::Cell600 => -1.080363, // TODO: this isn't correct
+            _ => 0.0 // We should never get here.
         };
+
+        // One way to determine the correct [hyperplane] scale `d` is to leave the constant
+        // term in the hyperplane equation as an unknown and plug in a vertex
+        // known to lie on that hyperplane, then solve for the constant. Since the
+        // 120-cell and 600-cell are regular polytopes, once you find one constant
+        // all the other constants should be equal (by symmetry).
+        //
+        // Fortunately, if you're using the 600-cell coordinates from my website, 8
+        // of them are aligned with the coordinate axes, so you can easily
+        // determine the coordinates for at least 8 pairs of dodecahedra in the
+        // 120-cell easily: for example, if you choose `<2,0,0,0>` as the normal,
+        // then clearly the vertices that lie on the hyperplane perpendicular to it
+        // must have the largest first coordinate (since otherwise there would be
+        // cells containing points that rise above that hyperplane, implying that
+        // the 120-cell is non-convex, which is a contradiction). So, you can sort
+        // the vertices of the 120-cell by their first coordinate in descending
+        // order, and pick the ones with the largest value (there should be 20 of
+        // them if you did it correctly). Then, pick any of them to plug it into the
+        // equation to solve for the constant term.
 
         // Calculate the midpoint of any edge, find its distance to the origin and use this
         // as the displacement?
 
         let mut bounding_hyperplanes = Vec::new();
+
         for vertex in self.get_dual().get_vertices().iter() {
+            // Note that the normal vectors provided here will be automatically normalized
+            // in the constructor.
             bounding_hyperplanes.push(Hyperplane::new(*vertex, displacement));
         }
 
