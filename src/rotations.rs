@@ -3,6 +3,7 @@ use cgmath::{self, InnerSpace, Matrix4, Vector3, Vector4, Zero};
 use hyperplane::Hyperplane;
 use utilities;
 
+/// An enumeration representing a plane of rotation in 4D space.
 pub enum Plane {
     XY,
     YZ,

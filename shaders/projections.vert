@@ -176,7 +176,7 @@ float cnoise(vec4 P){
 
 void main()
 {
-    bool perspective_4D = true;
+    bool perspective_4D = false;
     bool perspective_3D = true;
 
     vec4 four;
