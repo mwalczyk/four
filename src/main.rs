@@ -17,7 +17,6 @@ mod interaction;
 mod mesh;
 mod polychora;
 mod program;
-mod renderer;
 mod rotations;
 mod tetrahedron;
 mod utilities;
@@ -29,7 +28,6 @@ use interaction::InteractionState;
 use mesh::Mesh;
 use polychora::Polychoron;
 use program::Program;
-use renderer::Renderer;
 
 use std::path::Path;
 use std::time::{Duration, SystemTime};
@@ -112,16 +110,10 @@ fn main() {
         utilities::load_file_as_string(Path::new("shaders/projections.frag")),
     ).unwrap();
 
-
-
-
-
     let mut interaction = InteractionState::new();
     let mut show_slice = false;
     let mut reveal_cells = mesh.def.cells;
-
-    let renderer = Renderer::new();
-
+    
     let start = SystemTime::now();
 
     loop {
@@ -284,18 +276,7 @@ fn main() {
             projections_program.bind();
 
             mesh.draw_tetrahedra();
-
-            for tetra in mesh.get_tetrahedra().iter() {
-                if tetra.cell_index < reveal_cells {
-                    renderer.draw_tetrahedron(&tetra);
-                }
-            }
         }
-
-
-
-
-
 
         // Pressing the right mouse button and moving left <-> right will translate the
         // slicing hyperplane away from the origin.
