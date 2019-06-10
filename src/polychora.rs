@@ -58,6 +58,14 @@ impl Polychoron {
                 faces_per_cell: 6,
                 cells: 8,
             },
+            Polychoron::Cell16 => Definition {
+                components_per_vertex: 4,
+                vertices_per_edge: 2,
+                vertices_per_face: 3,
+                vertices_per_cell: 4,
+                faces_per_cell: 4,
+                cells: 16,
+            },
             Polychoron::Cell120 => Definition {
                 components_per_vertex: 4,
                 vertices_per_edge: 2,
@@ -85,6 +93,8 @@ impl Polychoron {
         }
     }
 
+    /// Returns a list of the unique vertices that make up this polychoron. Note that
+    /// all polychora are assumed to have unit radius.
     pub fn get_vertices(&self) -> Vec<Vector4<f32>> {
         match *self {
             Polychoron::Cell8 => vec![
@@ -851,6 +861,10 @@ impl Polychoron {
                 2, 8, 12, 12, 4, 6, 7, 7, 5, 7, 3, 10, 11, 11, 3, 9, 11, 9, 13, 13, 5, 12, 13, 12,
                 14, 14, 10, 14, 6, 14, 15, 15, 13, 15, 11, 15, 7,
             ],
+            Polychoron::Cell16 => vec![
+                5, 6, 6, 7, 7, 5, 4, 6, 7, 4, 4, 5, 0, 6, 7, 0, 0, 5, 1, 6, 7, 1, 1, 4, 0, 1, 2, 5,
+                7, 2, 2, 4, 0, 2, 1, 2, 3, 5, 6, 3, 3, 4, 0, 3, 1, 3, 2, 3,
+            ],
             Polychoron::Cell120 => vec![
                 305, 401, 25, 585, 401, 585, 25, 153, 153, 305, 307, 403, 27, 587, 403, 587, 27,
                 155, 155, 307, 17, 401, 17, 403, 305, 307, 137, 425, 139, 427, 137, 139, 321, 427,
@@ -1079,6 +1093,12 @@ impl Polychoron {
                 5, 2, 6, 7, 3, 1, 5, 7, 3, 2, 10, 11, 3, 1, 9, 11, 3, 1, 9, 13, 5, 8, 10, 11, 9, 8,
                 12, 13, 9, 8, 12, 14, 10, 4, 12, 13, 5, 4, 12, 14, 6, 2, 10, 14, 6, 12, 14, 15, 13,
                 10, 14, 15, 11, 9, 13, 15, 11, 6, 14, 15, 7, 5, 13, 15, 7, 3, 11, 15, 7,
+            ],
+            Polychoron::Cell16 => vec![
+                5, 6, 7, 4, 6, 7, 4, 5, 7, 4, 5, 6, 0, 6, 7, 0, 5, 7, 0, 5, 6, 1, 6, 7, 1, 4, 7, 1,
+                4, 6, 0, 1, 7, 0, 1, 6, 2, 5, 7, 2, 4, 7, 2, 4, 5, 0, 2, 7, 0, 2, 5, 1, 2, 7, 1, 2,
+                4, 0, 1, 2, 3, 5, 6, 3, 4, 6, 3, 4, 5, 0, 3, 6, 0, 3, 5, 1, 3, 6, 1, 3, 4, 0, 1, 3,
+                2, 3, 5, 2, 3, 4, 0, 2, 3, 1, 2, 3,
             ],
             Polychoron::Cell120 => vec![
                 25, 153, 305, 401, 585, 27, 155, 307, 403, 587, 17, 305, 307, 401, 403, 137, 139,
@@ -1487,6 +1507,7 @@ impl Polychoron {
     pub fn get_h_representation(&self) -> Vec<Hyperplane> {
         let displacement = match *self {
             Polychoron::Cell8 => 0.5,
+            Polychoron::Cell16 => 0.5,
             Polychoron::Cell120 => -0.925614,
             Polychoron::Cell600 => -1.080363,
             _ => 0.1

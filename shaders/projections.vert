@@ -197,7 +197,6 @@ void main()
     {
         // simply drop the last (w) coordinate
         four = u_four_model * position;
-
         four = vec4(four.xyz, 1.0);
     }
 
