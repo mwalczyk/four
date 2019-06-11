@@ -2,7 +2,7 @@
 💎 A 4-dimensional renderer.
 
 <p>
-  <img src="https://github.com/mwalczyk/four/blob/refactor/screenshots/polychora.png" alt="screenshot" width="500" height="auto"/>
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/polychora.png" alt="screenshot" width="500" height="auto"/>
 </p>
 
 ## Description
