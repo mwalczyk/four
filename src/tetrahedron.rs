@@ -53,7 +53,9 @@ impl Tetrahedron {
     }
 
     /// Returns the number of vertices that make up a tetrahedron.
-    pub fn get_number_of_vertices() -> usize { 4 }
+    pub fn get_number_of_vertices() -> usize {
+        4
+    }
 
     /// Returns the number of edges that make up a tetrahedron.
     pub fn get_number_of_edges() -> usize {

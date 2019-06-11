@@ -76,11 +76,7 @@ pub struct ThreeCamera {
 }
 
 impl ThreeCamera {
-    pub fn new(
-        from: Point3<f32>,
-        to: Point3<f32>,
-        up: Vector3<f32>,
-    ) -> ThreeCamera {
+    pub fn new(from: Point3<f32>, to: Point3<f32>, up: Vector3<f32>) -> ThreeCamera {
         let mut cam = ThreeCamera {
             from,
             to,

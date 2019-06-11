@@ -4,6 +4,7 @@
 #![allow(unused_must_use)]
 #![allow(unused_assignments)]
 #![allow(unreachable_code)]
+#![allow(unreachable_patterns)]
 extern crate cgmath;
 extern crate gl;
 extern crate glutin;
@@ -32,8 +33,10 @@ use program::Program;
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
-use cgmath::{Array, Matrix4, Perspective, Point2, Point3, Rotation, SquareMatrix, Transform,
-             Vector3, Vector4, Zero};
+use cgmath::{
+    Array, Matrix4, Perspective, Point2, Point3, Rotation, SquareMatrix, Transform, Vector3,
+    Vector4, Zero,
+};
 use glutin::GlContext;
 
 /// Clears the default OpenGL framebuffer (color and depth).
@@ -96,22 +99,23 @@ fn main() {
     let mut three_cam = ThreeCamera::new(
         Point3::new(2.0, 0.0, 0.0),
         Point3::from_value(0.0),
-        Vector3::unit_y()
+        Vector3::unit_y(),
     );
 
     // Load the shader program that we will use for rendering.
     let program = Program::two_stage(
         utilities::load_file_as_string(Path::new("shaders/shader.vert")),
         utilities::load_file_as_string(Path::new("shaders/shader.frag")),
-    ).unwrap();
+    )
+    .unwrap();
 
     let projections_program = Program::two_stage(
         utilities::load_file_as_string(Path::new("shaders/projections.vert")),
         utilities::load_file_as_string(Path::new("shaders/projections.frag")),
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut interaction = InteractionState::new();
-    let mut show_slice = false;
     let mut reveal_cells = mesh.def.cells;
     let mut mode = 0;
 
@@ -207,7 +211,7 @@ fn main() {
                                 },
                                 glutin::VirtualKeyCode::H => {
                                     rotation_in_4d = Matrix4::identity();
-                                },
+                                }
                                 glutin::VirtualKeyCode::LBracket => {
                                     if reveal_cells > 0 {
                                         reveal_cells -= 1;
@@ -277,8 +281,6 @@ fn main() {
         program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
         program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
 
-
-
         match mode {
             0 => {
                 // (0) Draw the results of the slicing operation.
@@ -296,7 +298,7 @@ fn main() {
                 // (2) Draw the skeleton (wireframe) of this polychoron.
                 mesh.draw_edges();
             }
-            _ => ()
+            _ => (),
         }
 
         // Pressing the right mouse button and moving left <-> right will translate the

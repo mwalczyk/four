@@ -15,10 +15,6 @@ use rotations;
 use tetrahedron::Tetrahedron;
 use utilities;
 
-const VERTICES_PER_TETRAHEDRON: usize = 4;
-const FACES_SHARED_PER_VERTEX: u32 = 3;
-const MAX_VERTICES_PER_SLICE: usize = 6;
-
 /// A struct representing an entry in the indirect draw buffer.
 #[repr(C)]
 struct DrawCommand {
@@ -87,6 +83,13 @@ pub struct Mesh {
 
 impl Mesh {
     pub fn new(polychoron: Polychoron) -> Mesh {
+        match polychoron {
+            Polychoron::Cell24Rectified | Polychoron::Cell600 => eprintln!(
+                "Drawing of this shape is not yet supported - please try another polychoron"
+            ),
+            _ => (),
+        }
+
         let compute = utilities::load_file_as_string(Path::new("shaders/compute_slice.glsl"));
 
         let mut mesh = Mesh {
@@ -215,10 +218,16 @@ impl Mesh {
     /// mesh.
     pub fn draw_tetrahedra(&self) {
         unsafe {
-            let number_of_tetrahedral_edges = self.tetrahedra.len() * Tetrahedron::get_number_of_edges() * 2;
+            let number_of_tetrahedral_edges =
+                self.tetrahedra.len() * Tetrahedron::get_number_of_edges() * 2;
 
             gl::BindVertexArray(self.vao_tetrahedra);
-            gl::DrawElements(gl::LINES, number_of_tetrahedral_edges as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawElements(
+                gl::LINES,
+                number_of_tetrahedral_edges as i32,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
         }
     }
 
@@ -226,7 +235,12 @@ impl Mesh {
     pub fn draw_edges(&self) {
         unsafe {
             gl::BindVertexArray(self.vao_edges);
-            gl::DrawElements(gl::LINES, self.edges.len() as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawElements(
+                gl::LINES,
+                self.edges.len() as i32,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+            );
         }
     }
 
@@ -290,7 +304,10 @@ impl Mesh {
                 &face_indices
                     .iter()
                     .map(|index| {
-                        let face_centroid = utilities::average(&self.get_vertices_for_face(*index), &Vector4::zero());
+                        let face_centroid = utilities::average(
+                            &self.get_vertices_for_face(*index),
+                            &Vector4::zero(),
+                        );
 
                         face_centroid
                     })
@@ -372,10 +389,13 @@ impl Mesh {
             // First, push back all of this tetrahedron's vertices.
             vertices.extend_from_slice(tetra.get_vertices());
 
+            // Any tetrahedral slice can have at most 6 vertices (a quadrilateral, 2 triangles).
+            let max_vertices_per_slice = 6;
+
             // Next, push back all of this tetrahedron's colors (currently, we are
             // using the cell centroid to generate some sort of shading / colors).
             // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
-            for i in 0..MAX_VERTICES_PER_SLICE {
+            for i in 0..max_vertices_per_slice {
                 colors.push(tetra.cell_centroid);
             }
         }
@@ -397,7 +417,7 @@ impl Mesh {
             for (a, b) in local_indices.iter() {
                 // Create a new set of indices to draw the current tetrahedron. First,
                 // we add `4 * i`, since each tetrahedron has 4 vertices.
-                let offset = (VERTICES_PER_TETRAHEDRON * i) as u32;
+                let offset = (Tetrahedron::get_number_of_vertices() * i) as u32;
 
                 indices.push(a + offset);
                 indices.push(b + offset);
@@ -449,20 +469,15 @@ impl Mesh {
 
             let (vertices, colors) = self.gather_tetrahedra_attributes();
 
-            let total_tetrahedra = self.def.cells
-                * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
-                * (self.def.vertices_per_face - 2);
+            // Any tetrahedral slice can have at most 6 vertices (a quadrilateral, 2 triangles).
+            let max_vertices_per_slice = 6;
 
-            let vertices_size = mem::size_of::<Vector4<f32>>() * VERTICES_PER_TETRAHEDRON
-                * total_tetrahedra as usize;
-            let colors_size =
-                mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
-
-            println!(
-                "Size of data store for {} : {}",
-                total_tetrahedra,
-                vertices.len()
-            );
+            let vertices_size = mem::size_of::<Vector4<f32>>()
+                * Tetrahedron::get_number_of_vertices()
+                * self.tetrahedra.len() as usize;
+            let colors_size = mem::size_of::<Vector4<f32>>()
+                * max_vertices_per_slice
+                * self.tetrahedra.len() as usize;
 
             // The VBO that will be associated with the vertex attribute #1, which does not change
             // throughout the lifetime of the program (thus, we use the flag `STATIC_DRAW` below).
@@ -488,7 +503,7 @@ impl Mesh {
 
             // The buffer of slice vertices that will be written to whenever the slicing hyperplane moves.
             let mut alloc_size =
-                mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
+                mem::size_of::<Vector4<f32>>() * max_vertices_per_slice * self.tetrahedra.len();
             gl::CreateBuffers(1, &mut self.buffer_slice_vertices);
             gl::NamedBufferData(
                 self.buffer_slice_vertices,
@@ -498,7 +513,7 @@ impl Mesh {
             );
 
             // The buffer of draw commands that will be filled out by the compute shader dispatch.
-            alloc_size = mem::size_of::<DrawCommand>() * total_tetrahedra as usize;
+            alloc_size = mem::size_of::<DrawCommand>() * self.tetrahedra.len();
             gl::CreateBuffers(1, &mut self.buffer_indirect_commands);
             gl::NamedBufferData(
                 self.buffer_indirect_commands,
@@ -534,7 +549,6 @@ impl Mesh {
                 gl::COMPUTE_WORK_GROUP_SIZE,
                 local_size.as_mut_ptr(),
             );
-            println!("Compute shader local work group size: {:?}", local_size);
         }
     }
 
@@ -557,7 +571,14 @@ impl Mesh {
             );
 
             gl::EnableVertexArrayAttrib(self.vao_tetrahedra, 0);
-            gl::VertexArrayAttribFormat(self.vao_tetrahedra, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribFormat(
+                self.vao_tetrahedra,
+                0,
+                self.def.components_per_vertex as i32,
+                gl::FLOAT,
+                gl::FALSE,
+                0,
+            );
             gl::VertexArrayAttribBinding(self.vao_tetrahedra, 0, 0);
 
             // Setup vertex attribute bindings: notice that we use the same VBO from above that
@@ -595,7 +616,8 @@ impl Mesh {
             gl::VertexArrayAttribBinding(self.vao_edges, ATTR_POS, BINDING_POS);
 
             // Create the vertex buffer that will hold all of the polychoron's unique vertices.
-            let vertices_size = (self.vertices.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
+            let vertices_size =
+                (self.vertices.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
 
             gl::CreateBuffers(1, &mut self.vbo_edges);
             gl::NamedBufferData(
