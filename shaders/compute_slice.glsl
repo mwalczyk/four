@@ -11,7 +11,6 @@ uniform float u_time;
 struct Tetrahedron
 {
     vec4 vertices[4];
-    vec4 cell_centroid;
 };
 
 struct Slice

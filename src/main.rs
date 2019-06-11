@@ -80,7 +80,7 @@ fn main() {
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
     // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::new(Polychoron::Cell120);
+    let mut mesh = Mesh::new(Polychoron::Cell8);
     let mut rotation_in_4d = Matrix4::identity();
 
     // Set up the 3D transformation matrices.

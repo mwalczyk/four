@@ -354,15 +354,12 @@ impl Mesh {
         for (i, tetra) in self.tetrahedra.iter().enumerate() {
             // First, push back all of this tetrahedron's vertices.
             vertices.extend_from_slice(tetra.get_vertices());
-            vertices.push(tetra.cell_centroid);
 
             // Next, generate a new set of edge indices for this tetrahedron.
             for (a, b) in local_indices.iter() {
                 // Create a new set of indices to draw the current tetrahedron. First,
-                // we add `4 * i`, since each tetrahedron has 4 vertices. Next, we
-                // add `i` to account for the extra vertex entry per tetrahedron
-                // (`cell_centroid`).
-                let offset = (VERTICES_PER_TETRAHEDRON * i + i) as u32;
+                // we add `4 * i`, since each tetrahedron has 4 vertices.
+                let offset = (VERTICES_PER_TETRAHEDRON * i) as u32;
 
                 indices.push(a + offset);
                 indices.push(b + offset);
@@ -419,7 +416,7 @@ impl Mesh {
                 * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
                 * (self.def.vertices_per_face - 2);
 
-            let vertices_size = mem::size_of::<Vector4<f32>>() * (VERTICES_PER_TETRAHEDRON + 1)
+            let vertices_size = mem::size_of::<Vector4<f32>>() * VERTICES_PER_TETRAHEDRON
                 * total_tetrahedra as usize;
             let colors_size =
                 mem::size_of::<Vector4<f32>>() * MAX_VERTICES_PER_SLICE * total_tetrahedra as usize;
