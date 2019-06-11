@@ -20,6 +20,7 @@ vec4 desaturate(vec3 color, float amount)
 {
 	vec3 gray_transfer = vec3(0.3, 0.59, 0.11);
 	vec3 gray = vec3(dot(gray_transfer, color));
+
 	return vec4(mix(color, gray, amount), 1.0);
 }
 

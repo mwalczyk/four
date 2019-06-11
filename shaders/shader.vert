@@ -17,21 +17,26 @@ out VS_OUT
     vec3 color;
 } vs_out;
 
-float sigmoid(float x) 
+// Cosine palette generator from IQ: `http://www.iquilezles.org/www/articles/palettes/palettes.htm`
+vec3 palette( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 {
-    return 1.0 / (1.0 + exp(-x));
+    return a + b * cos(2.0 * pi * (c * t + d));
 }
 
 void main()
 {
     // Create a color based on the centroid of this cell in 4D.
     vec3 cell_centroid = color.rgb;
-    vec3 rgb = normalize(cell_centroid) * 0.5 + 0.5;
-    rgb = max(vec3(0.15), rgb);
+    //vec3 rgb = normalize(cell_centroid) * 0.5 + 0.5;
+    //rgb = max(vec3(0.15), rgb);
 
     // Project 3D -> 2D.
     gl_Position = u_projection * u_view * u_model * position;
     gl_PointSize = 6.0;
+
+    vec3 cen = normalize(cell_centroid) * 0.5 + 0.5;
+    vec3 rgb = normalize(position.xyz) * 0.5 + 0.5;
+    rgb = max(cen, rgb);
 
     // Pass values to fragment shader.
     vs_out.position = position.xyz;
