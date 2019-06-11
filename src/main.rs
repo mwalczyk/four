@@ -249,9 +249,9 @@ fn main() {
                         let mut current_from = three_cam.get_from();
 
                         if line_y == 1.0 {
-                            current_from.x -= constants::ZOOM_INCREMENT;
+                            current_from.z -= constants::ZOOM_INCREMENT;
                         } else {
-                            current_from.x += constants::ZOOM_INCREMENT;
+                            current_from.z += constants::ZOOM_INCREMENT;
                         }
 
                         three_cam.set_from(&current_from);
