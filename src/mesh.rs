@@ -52,16 +52,10 @@ pub struct Mesh {
     transform: Matrix4<f32>,
 
     /// The compute shader that is used to compute 3-dimensional slices of this mesh.
-    pub compute: Program,
+    compute: Program,
 
     /// The vertex array object (VAO) that is used for drawing a 3D slice of this mesh.
     vao_slice: u32,
-
-    /// The VAO that is used for drawing all of the tetrahedra that make up this mesh.
-    vao_tetrahedra: u32,
-
-    /// The EBO that is used for drawing all of the edges of the tetrahedra that make up this mesh.
-    ebo_tetrahedra: u32,
 
     /// A GPU-side buffer that contains all of the tetrahedra that make up this mesh.
     buffer_tetrahedra: u32,
@@ -74,6 +68,21 @@ pub struct Mesh {
 
     /// A GPU-side buffer that will be filled with indirect drawing commands via the `compute` program.
     buffer_indirect_commands: u32,
+
+    /// The VAO that is used for drawing all of the tetrahedra that make up this mesh.
+    vao_tetrahedra: u32,
+
+    /// The EBO that is used for drawing all of the edges of the tetrahedra that make up this mesh.
+    ebo_tetrahedra: u32,
+
+    /// The VAO that is used for drawing the wireframe of this polychoron.
+    vao_edges: u32,
+
+    /// A GPU-side buffer that contains all of the unique vertices that make up this polychoron.
+    vbo_edges: u32,
+
+    /// The EBO that is used for drawing the wireframe of this polychoron.
+    ebo_edges: u32,
 }
 
 impl Mesh {
@@ -90,12 +99,15 @@ impl Mesh {
             transform: Matrix4::identity(),
             compute: Program::single_stage(compute).unwrap(),
             vao_slice: 0,
-            vao_tetrahedra: 0,
-            ebo_tetrahedra: 0,
             buffer_tetrahedra: 0,
             buffer_slice_colors: 0,
             buffer_slice_vertices: 0,
             buffer_indirect_commands: 0,
+            vao_tetrahedra: 0,
+            ebo_tetrahedra: 0,
+            vao_edges: 0,
+            vbo_edges: 0,
+            ebo_edges: 0,
         };
 
         mesh.tetrahedralize();
@@ -103,6 +115,7 @@ impl Mesh {
         mesh
     }
 
+    /// Returns an array of all of the tetrahedra that make up this mesh.
     pub fn get_tetrahedra(&self) -> &Vec<Tetrahedron> {
         &self.tetrahedra
     }
@@ -122,13 +135,13 @@ impl Mesh {
         self.faces.len() / self.def.vertices_per_face as usize
     }
 
-    /// Returns the `i`th vertex of this polytope.
+    /// Returns the `i`th vertex of this mesh.
     pub fn get_vertex(&self, i: u32) -> Vector4<f32> {
         self.vertices[i as usize]
     }
 
     /// Returns an unordered tuple of the two vertices that make up the `i`th
-    /// edge of this polytope.
+    /// edge of this mesh.
     pub fn get_vertices_for_edge(&self, i: u32) -> (Vector4<f32>, Vector4<f32>) {
         let idx_edge_s = (i * self.def.vertices_per_edge) as usize;
         let idx_edge_e = (i * self.def.vertices_per_edge + self.def.vertices_per_edge) as usize;
@@ -138,7 +151,7 @@ impl Mesh {
     }
 
     /// Returns an unordered list of the unique vertices that make up the `i`th
-    /// face of this polytope.
+    /// face of this mesh.
     pub fn get_vertices_for_face(&self, i: u32) -> Vec<Vector4<f32>> {
         let idx_face_s = (i * self.def.vertices_per_face) as usize;
         let idx_face_e = (i * self.def.vertices_per_face + self.def.vertices_per_face) as usize;
@@ -202,8 +215,18 @@ impl Mesh {
     /// mesh.
     pub fn draw_tetrahedra(&self) {
         unsafe {
+            let number_of_tetrahedral_edges = self.tetrahedra.len() * Tetrahedron::get_number_of_edges() * 2;
+
             gl::BindVertexArray(self.vao_tetrahedra);
-            gl::DrawElements(gl::LINES, (Tetrahedron::get_number_of_edges() * 2 * self.tetrahedra.len()) as i32, gl::UNSIGNED_INT, ptr::null());
+            gl::DrawElements(gl::LINES, number_of_tetrahedral_edges as i32, gl::UNSIGNED_INT, ptr::null());
+        }
+    }
+
+    /// Draws a 3-dimensional projection of the skeleton (wireframe) of this polychoron.
+    pub fn draw_edges(&self) {
+        unsafe {
+            gl::BindVertexArray(self.vao_edges);
+            gl::DrawElements(gl::LINES, self.edges.len() as i32, gl::UNSIGNED_INT, ptr::null());
         }
     }
 
@@ -338,13 +361,31 @@ impl Mesh {
     }
 
     /// Gathers all of the necessary vertex attributes required to render the tetrahedra
-    /// that make up this mesh. In particular, this function returns the vertex positions,
-    /// edge indices (for rendering wireframes), and colors.
-    fn gather_tetrahedra_attributes(&self) -> (Vec<Vector4<f32>>, Vec<u32>, Vec<Vector4<f32>>) {
+    /// that make up this mesh. In particular, this function returns the vertex positions
+    /// and colors.
+    fn gather_tetrahedra_attributes(&self) -> (Vec<Vector4<f32>>, Vec<Vector4<f32>>) {
         // Set up CPU-side buffers.
         let mut vertices = Vec::new();
-        let mut indices = Vec::new();
         let mut colors = Vec::new();
+
+        for tetra in self.tetrahedra.iter() {
+            // First, push back all of this tetrahedron's vertices.
+            vertices.extend_from_slice(tetra.get_vertices());
+
+            // Next, push back all of this tetrahedron's colors (currently, we are
+            // using the cell centroid to generate some sort of shading / colors).
+            // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
+            for i in 0..MAX_VERTICES_PER_SLICE {
+                colors.push(tetra.cell_centroid);
+            }
+        }
+
+        (vertices, colors)
+    }
+
+    /// Gather all of the edge indices for the tetrahedra that make up this mesh.
+    fn gather_tetrahedra_indices(&self) -> Vec<u32> {
+        let mut indices = Vec::new();
 
         // Gather the base indices used for drawing a tetrahedron, i.e.
         // `[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]`, and apply
@@ -352,10 +393,7 @@ impl Mesh {
         let local_indices = Tetrahedron::get_edge_indices();
 
         for (i, tetra) in self.tetrahedra.iter().enumerate() {
-            // First, push back all of this tetrahedron's vertices.
-            vertices.extend_from_slice(tetra.get_vertices());
-
-            // Next, generate a new set of edge indices for this tetrahedron.
+            // Generate a new set of edge indices for this tetrahedron.
             for (a, b) in local_indices.iter() {
                 // Create a new set of indices to draw the current tetrahedron. First,
                 // we add `4 * i`, since each tetrahedron has 4 vertices.
@@ -364,20 +402,19 @@ impl Mesh {
                 indices.push(a + offset);
                 indices.push(b + offset);
             }
-
-            // Finally, push back all of this tetrahedron's colors (currently, we are
-            // using the cell centroid to generate some sort of shading / colors).
-            // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
-            for i in 0..MAX_VERTICES_PER_SLICE {
-                colors.push(tetra.cell_centroid);
-            }
         }
 
-        (vertices, indices, colors)
+        indices
     }
 
-    /// Initializes all OpenGL objects (VAOs, buffers, etc.).
+    /// Initializes all OpenGL objects (VAOs, buffers, etc.): see functions below.
     fn init_render_objects(&mut self) {
+        self.init_slice_objects();
+        self.init_tetrahedra_objects();
+        self.init_edges_objects();
+    }
+
+    fn init_slice_objects(&mut self) {
         unsafe {
             gl::CreateVertexArrays(1, &mut self.vao_slice);
 
@@ -410,7 +447,7 @@ impl Mesh {
             );
             gl::VertexArrayAttribBinding(self.vao_slice, ATTR_COL, BINDING_COL);
 
-            let (vertices, indices, colors) = self.gather_tetrahedra_attributes();
+            let (vertices, colors) = self.gather_tetrahedra_attributes();
 
             let total_tetrahedra = self.def.cells
                 * (self.def.faces_per_cell - FACES_SHARED_PER_VERTEX)
@@ -498,44 +535,99 @@ impl Mesh {
                 local_size.as_mut_ptr(),
             );
             println!("Compute shader local work group size: {:?}", local_size);
+        }
+    }
 
-
-            // Finally, set up objects for the tetrahedra VAO.
+    fn init_tetrahedra_objects(&mut self) {
+        unsafe {
+            // First, create the vertex array object.
             gl::CreateVertexArrays(1, &mut self.vao_tetrahedra);
 
-            let size = (3240 * 6 * 2 * mem::size_of::<u32>()) as GLsizeiptr;
+            // Create the element buffer that will hold all of the edge indices for rendering
+            // wireframes of all of the tetrahedra that make up this polychoron.
+            let indices = self.gather_tetrahedra_indices();
+            let indices_size = (indices.len() * mem::size_of::<u32>()) as GLsizeiptr;
+
             gl::CreateBuffers(1, &mut self.ebo_tetrahedra);
             gl::NamedBufferData(
                 self.ebo_tetrahedra,
-                size,
+                indices_size,
                 indices.as_ptr() as *const GLvoid,
                 gl::DYNAMIC_DRAW,
             );
 
             gl::EnableVertexArrayAttrib(self.vao_tetrahedra, 0);
-            gl::VertexArrayAttribFormat(self.vao_tetrahedra, 0, 4, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribFormat(self.vao_tetrahedra, 0, self.def.components_per_vertex as i32, gl::FLOAT, gl::FALSE, 0);
             gl::VertexArrayAttribBinding(self.vao_tetrahedra, 0, 0);
-            gl::VertexArrayElementBuffer(self.vao_tetrahedra, self.ebo_tetrahedra);
 
+            // Setup vertex attribute bindings: notice that we use the same VBO from above that
+            // holds all of the vertices of the tetrahedra that make up this polychoron.
             gl::VertexArrayVertexBuffer(
                 self.vao_tetrahedra,
                 0,
                 self.buffer_tetrahedra,
                 0,
-                (mem::size_of::<f32>() * 4 as usize) as i32,
+                (mem::size_of::<f32>() * self.def.components_per_vertex as usize) as i32,
             );
+
+            // Bind the EBO to the VAO.
+            gl::VertexArrayElementBuffer(self.vao_tetrahedra, self.ebo_tetrahedra);
         }
     }
 
-    fn init_slice_objects() {
+    fn init_edges_objects(&mut self) {
+        unsafe {
+            // First, create the vertex array object.
+            gl::CreateVertexArrays(1, &mut self.vao_edges);
 
-    }
+            // Set up attribute #0: positions (for now, we ignore colors).
+            const ATTR_POS: u32 = 0;
+            const BINDING_POS: u32 = 0;
+            gl::EnableVertexArrayAttrib(self.vao_edges, ATTR_POS);
+            gl::VertexArrayAttribFormat(
+                self.vao_edges,
+                ATTR_POS,
+                self.def.components_per_vertex as i32,
+                gl::FLOAT,
+                gl::FALSE,
+                0,
+            );
+            gl::VertexArrayAttribBinding(self.vao_edges, ATTR_POS, BINDING_POS);
 
-    fn init_tetrahedra_objects() {
+            // Create the vertex buffer that will hold all of the polychoron's unique vertices.
+            let vertices_size = (self.vertices.len() * mem::size_of::<Vector4<f32>>()) as GLsizeiptr;
 
-    }
+            gl::CreateBuffers(1, &mut self.vbo_edges);
+            gl::NamedBufferData(
+                self.vbo_edges,
+                vertices_size as isize,
+                self.vertices.as_ptr() as *const GLvoid,
+                gl::STATIC_DRAW,
+            );
 
-    fn init_wireframe_objects() {
+            // Setup vertex attribute bindings.
+            gl::VertexArrayVertexBuffer(
+                self.vao_edges,
+                BINDING_POS,
+                self.vbo_edges,
+                0,
+                mem::size_of::<Vector4<f32>>() as i32,
+            );
 
+            // Create the element buffer that will hold all of the edge indices for rendering
+            // a wireframe of this polychoron.
+            let edges_size = (self.edges.len() * mem::size_of::<u32>()) as GLsizeiptr;
+
+            gl::CreateBuffers(1, &mut self.ebo_edges);
+            gl::NamedBufferData(
+                self.ebo_edges,
+                edges_size,
+                self.edges.as_ptr() as *const GLvoid,
+                gl::STATIC_DRAW,
+            );
+
+            // Bind the EBO to the VAO.
+            gl::VertexArrayElementBuffer(self.vao_edges, self.ebo_edges);
+        }
     }
 }

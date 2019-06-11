@@ -113,6 +113,7 @@ fn main() {
     let mut interaction = InteractionState::new();
     let mut show_slice = false;
     let mut reveal_cells = mesh.def.cells;
+    let mut mode = 0;
 
     let start = SystemTime::now();
 
@@ -195,7 +196,8 @@ fn main() {
                                     interaction.ctrl_pressed = true;
                                 }
                                 glutin::VirtualKeyCode::T => {
-                                    show_slice = !show_slice;
+                                    mode += 1;
+                                    mode = mode % 3;
                                 }
                                 glutin::VirtualKeyCode::W => unsafe {
                                     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
@@ -254,41 +256,47 @@ fn main() {
         let milliseconds = (seconds as f32) / 1000.0;
         clear();
 
+        projections_program.uniform_1f("u_time", milliseconds);
 
-        if show_slice {
-            // (1) Draw the results of the slicing operation.
+        // Uniforms for 4D -> 3D projection.
+        projections_program.uniform_4f("u_four_from", &four_cam.from);
+        projections_program.uniform_matrix_4f("u_four_model", &rotation_in_4d);
+        projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
+        projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
 
-            program.uniform_1f("u_time", milliseconds);
+        // Uniforms for 3D -> 2D projection.
+        projections_program.uniform_matrix_4f("u_three_model", &model);
+        projections_program.uniform_matrix_4f("u_three_view", &three_cam.get_look_at());
+        projections_program.uniform_matrix_4f("u_three_projection", &three_cam.get_projection());
+        projections_program.bind();
 
-            // Uniforms for 3D -> 2D projection.
-            program.uniform_matrix_4f("u_model", &model);
-            program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
-            program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
+        program.uniform_1f("u_time", milliseconds);
 
-            mesh.set_transform(&rotation_in_4d);
-            mesh.slice(&hyperplane);
-            mesh.compute.uniform_1f("u_time", milliseconds);
+        // Uniforms for 3D -> 2D projection.
+        program.uniform_matrix_4f("u_model", &model);
+        program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
+        program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
 
-            program.bind();
-            mesh.draw_slice();
-        } else {
-            // (2) Draw the wireframes of all of the tetrahedra that make up this polychoron.
 
-            projections_program.uniform_1f("u_time", milliseconds);
 
-            // Uniforms for 4D -> 3D projection.
-            projections_program.uniform_4f("u_four_from", &four_cam.from);
-            projections_program.uniform_matrix_4f("u_four_model", &rotation_in_4d);
-            projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
-            projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
+        match mode {
+            0 => {
+                // (0) Draw the results of the slicing operation.
+                mesh.set_transform(&rotation_in_4d);
+                mesh.slice(&hyperplane);
 
-            // Uniforms for 3D -> 2D projection.
-            projections_program.uniform_matrix_4f("u_three_model", &model);
-            projections_program.uniform_matrix_4f("u_three_view", &three_cam.get_look_at());
-            projections_program.uniform_matrix_4f("u_three_projection", &three_cam.get_projection());
-            projections_program.bind();
-
-            mesh.draw_tetrahedra();
+                program.bind();
+                mesh.draw_slice();
+            }
+            1 => {
+                // (1) Draw the wireframes of all of the tetrahedra that make up this polychoron.
+                mesh.draw_tetrahedra();
+            }
+            2 => {
+                // (2) Draw the skeleton (wireframe) of this polychoron.
+                mesh.draw_edges();
+            }
+            _ => ()
         }
 
         // Pressing the right mouse button and moving left <-> right will translate the
