@@ -113,6 +113,8 @@ impl Mesh {
             ebo_edges: 0,
         };
 
+        println!("Program ID: {:?}", mesh.compute.get_id());
+
         mesh.tetrahedralize();
         mesh.init_render_objects();
         mesh
@@ -176,6 +178,8 @@ impl Mesh {
 
     /// Slice this mesh with a 4-dimensional `hyperplane`.
     pub fn slice(&mut self, hyperplane: &Hyperplane) {
+
+
         self.compute.bind();
         self.compute
             .uniform_4f("u_hyperplane_normal", &hyperplane.normal);
@@ -186,6 +190,10 @@ impl Mesh {
             .uniform_matrix_4f("u_transform", &self.transform);
 
         unsafe {
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.buffer_tetrahedra);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.buffer_slice_vertices);
+            gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.buffer_indirect_commands);
+
             let dispatch = (self.tetrahedra.len() as f32 / 128.0).ceil();
             gl::DispatchCompute(dispatch as u32, 1, 1);
 

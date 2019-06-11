@@ -82,13 +82,26 @@ fn main() {
     // Set up the slicing hyperplane.
     let mut hyperplane = Hyperplane::new(Vector4::unit_w(), 0.1);
 
-    // Load the 120-cell and compute its tetrahedral decomposition.
-    let mut mesh = Mesh::new(Polychoron::Cell8);
+    // Load several polychora and compute their tetrahedral decompositions.
+    let mut meshes = vec![
+        Mesh::new(Polychoron::Cell8),
+        Mesh::new(Polychoron::Cell16),
+        Mesh::new(Polychoron::Cell24),
+        Mesh::new(Polychoron::Cell120)
+    ];
+
+    // Set up the model matrices, in 3-space.
+    let mut model_matrices = vec![
+        Matrix4::from_translation(Vector3::unit_x() * -3.5),
+        Matrix4::from_translation(Vector3::unit_x() * -1.0),
+        Matrix4::from_translation(Vector3::unit_x() * 1.0),
+        Matrix4::from_translation(Vector3::unit_x() * 3.5),
+    ];
+
+    // Set up the "model" matrix, in 4-space.
     let mut rotation_in_4d = Matrix4::identity();
 
-    // Set up the 3D transformation matrices.
-    let mut model = Matrix4::identity();
-
+    // Initialize the camera that will be used to perform the 4D -> 3D projection.
     let four_cam = FourCamera::new(
         Vector4::unit_x() * 1.25,
         Vector4::zero(),
@@ -96,14 +109,15 @@ fn main() {
         Vector4::unit_z(),
     );
 
+    // Initialize the camera that will be used to perform the 3D -> 2D projection.
     let mut three_cam = ThreeCamera::new(
-        Point3::new(2.0, 0.0, 0.0),
+        Point3::new(0.0, 0.5, 4.0),
         Point3::from_value(0.0),
         Vector3::unit_y(),
     );
 
-    // Load the shader program that we will use for rendering.
-    let program = Program::two_stage(
+    // Load the shader programs that we will use for rendering.
+    let slice_program = Program::two_stage(
         utilities::load_file_as_string(Path::new("shaders/shader.vert")),
         utilities::load_file_as_string(Path::new("shaders/shader.frag")),
     )
@@ -115,10 +129,11 @@ fn main() {
     )
     .unwrap();
 
+    // Set up objects for interaction state.
     let mut interaction = InteractionState::new();
-    let mut reveal_cells = mesh.def.cells;
     let mut mode = 0;
 
+    // Set up timing information (can be used inside of the shaders to animate objects).
     let start = SystemTime::now();
 
     loop {
@@ -158,8 +173,11 @@ fn main() {
                             rotation_in_4d = rot_zw * rot_zx * rotation_in_4d;
                         } else {
                             let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));
-                            let rot_yz = Matrix4::from_angle_z(cgmath::Rad(delta.y));
-                            model = rot_yz * rot_xz * model;
+                            let rot_yz = Matrix4::from_angle_x(cgmath::Rad(delta.y));
+
+                            for model in model_matrices.iter_mut() {
+                                *model = rot_yz * *model;
+                            }
                         }
                     }
                 }
@@ -212,16 +230,6 @@ fn main() {
                                 glutin::VirtualKeyCode::H => {
                                     rotation_in_4d = Matrix4::identity();
                                 }
-                                glutin::VirtualKeyCode::LBracket => {
-                                    if reveal_cells > 0 {
-                                        reveal_cells -= 1;
-                                    }
-                                }
-                                glutin::VirtualKeyCode::RBracket => {
-                                    if reveal_cells < mesh.def.cells {
-                                        reveal_cells += 1;
-                                    }
-                                }
                                 _ => (),
                             },
                             glutin::ElementState::Released => match key {
@@ -260,43 +268,55 @@ fn main() {
         let milliseconds = (seconds as f32) / 1000.0;
         clear();
 
-        projections_program.uniform_1f("u_time", milliseconds);
-
         // Uniforms for 4D -> 3D projection.
+        projections_program.uniform_1f("u_time", milliseconds);
         projections_program.uniform_4f("u_four_from", &four_cam.from);
         projections_program.uniform_matrix_4f("u_four_model", &rotation_in_4d);
         projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
         projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
 
         // Uniforms for 3D -> 2D projection.
-        projections_program.uniform_matrix_4f("u_three_model", &model);
         projections_program.uniform_matrix_4f("u_three_view", &three_cam.get_look_at());
         projections_program.uniform_matrix_4f("u_three_projection", &three_cam.get_projection());
-        projections_program.bind();
 
-        program.uniform_1f("u_time", milliseconds);
-
+        // TODO: the shader below is redundant and should be consolidated with `projections_program`
         // Uniforms for 3D -> 2D projection.
-        program.uniform_matrix_4f("u_model", &model);
-        program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
-        program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
+        slice_program.uniform_1f("u_time", milliseconds);
+        slice_program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
+        slice_program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
 
         match mode {
             0 => {
-                // (0) Draw the results of the slicing operation.
-                mesh.set_transform(&rotation_in_4d);
-                mesh.slice(&hyperplane);
+                // (0) Draw the results of the slicing operations.
+                for mesh in meshes.iter_mut() {
+                    mesh.set_transform(&rotation_in_4d);
+                    mesh.slice(&hyperplane);
+                }
 
-                program.bind();
-                mesh.draw_slice();
+                slice_program.bind();
+
+                for (i, mesh) in meshes.iter().enumerate() {
+                    slice_program.uniform_matrix_4f("u_model", &model_matrices[i]);
+                    mesh.draw_slice();
+                }
             }
             1 => {
-                // (1) Draw the wireframes of all of the tetrahedra that make up this polychoron.
-                mesh.draw_tetrahedra();
+                projections_program.bind();
+
+                // (1) Draw the wireframes of all of the tetrahedra that make up the polychora.
+                for (i, mesh) in meshes.iter().enumerate() {
+                    projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
+                    mesh.draw_tetrahedra();
+                }
             }
             2 => {
-                // (2) Draw the skeleton (wireframe) of this polychoron.
-                mesh.draw_edges();
+                projections_program.bind();
+
+                // (2) Draw the skeletons (wireframes) of the polychora.
+                for (i, mesh) in meshes.iter().enumerate() {
+                    projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
+                    mesh.draw_edges();
+                }
             }
             _ => (),
         }
