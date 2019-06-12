@@ -16,6 +16,10 @@ uniform mat4 u_three_model;
 uniform mat4 u_three_view;
 uniform mat4 u_three_projection;
 
+uniform uint u_apply_four_rotation;
+uniform uint u_perspective_4D;
+uniform uint u_perspective_3D;
+
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec4 color;
 
@@ -176,14 +180,14 @@ float cnoise(vec4 P){
 
 void main()
 {
-    bool perspective_4D = true;
+    bool perspective_4D = false;
     bool perspective_3D = true;
 
     vec4 four;
     vs_out.depth_cue = position.w;
 
     // project 4D -> 3D with a perspective projection
-    if (perspective_4D)
+    if (u_perspective_4D == 1)
     {
         four = u_four_model * position;
         four = four - u_four_from;
@@ -196,8 +200,15 @@ void main()
     else
     {
         // simply drop the last (w) coordinate
-        four = u_four_model * position;
-        four = vec4(four.xyz, 1.0);
+        if (u_apply_four_rotation == 1)
+        {
+            four = u_four_model * position;
+            four = vec4(four.xyz, 1.0);
+        }
+        else
+        {
+            four = vec4(position.xyz, 1.0);
+        }
     }
 
     vec4 three;
@@ -216,8 +227,13 @@ void main()
     gl_Position = three;
     gl_PointSize = 3.0;
 
+    vec3 cell_centroid = color.rgb;
+    vec3 cen = normalize(cell_centroid) * 0.5 + 0.5;
+    vec3 rgb = normalize(position.xyz) * 0.5 + 0.5;
+    rgb = max(cen, rgb);
+
     // pass values to fragment shader
-    vs_out.color = vec3(0.0, 1.0, 0.0);
+    vs_out.color = rgb;// vec3(0.0, 1.0, 0.0);
     vs_out.position = four.xyz;
     vs_out.depth_cue = vs_out.depth_cue * 0.5 + 0.5;
 }

@@ -100,7 +100,7 @@ void main()
         {
             // Parallel projection from 4D -> 3D (drop the last coordinate);
             vec4 intersection = a + (b - a) * t;
-            intersection = vec4(intersection.xyz, 1.0);
+            //intersection = vec4(intersection.xyz, 1.0);
 
             // Store the point of intersection.
             intersections[slice_id] = intersection;
@@ -146,6 +146,8 @@ void main()
         vec3 ab = b - a;
         vec3 bc = c - b;
         vec3 n = normalize(cross(bc, ab));
+
+        // TODO: determine outward facing normal `https://www.gamedev.net/forums/topic/433315-determining-outward-facing-normals/?do=findComment&comment=3880903`
 
         vec3 first_edge = normalize(a - slice_centroid);
 

@@ -31,7 +31,8 @@ void main()
     //rgb = max(vec3(0.15), rgb);
 
     // Project 3D -> 2D.
-    gl_Position = u_projection * u_view * u_model * position;
+    vec4 p = vec4(position.xyz, 1.0);
+    gl_Position = u_projection * u_view * u_model * p;
     gl_PointSize = 6.0;
 
     vec3 cen = normalize(cell_centroid) * 0.5 + 0.5;
