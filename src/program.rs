@@ -203,6 +203,10 @@ impl Program {
         }
     }
 
+    pub fn uniform_bool(&self, name: &str, value: bool) {
+        self.uniform_1i(name, value as i32);
+    }
+
     pub fn uniform_1i(&self, name: &str, value: i32) {
         unsafe {
             let location = gl::GetUniformLocation(self.id, CString::new(name).unwrap().as_ptr());

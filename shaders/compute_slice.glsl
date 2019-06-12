@@ -98,11 +98,8 @@ void main()
 
         if (t >= 0.0 && t <= 1.0)
         {
-            // Parallel projection from 4D -> 3D (drop the last coordinate);
+            // Calculate and store the point of intersection.
             vec4 intersection = a + (b - a) * t;
-            //intersection = vec4(intersection.xyz, 1.0);
-
-            // Store the point of intersection.
             intersections[slice_id] = intersection;
 
             slice_centroid += intersection.xyz;
@@ -148,6 +145,7 @@ void main()
         vec3 n = normalize(cross(bc, ab));
 
         // TODO: determine outward facing normal `https://www.gamedev.net/forums/topic/433315-determining-outward-facing-normals/?do=findComment&comment=3880903`
+        // TODO: sorting the points in 3D seems to work, but why?
 
         vec3 first_edge = normalize(a - slice_centroid);
 

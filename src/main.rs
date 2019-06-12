@@ -282,7 +282,7 @@ fn main() {
                 }
 
                 projections_program.bind();
-                projections_program.uniform_1ui("u_perspective_4D", 0);
+                projections_program.uniform_bool("u_perspective_4D", false);
                 for (i, mesh) in meshes.iter().enumerate() {
                     projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
                     mesh.draw_slice();
@@ -290,7 +290,7 @@ fn main() {
             }
             1 => {
                 projections_program.bind();
-                projections_program.uniform_1ui("u_perspective_4D", 1);
+                projections_program.uniform_bool("u_perspective_4D", true);
                 // (1) Draw the wireframes of all of the tetrahedra that make up the polychora.
                 for (i, mesh) in meshes.iter().enumerate() {
                     projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
@@ -299,7 +299,7 @@ fn main() {
             }
             2 => {
                 projections_program.bind();
-                projections_program.uniform_1ui("u_perspective_4D", 1);
+                projections_program.uniform_bool("u_perspective_4D", true);
                 // (2) Draw the skeletons (wireframes) of the polychora.
                 for (i, mesh) in meshes.iter().enumerate() {
                     projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
