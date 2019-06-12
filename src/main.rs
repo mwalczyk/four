@@ -117,12 +117,6 @@ fn main() {
     );
 
     // Load the shader programs that we will use for rendering.
-    let slice_program = Program::two_stage(
-        utilities::load_file_as_string(Path::new("shaders/shader.vert")),
-        utilities::load_file_as_string(Path::new("shaders/shader.frag")),
-    )
-    .unwrap();
-
     let projections_program = Program::two_stage(
         utilities::load_file_as_string(Path::new("shaders/projections.vert")),
         utilities::load_file_as_string(Path::new("shaders/projections.frag")),
@@ -275,16 +269,9 @@ fn main() {
         projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);
         projections_program.uniform_matrix_4f("u_four_projection", &four_cam.projection);
 
-
         // Uniforms for 3D -> 2D projection.
         projections_program.uniform_matrix_4f("u_three_view", &three_cam.get_look_at());
         projections_program.uniform_matrix_4f("u_three_projection", &three_cam.get_projection());
-
-        // TODO: the shader below is redundant and should be consolidated with `projections_program`
-        // Uniforms for 3D -> 2D projection.
-//        slice_program.uniform_1f("u_time", milliseconds);
-//        slice_program.uniform_matrix_4f("u_view", &three_cam.get_look_at());
-//        slice_program.uniform_matrix_4f("u_projection", &three_cam.get_projection());
 
         match mode {
             0 => {
@@ -295,7 +282,6 @@ fn main() {
                 }
 
                 projections_program.bind();
-                projections_program.uniform_1ui("u_apply_four_rotation", 0);
                 projections_program.uniform_1ui("u_perspective_4D", 0);
                 for (i, mesh) in meshes.iter().enumerate() {
                     projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
@@ -304,7 +290,6 @@ fn main() {
             }
             1 => {
                 projections_program.bind();
-                projections_program.uniform_1ui("u_apply_four_rotation", 1);
                 projections_program.uniform_1ui("u_perspective_4D", 1);
                 // (1) Draw the wireframes of all of the tetrahedra that make up the polychora.
                 for (i, mesh) in meshes.iter().enumerate() {
@@ -314,7 +299,6 @@ fn main() {
             }
             2 => {
                 projections_program.bind();
-                projections_program.uniform_1ui("u_apply_four_rotation", 1);
                 projections_program.uniform_1ui("u_perspective_4D", 1);
                 // (2) Draw the skeletons (wireframes) of the polychora.
                 for (i, mesh) in meshes.iter().enumerate() {
