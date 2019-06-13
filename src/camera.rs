@@ -3,7 +3,7 @@ use cgmath::{self, InnerSpace, Matrix4, Point3, SquareMatrix, Vector3, Vector4};
 use std::f32;
 
 use constants;
-use rotations::cross;
+use math::cross;
 
 pub trait Camera {
     fn get_look_at(&self) -> &Matrix4<f32>;

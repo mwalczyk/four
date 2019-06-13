@@ -15,10 +15,10 @@ mod camera;
 mod constants;
 mod hyperplane;
 mod interaction;
+mod math;
 mod mesh;
 mod polychora;
 mod program;
-mod rotations;
 mod tetrahedron;
 mod utilities;
 
@@ -146,22 +146,22 @@ fn main() {
                         if interaction.shift_pressed {
                             let rot = true;
 
-                            let rot_xw = rotations::get_simple_rotation_matrix(
-                                rotations::Plane::XW,
+                            let rot_xw = math::get_simple_rotation_matrix(
+                                math::Plane::XW,
                                 delta.x,
                             );
-                            let rot_yw = rotations::get_simple_rotation_matrix(
-                                rotations::Plane::YW,
+                            let rot_yw = math::get_simple_rotation_matrix(
+                                math::Plane::YW,
                                 delta.y,
                             );
                             rotation_in_4d = rot_xw * rot_yw * rotation_in_4d;
                         } else if interaction.ctrl_pressed {
-                            let rot_zw = rotations::get_simple_rotation_matrix(
-                                rotations::Plane::ZW,
+                            let rot_zw = math::get_simple_rotation_matrix(
+                                math::Plane::ZW,
                                 delta.x,
                             );
-                            let rot_zx = rotations::get_simple_rotation_matrix(
-                                rotations::Plane::ZX,
+                            let rot_zx = math::get_simple_rotation_matrix(
+                                math::Plane::ZX,
                                 delta.y,
                             );
                             rotation_in_4d = rot_zw * rot_zx * rotation_in_4d;

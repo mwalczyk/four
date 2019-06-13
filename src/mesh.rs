@@ -9,9 +9,9 @@ use gl;
 use gl::types::*;
 
 use hyperplane::Hyperplane;
+use math;
 use polychora::{Definition, Polychoron};
 use program::Program;
-use rotations;
 use tetrahedron::Tetrahedron;
 use utilities;
 
@@ -345,7 +345,7 @@ impl Mesh {
                 // some order (clockwise or counter-clockwise). So, the first thing we
                 // do is, collect all of the face vertices and sort them.
                 let face_vertices_sorted =
-                    rotations::sort_points_on_plane(&face_vertices, &hyperplane);
+                    math::sort_points_on_plane(&face_vertices, &hyperplane);
 
                 if apex.x == f32::MAX {
                     apex = face_vertices[0];

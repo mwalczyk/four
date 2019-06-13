@@ -139,6 +139,7 @@ impl Program {
         }
     }
 
+    /// Compiles a two-stage (vertex + fragment) shader from source.
     pub fn two_stage(vs_src: String, fs_src: String) -> Option<Program> {
         // Make sure that compiling each of the shaders was successful.
         let compile_vs_res = Program::compile_shader(&vs_src, gl::VERTEX_SHADER);
@@ -173,6 +174,7 @@ impl Program {
         }
     }
 
+    /// Compiles a single-stage (compute) shader from source.
     pub fn single_stage(cs_src: String) -> Option<Program> {
         let compile_cs_res = Program::compile_shader(&cs_src, gl::COMPUTE_SHADER);
 
@@ -191,12 +193,14 @@ impl Program {
         }
     }
 
+    /// Binds this shader program.
     pub fn bind(&self) {
         unsafe {
             gl::UseProgram(self.id);
         }
     }
 
+    /// Unbinds this shader program.
     pub fn unbind(&self) {
         unsafe {
             gl::UseProgram(0);

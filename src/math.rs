@@ -13,6 +13,24 @@ pub enum Plane {
     ZW,
 }
 
+/// Converts a set of hyperspherical coordinates `(r, ψ, φ, θ)` to Cartesian `(x, y, z, w)`
+/// coordinates.
+///
+/// Reference: `http://mathworld.wolfram.com/Hypersphere.html`
+pub fn hyperspherical_to_cartesian(r: f32, psi: f32, phi: f32, theta: f32) -> Vector4<f32> {
+    let x = r * psi.sin() * phi.sin() * theta.cos();
+    let y = r * psi.sin() * phi.sin() * theta.sin();
+    let z = r * psi.sin() * phi.cos();
+    let w = r * psi.cos();
+    Vector4::new(x, y, z, w)
+}
+
+/// Returns `true` if `pt` is inside the hypersphere with radius `r` centered at the origin
+/// and `false` otherwise.
+pub fn inside_hypersphere(pt: &Vector4<f32>, r: f32) -> bool {
+    pt.dot(*pt) <= (r * r)
+}
+
 /// Takes a 4D cross product between `u`, `v`, and `w`. The result is a vector in
 /// 4-dimensions that is simultaneously orthogonal to `u`, `v`, and `w`.
 ///
@@ -34,9 +52,11 @@ pub fn cross(u: &Vector4<f32>, v: &Vector4<f32>, w: &Vector4<f32>) -> Vector4<f3
     result
 }
 
-/// The 4D equivalent of a quaternion is known as a rotor.
+/// 4-dimensional rotations are best thought about as rotations parallel to a plane.
+/// For any of the six rotations below, only two coordinates change. In the future,
+/// it might be interesting to explore the 4D equivalent of quaternions: rotors.
 ///
-/// Reference: `https://math.stackexchange.com/questions/1402362/rotation-in-4d`
+/// Reference: `https://math.stackexchange.com/questions/1402362/rotation-in-4d` and `http://hollasch.github.io/ray4/Four-Space_Visualization_of_4D_Objects.html#rotmats`
 pub fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
     let c = angle.cos();
     let s = angle.sin();
@@ -82,27 +102,63 @@ pub fn get_simple_rotation_matrix(plane: Plane, angle: f32) -> Matrix4<f32> {
 }
 
 /// Returns a "double rotation" matrix, which represents two planes of rotation.
-/// The only fixed point is the origin. If `alpha` and `beta` are equal and non-zero,
-/// then the rotation is called an isoclinic rotation.
+/// The only fixed point is the origin. These are also known as Clifford rotations.
+/// Clifford rotations can be decomposed into two independent, simultaneous plane
+/// rotations (each of which can have a different "rate" of rotation, i.e. `alpha`
+/// and `beta`).
 ///
-/// In this case, we return a matrix that represents a rotation by `alpha` in the
-/// XY-plane and `beta` in the ZW-plane.
+/// If `alpha` and `beta` are equal and non-zero, then the rotation is called an
+/// isoclinic rotation.
+///
+/// This function accepts the first plane of rotation as an argument. The second
+/// plane of rotation is determined by the first (the pair of 2-planes are orthogonal
+/// to one another). The resulting matrix represents a rotation by `alpha` about the
+/// first plane and a rotation of `beta` about the second plane.
 ///
 /// Reference: `https://en.wikipedia.org/wiki/Plane_of_rotation#Double_rotations`
-pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
-    let ca = alpha.cos();
-    let sa = alpha.sin();
-    let cb = beta.cos();
-    let sb = beta.sin();
+pub fn get_double_rotation_matrix(first_plane: Plane, alpha: f32, beta: f32) -> Matrix4<f32> {
+    match first_plane {
+        // α-XY, β-ZW
+        Plane::XY => {
+            get_simple_rotation_matrix(Plane::XY, alpha)
+                * get_simple_rotation_matrix(Plane::ZW, beta)
+        }
 
-    // TODO: add other double rotation matrices
+        // α-YZ, β-XW
+        Plane::YZ => {
+            get_simple_rotation_matrix(Plane::YZ, alpha)
+                * get_simple_rotation_matrix(Plane::XW, beta)
+        }
 
-    Matrix4::from_cols(
-        Vector4::new(ca, sa, 0.0, 0.0),
-        Vector4::new(-sa, ca, 0.0, 0.0),
-        Vector4::new(0.0, 0.0, cb, sb),
-        Vector4::new(0.0, 0.0, -sb, cb),
-    )
+        // α-ZX, β-YW
+        Plane::ZX => {
+            get_simple_rotation_matrix(Plane::ZX, alpha)
+                * get_simple_rotation_matrix(Plane::YW, beta)
+        }
+
+        // α-XW, β-YZ
+        Plane::XW => {
+            get_simple_rotation_matrix(Plane::XW, alpha)
+                * get_simple_rotation_matrix(Plane::YZ, beta)
+        }
+
+        // α-YW, β-ZX
+        Plane::YW => {
+            get_simple_rotation_matrix(Plane::YW, alpha)
+                * get_simple_rotation_matrix(Plane::ZX, beta)
+        }
+
+        // α-ZW, β-XY
+        Plane::ZW => {
+            get_simple_rotation_matrix(Plane::ZW, alpha)
+                * get_simple_rotation_matrix(Plane::XY, beta)
+        }
+    }
+}
+
+/// See the notes above in `get_double_rotation_matrix(...)`.
+fn get_isoclinic_rotation_matrix(first_plane: Plane, alpha_beta: f32) -> Matrix4<f32> {
+    get_double_rotation_matrix(first_plane, alpha_beta, alpha_beta)
 }
 
 /// Given a set of  vertices embedded in 4-dimensions that lie inside `hyperplane`,
