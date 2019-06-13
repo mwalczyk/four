@@ -36,7 +36,7 @@
 .idea/*.iml
 .idea/modules
 *.iml
-# *.ipr
+*.ipr
 
 # CMake
 cmake-build-*/
