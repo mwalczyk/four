@@ -87,7 +87,7 @@ fn main() {
         Mesh::new(Polychoron::Cell8),
         Mesh::new(Polychoron::Cell16),
         Mesh::new(Polychoron::Cell24),
-        Mesh::new(Polychoron::Cell120)
+        Mesh::new(Polychoron::Cell120),
     ];
 
     // Set up the model matrices, in 3-space.
@@ -103,7 +103,7 @@ fn main() {
 
     // Initialize the camera that will be used to perform the 4D -> 3D projection.
     let four_cam = FourCamera::new(
-        Vector4::unit_x() * 1.25,
+        Vector4::unit_x() * 1.5,
         Vector4::zero(),
         Vector4::unit_y(),
         Vector4::unit_z(),
@@ -262,8 +262,9 @@ fn main() {
         let milliseconds = (seconds as f32) / 1000.0;
         clear();
 
-        // Uniforms for 4D -> 3D projection.
         projections_program.uniform_1f("u_time", milliseconds);
+
+        // Uniforms for 4D -> 3D projection.
         projections_program.uniform_4f("u_four_from", &four_cam.from);
         projections_program.uniform_matrix_4f("u_four_model", &rotation_in_4d);
         projections_program.uniform_matrix_4f("u_four_view", &four_cam.look_at);

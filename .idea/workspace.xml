@@ -4,10 +4,10 @@
     <list default="true" id="884031f7-9daa-4d0e-a0ec-31c506161b12" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/shaders/compute_slice.glsl" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/compute_slice.glsl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/projections.frag" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/projections.frag" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/shaders/projections.vert" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/projections.vert" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/program.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/program.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mesh.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/mesh.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rotations.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rotations.rs" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -24,7 +24,7 @@
           <entry key="frag" value="4" />
           <entry key="glsl" value="3" />
           <entry key="md" value="1" />
-          <entry key="rs" value="21" />
+          <entry key="rs" value="23" />
           <entry key="vert" value="3" />
         </counts>
       </usages-collector>
@@ -32,21 +32,21 @@
         <counts>
           <entry key="GLSL shader file" value="10" />
           <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Rust" value="21" />
+          <entry key="Rust" value="23" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="frag" value="328" />
-          <entry key="glsl" value="186" />
-          <entry key="rs" value="13691" />
-          <entry key="vert" value="2352" />
+          <entry key="frag" value="337" />
+          <entry key="glsl" value="226" />
+          <entry key="rs" value="14396" />
+          <entry key="vert" value="2501" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="GLSL shader file" value="2866" />
-          <entry key="Rust" value="13691" />
+          <entry key="GLSL shader file" value="3064" />
+          <entry key="Rust" value="14396" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.lifecycle.project">
@@ -61,16 +61,30 @@
     </session>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.37223974">
+    <splitter split-orientation="horizontal" split-proportion="0.548265">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/mesh.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1217">
-                  <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
+                <state relative-caret-position="393">
+                  <caret line="408" column="49" lean-forward="true" selection-start-line="408" selection-start-column="49" selection-end-line="408" selection-end-column="49" />
                   <folding>
                     <element signature="n#!!block;n#DrawCommand#0" />
+                    <element signature="e#4229#4299#0" />
+                    <element signature="e#4405#4475#0" />
+                    <element signature="e#4805#5095#0" />
+                    <element signature="e#5273#5658#0" />
+                    <element signature="e#5990#6937#0" />
+                    <element signature="e#7031#7551#0" />
+                    <element signature="e#7692#8094#0" />
+                    <element signature="e#8214#8473#0" />
+                    <element signature="e#9099#10244#0" />
+                    <element signature="e#10344#13790#0" />
+                    <element signature="e#15076#15910#0" />
+                    <element signature="e#16189#20898#0" />
+                    <element signature="e#20942#22625#0" />
+                    <element signature="e#22664#24703#0" />
                   </folding>
                 </state>
               </provider>
@@ -79,8 +93,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/polychora.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="587">
-                  <caret line="62" column="20" selection-start-line="62" selection-start-column="20" selection-end-line="62" selection-end-column="20" />
+                <state relative-caret-position="-28">
+                  <caret line="48" column="3" lean-forward="true" selection-start-line="48" selection-start-column="3" selection-end-line="48" selection-end-column="3" />
                   <folding>
                     <element signature="n#!!block;n#Definition#0" />
                   </folding>
@@ -89,28 +103,19 @@
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/shaders/projections.vert">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="210">
-                  <caret line="14" column="27" lean-forward="true" selection-start-line="14" selection-start-column="27" selection-end-line="14" selection-end-column="27" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/shaders/projections.frag">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="105">
-                  <caret line="7" column="8" lean-forward="true" selection-start-line="7" selection-start-column="8" selection-end-line="7" selection-end-column="8" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/shaders/compute_slice.glsl">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="253">
-                  <caret line="100" column="16" selection-start-line="100" selection-start-column="16" selection-end-line="100" selection-end-column="16" />
+                <state relative-caret-position="-210">
+                  <caret line="7" column="24" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="24" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/shaders/projections.vert">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="90">
+                  <caret line="6" column="74" selection-start-line="6" selection-start-column="74" selection-end-line="6" selection-end-column="74" />
                 </state>
               </provider>
             </entry>
@@ -119,32 +124,15 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/shaders/shader.vert">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="525">
-                  <caret line="35" column="8" selection-start-line="35" selection-start-column="8" selection-end-line="35" selection-end-column="8" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/shaders/shader.frag">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="225">
-                  <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/main.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="280">
-                  <caret line="105" column="32" selection-start-line="105" selection-start-column="25" selection-end-line="105" selection-end-column="32" />
+                <state relative-caret-position="452">
+                  <caret line="289" column="17" lean-forward="true" selection-start-line="289" selection-start-column="17" selection-end-line="289" selection-end-column="17" />
                   <folding>
                     <element signature="n#!!block;n#clear#0" />
                     <element signature="n#!!block;n#set_draw_state#0" />
+                    <element signature="e#4037#10189#0" />
                   </folding>
                 </state>
               </provider>
@@ -153,9 +141,10 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/program.rs">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="253">
-                  <caret line="203" column="5" lean-forward="true" selection-start-line="203" selection-start-column="5" selection-end-line="203" selection-end-column="5" />
+                <state relative-caret-position="195">
+                  <caret line="13" column="1" lean-forward="true" selection-start-line="13" selection-start-column="1" selection-end-line="13" selection-end-column="1" />
                   <folding>
+                    <element signature="e#490#1753#0" />
                     <element signature="e#1826#3016#0" />
                     <element signature="e#3098#4369#0" />
                     <element signature="e#4443#5734#0" />
@@ -197,6 +186,7 @@
       <find>[0.0, -1.9999949, 0.0, 1.9999949]</find>
       <find>apex</find>
       <find>consts</find>
+      <find>u_transform</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -218,20 +208,20 @@
         <option value="$PROJECT_DIR$/shaders/slice.comp.glsl" />
         <option value="$PROJECT_DIR$/src/utilities.rs" />
         <option value="$PROJECT_DIR$/src/renderer.rs" />
-        <option value="$PROJECT_DIR$/src/rotations.rs" />
         <option value="$PROJECT_DIR$/src/tetrahedron.rs" />
         <option value="$PROJECT_DIR$/src/hyperplane.rs" />
         <option value="$PROJECT_DIR$/src/polychora.rs" />
-        <option value="$PROJECT_DIR$/src/mesh.rs" />
         <option value="$PROJECT_DIR$/src/constants.rs" />
         <option value="$PROJECT_DIR$/src/camera.rs" />
         <option value="$PROJECT_DIR$/shaders/shader.frag" />
         <option value="$PROJECT_DIR$/shaders/shader.vert" />
         <option value="$PROJECT_DIR$/src/program.rs" />
         <option value="$PROJECT_DIR$/shaders/projections.frag" />
+        <option value="$PROJECT_DIR$/src/rotations.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/shaders/compute_slice.glsl" />
         <option value="$PROJECT_DIR$/shaders/projections.vert" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/mesh.rs" />
       </list>
     </option>
   </component>
@@ -489,21 +479,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/interaction.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/renderer.rs" />
-    <entry file="file://$PROJECT_DIR$/src/rotations.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-11">
-          <caret line="95" column="24" lean-forward="true" selection-start-line="95" selection-start-column="24" selection-end-line="95" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/hyperplane.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="199">
@@ -555,11 +531,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/rotations.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-747">
+          <caret line="18" column="49" selection-start-line="18" selection-start-column="49" selection-end-line="18" selection-end-column="49" />
+          <folding>
+            <element signature="n#!!block;n#cross#0" />
+            <element signature="n#!!block;n#get_simple_rotation_matrix#0" />
+            <element signature="n#!!block;n#get_double_rotation_matrix#0" />
+            <element signature="e#3972#4036#0" />
+            <element signature="n#!!block;n#align_corner_to_x_axis#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/program.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="253">
-          <caret line="203" column="5" lean-forward="true" selection-start-line="203" selection-start-column="5" selection-end-line="203" selection-end-column="5" />
+        <state relative-caret-position="195">
+          <caret line="13" column="1" lean-forward="true" selection-start-line="13" selection-start-column="1" selection-end-line="13" selection-end-column="1" />
           <folding>
+            <element signature="e#490#1753#0" />
             <element signature="e#1826#3016#0" />
             <element signature="e#3098#4369#0" />
             <element signature="e#4443#5734#0" />
@@ -569,54 +560,80 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/compute_slice.glsl">
+    <entry file="file://$PROJECT_DIR$/src/interaction.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="253">
-          <caret line="100" column="16" selection-start-line="100" selection-start-column="16" selection-end-line="100" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/projections.frag">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="8" lean-forward="true" selection-start-line="7" selection-start-column="8" selection-end-line="7" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/shaders/projections.vert">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="27" lean-forward="true" selection-start-line="14" selection-start-column="27" selection-end-line="14" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/polychora.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="587">
-          <caret line="62" column="20" selection-start-line="62" selection-start-column="20" selection-end-line="62" selection-end-column="20" />
+        <state relative-caret-position="15">
+          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
           <folding>
-            <element signature="n#!!block;n#Definition#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/mesh.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1217">
-          <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
-          <folding>
-            <element signature="n#!!block;n#DrawCommand#0" />
+            <element signature="e#717#718#0" expanded="true" />
+            <element signature="e#767#768#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="280">
-          <caret line="105" column="32" selection-start-line="105" selection-start-column="25" selection-end-line="105" selection-end-column="32" />
+        <state relative-caret-position="452">
+          <caret line="289" column="17" lean-forward="true" selection-start-line="289" selection-start-column="17" selection-end-line="289" selection-end-column="17" />
           <folding>
             <element signature="n#!!block;n#clear#0" />
             <element signature="n#!!block;n#set_draw_state#0" />
+            <element signature="e#4037#10189#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/projections.frag">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="1" lean-forward="true" selection-start-line="14" selection-start-column="1" selection-end-line="14" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/projections.vert">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="74" selection-start-line="6" selection-start-column="74" selection-end-line="6" selection-end-column="74" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/polychora.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-28">
+          <caret line="48" column="3" lean-forward="true" selection-start-line="48" selection-start-column="3" selection-end-line="48" selection-end-column="3" />
+          <folding>
+            <element signature="n#!!block;n#Definition#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shaders/compute_slice.glsl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-210">
+          <caret line="7" column="24" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/mesh.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="393">
+          <caret line="408" column="49" lean-forward="true" selection-start-line="408" selection-start-column="49" selection-end-line="408" selection-end-column="49" />
+          <folding>
+            <element signature="n#!!block;n#DrawCommand#0" />
+            <element signature="e#4229#4299#0" />
+            <element signature="e#4405#4475#0" />
+            <element signature="e#4805#5095#0" />
+            <element signature="e#5273#5658#0" />
+            <element signature="e#5990#6937#0" />
+            <element signature="e#7031#7551#0" />
+            <element signature="e#7692#8094#0" />
+            <element signature="e#8214#8473#0" />
+            <element signature="e#9099#10244#0" />
+            <element signature="e#10344#13790#0" />
+            <element signature="e#15076#15910#0" />
+            <element signature="e#16189#20898#0" />
+            <element signature="e#20942#22625#0" />
+            <element signature="e#22664#24703#0" />
           </folding>
         </state>
       </provider>

@@ -4,7 +4,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ptr;
 
-use cgmath::{self, Array, InnerSpace, Matrix4, SquareMatrix, Vector3, Vector4, Zero};
+use cgmath::{self, Array, InnerSpace, Matrix4, SquareMatrix, Vector4, Zero};
 use gl;
 use gl::types::*;
 
@@ -27,19 +27,19 @@ struct DrawCommand {
 /// A 4-dimensional mesh.
 pub struct Mesh {
     /// The vertices of the 4-dimensional mesh.
-    pub vertices: Vec<Vector4<f32>>,
+    vertices: Vec<Vector4<f32>>,
 
     /// The edges of the 4-dimensional mesh.
-    pub edges: Vec<u32>,
+    edges: Vec<u32>,
 
     /// The faces of the 4-dimensional mesh.
-    pub faces: Vec<u32>,
+    faces: Vec<u32>,
 
     /// The type of polychoron that this mesh represents.
-    pub polychoron: Polychoron,
+    polychoron: Polychoron,
 
     /// The topology (definition) of the polychoron that this mesh represents.
-    pub def: Definition,
+    def: Definition,
 
     /// A list of tetrahedra (embedded in 4-dimensions) that make up this mesh.
     tetrahedra: Vec<Tetrahedron>,
@@ -113,8 +113,6 @@ impl Mesh {
             ebo_edges: 0,
         };
 
-        println!("Program ID: {:?}", mesh.compute.get_id());
-
         mesh.tetrahedralize();
         mesh.init_render_objects();
         mesh
@@ -178,8 +176,6 @@ impl Mesh {
 
     /// Slice this mesh with a 4-dimensional `hyperplane`.
     pub fn slice(&mut self, hyperplane: &Hyperplane) {
-
-
         self.compute.bind();
         self.compute
             .uniform_4f("u_hyperplane_normal", &hyperplane.normal);
@@ -190,6 +186,7 @@ impl Mesh {
             .uniform_matrix_4f("u_transform", &self.transform);
 
         unsafe {
+            // Bind buffers for read / write.
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 0, self.buffer_tetrahedra);
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 1, self.buffer_slice_vertices);
             gl::BindBufferBase(gl::SHADER_STORAGE_BUFFER, 2, self.buffer_indirect_commands);
@@ -252,17 +249,20 @@ impl Mesh {
         }
     }
 
-    /// Given the H-representation of this polytope, return a list of lists, where
+    /// Given the H-representation of this polychoron, return a list of lists, where
     /// each sub-list contains the indices of all faces that are inside the `i`th
     /// hyperplane.
     ///
     /// Here, we take a relatively brute-force approach by iterating over all of the faces
-    /// of this polytope. For the 120-cell, for example, there are 720 faces. For each
-    /// face, we check if all of its vertices are inside of the current hyperplane. If so,
+    /// of this polychoron. For the 120-cell, for example, there are 720 faces. For each
+    /// face, we check if all of its vertices are "inside" of the current hyperplane. If so,
     /// we know that this face is part of the cell that is bounded by the current hyper-
     /// plane.
+    ///
+    /// The goal is to isolate which faces are part of which cells, since this information
+    /// isn't part of any of the shape files.
     fn gather_cells(&self) -> Vec<(Hyperplane, Vec<u32>)> {
-        let mut solids = Vec::new();
+        let mut cells = Vec::new();
 
         for hyperplane in self.polychoron.get_h_representation().iter() {
             let mut faces_in_hyperplane = Vec::new();
@@ -290,13 +290,15 @@ impl Mesh {
                 hyperplane
             );
 
-            solids.push((*hyperplane, faces_in_hyperplane));
+            cells.push((*hyperplane, faces_in_hyperplane));
         }
 
-        solids
+        cells
     }
 
-    /// Performs of a tetrahedral decomposition of the polytope.
+    /// Performs of a tetrahedral decomposition of the polychoron.
+    ///
+    /// Reference: `https://www.ics.uci.edu/~eppstein/projects/tetra/`
     fn tetrahedralize(&mut self) {
         let mut tetrahedrons = Vec::new();
 
@@ -323,7 +325,7 @@ impl Mesh {
                 &Vector4::zero(),
             );
 
-            println!("Length of face centroid: {}", cell_centroid.magnitude());
+            println!("Length of cell centroid: {}", cell_centroid.magnitude());
 
             // Iterate over each face of the current cell.
             for face_index in face_indices {
@@ -371,7 +373,7 @@ impl Mesh {
             }
 
             println!(
-                "{} tetrahedrons found for solid {}",
+                "{} tetrahedrons found for cell at index: {}",
                 tetrahedrons.len() - prev_len,
                 cell_index
             );
@@ -402,7 +404,7 @@ impl Mesh {
 
             // Next, push back all of this tetrahedron's colors (currently, we are
             // using the cell centroid to generate some sort of shading / colors).
-            // TODO: for now, we have to do this 6 times? Probably something to do with attribute divisors.
+            // TODO: see notes on attribute divisors in `init_slice_objects(...)`
             for i in 0..max_vertices_per_slice {
                 colors.push(tetra.cell_centroid);
             }
@@ -442,6 +444,8 @@ impl Mesh {
         self.init_edges_objects();
     }
 
+    /// Initializes all OpenGL objects for rendering a 3-dimensional slice of this
+    /// 4-dimensional polychoron.
     fn init_slice_objects(&mut self) {
         unsafe {
             gl::CreateVertexArrays(1, &mut self.vao_slice);
@@ -460,7 +464,6 @@ impl Mesh {
             );
             gl::VertexArrayAttribBinding(self.vao_slice, ATTR_POS, BINDING_POS);
 
-            // TODO: we should be able to use this: gl::VertexArrayBindingDivisor(self.vao, 1, 6)
             // Set up attribute #1: colors.
             const ATTR_COL: u32 = 1;
             const BINDING_COL: u32 = 1;
@@ -474,6 +477,7 @@ impl Mesh {
                 0,
             );
             gl::VertexArrayAttribBinding(self.vao_slice, ATTR_COL, BINDING_COL);
+            // TODO: gl::VertexArrayBindingDivisor(self.vao_slice, BINDING_COL, 6);
 
             let (vertices, colors) = self.gather_tetrahedra_attributes();
 
@@ -560,6 +564,8 @@ impl Mesh {
         }
     }
 
+    /// Initializes all OpenGL objects for rendering wireframes of all of the
+    /// tetrahedra that make up this polychoron, which are embedded in 4-dimensions.
     fn init_tetrahedra_objects(&mut self) {
         unsafe {
             // First, create the vertex array object.
@@ -604,6 +610,7 @@ impl Mesh {
         }
     }
 
+    /// Initializes all OpenGL objects for rendering the edges of this polychoron.
     fn init_edges_objects(&mut self) {
         unsafe {
             // First, create the vertex array object.

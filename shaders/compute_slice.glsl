@@ -27,7 +27,7 @@ struct DrawCommand
 };
 
 // Read only.
-layout(std430, binding = 0) buffer BUFF_tetrahedra
+layout(std430, binding = 0) readonly buffer BUFF_tetrahedra
 {
     Tetrahedron tetrahedra[];
 };
@@ -38,7 +38,8 @@ layout(std430, binding = 1) buffer BUFF_slice_vertices
     Slice slice_vertices[];
 };
 
-layout(std430, binding = 2) buffer BUFF_indirect
+// Write only.
+layout(std430, binding = 2) writeonly buffer BUFF_indirect
 {
     DrawCommand indirect[];
 };

@@ -34,12 +34,6 @@ out VS_OUT
     float depth_cue;
 } vs_out;
 
-
-float sigmoid(float x)
-{
-    return 1.0 / (1.0 + exp(-x));
-}
-
 void main()
 {
     bool perspective_4D = false;
@@ -65,9 +59,10 @@ void main()
         //four = u_four_model * position;
         //four = vec4(four.xyz, 1.0);
 
-        // TODO: the code above doesn't always work, since the `u_four_model` matrix
-        // TODO: is already applied to the slice vertices in the compute shader - we do a
-        // TODO: standard orthographic projection for those vertices
+        // TODO: the code above doesn't always work, since the `u_four_model` matrix (rotations)
+        // TODO: is already applied to the tetrahedra vertices in the compute shader prior to
+        // TODO: generating the 3D slice - we do a standard orthographic projection for this
+        // TODO: draw mode, instead
         
         four = vec4(position.xyz, 1.0);
     }

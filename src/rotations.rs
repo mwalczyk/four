@@ -95,6 +95,8 @@ pub fn get_double_rotation_matrix(alpha: f32, beta: f32) -> Matrix4<f32> {
     let cb = beta.cos();
     let sb = beta.sin();
 
+    // TODO: add other double rotation matrices
+
     Matrix4::from_cols(
         Vector4::new(ca, sa, 0.0, 0.0),
         Vector4::new(-sa, ca, 0.0, 0.0),
