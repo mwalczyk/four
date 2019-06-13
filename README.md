@@ -1,7 +1,7 @@
 # four
 💎 A 4-dimensional renderer.
 
-<p>
+<p align="center">
   <img src="https://github.com/mwalczyk/four/blob/master/screenshots/polychora.gif" alt="screenshot" width="500" height="auto"/>
 </p>
 
@@ -12,14 +12,14 @@ Most people are familiar with this form of visualization. When a 4D -> 3D perspe
 
 Another way to visualize 4-dimensional objects is via a "slicing" procedure, which produces a series of 3-dimensional cross-sections of the full polytope. This is analogous to cutting 3D polyhedra with a plane (think MRI scans). Luckily, much of the math carries over to 4D. In order to facilitate this process, meshes in `four` are first decomposed into a set of tetrahedrons. This is similar to how we can decompose the faces of a regular polyhedron into triangles. In particular, [any 3D convex polyhedron can be decomposed into tetrahedrons](https://mathoverflow.net/questions/7647/break-polyhedron-into-tetrahedron) by first subdividing its faces into triangles. Next, we pick a vertex from the polyhedron (any vertex will do). We connect all of the other face triangles to the chosen vertex to form a set of tetrahedra (obviously, ignoring faces that contain the chosen vertex). This is not necessarily the "minimal tetrahedral decomposition" of the polyhedron (which is an active area of research for many polytopes), but it always works. An example of this process for a regular, 3D cube can be found [here](https://www.ics.uci.edu/~eppstein/projects/tetra/).
 
-<p>
-  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/screenshot.gif" alt="screenshot" width="300" height="auto"/>
+<p align="center">
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/screenshot.gif" alt="screenshot" width="150" height="auto"/>
 </p>
 
 So, we start with our 4D polytope, whose "faces" (usually referred to as "cells") are themselves convex polyhedra embedded in 4-dimensions. One by one, we "tetrahedralize" each cell, and together, the sum of these tetrahedra form our 4-dimensional mesh. For example, the hypercube has 8 cells, each of which is a cube (this is why the hypercube is often called the 8-cell). Each cube produces 6 distinct tetrahedra, so all together, the tetrahedral decomposition of the hypercube results in 48 tetrahedra. This process can be seen below for an icosahedron:
 
-<p>
-  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/icosahedron.jpeg" alt="screenshot" width="200" height="auto"/>
+<p align="center">
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/icosahedron.jpeg" alt="screenshot" width="150" height="auto"/>
 </p>
 
 Why do we do this? It turns out that slicing a tetrahedron in 4-dimensions is much simpler than slicing the full cells that make up the surface of a polytope. In particular, a sliced tetrahedron (embedded in 4-dimensions) will always produce zero, 3, or 4 vertices, which makes things quite a bit easier (particularly, when it comes to computing vertex indices for OpenGL rendering).
@@ -59,8 +59,8 @@ NOTE: this project will only run on graphics cards that support OpenGL [Direct S
 
 ## To Use
 
-<p>
-  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/wireframes.png" alt="screenshot" width="500" height="auto"/>
+<p align="center">
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/wireframes.png" alt="screenshot" width="300" height="auto"/>
 </p>
 
 To rotate the camera around the object in 3-dimensions, press + drag the left mouse button (this part definitely needs some refinement!).
