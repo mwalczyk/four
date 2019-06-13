@@ -12,7 +12,7 @@ Most people are familiar with this form of visualization. When a 4D -> 3D perspe
 
 Another way to visualize 4-dimensional objects is via a "slicing" procedure, which produces a series of 3-dimensional cross-sections of the full polytope. This is analogous to cutting 3D polyhedra with a plane (think MRI scans). Luckily, much of the math carries over to 4D. In order to facilitate this process, meshes in `four` are first decomposed into a set of tetrahedrons. This is similar to how we can decompose the faces of a regular polyhedron into triangles. In particular, [any 3D convex polyhedron can be decomposed into tetrahedrons](https://mathoverflow.net/questions/7647/break-polyhedron-into-tetrahedron) by first subdividing its faces into triangles. Next, we pick a vertex from the polyhedron (any vertex will do). We connect all of the other face triangles to the chosen vertex to form a set of tetrahedra (obviously, ignoring faces that contain the chosen vertex). This is not necessarily the "minimal tetrahedral decomposition" of the polyhedron (which is an active area of research for many polytopes), but it always works. An example of this process for a regular, 3D cube can be found [here](https://www.ics.uci.edu/~eppstein/projects/tetra/).
 
-<p align="left">
+<p align="center">
   <img src="https://github.com/mwalczyk/four/blob/master/screenshots/screenshot.gif" alt="screenshot" width="150" height="auto"/>
 </p>
 
