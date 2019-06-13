@@ -161,11 +161,13 @@ fn get_isoclinic_rotation_matrix(first_plane: Plane, alpha_beta: f32) -> Matrix4
     get_double_rotation_matrix(first_plane, alpha_beta, alpha_beta)
 }
 
-/// Given a set of  vertices embedded in 4-dimensions that lie inside `hyperplane`,
+/// Given a set of vertices embedded in 4-dimensions that lie inside `hyperplane`,
 /// find a proper ordering of the points such that the resulting list of vertices can
 /// be traversed in order to create a fan of distinct, non-overlapping triangles. Note
 /// that for the purposes of this application, we don't care if the list ends up
 /// in a "clockwise" or "counter-clockwise" order.
+///
+/// Reference: `https://math.stackexchange.com/questions/978642/how-to-sort-vertices-of-a-polygon-in-counter-clockwise-order`
 pub fn sort_points_on_plane(
     points: &Vec<Vector4<f32>>,
     hyperplane: &Hyperplane,
