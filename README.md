@@ -2,7 +2,13 @@
 💎 A 4-dimensional renderer.
 
 <p align="center">
-  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/polychora.gif" alt="screenshot" width="500" height="auto"/>
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/mode_0.png" alt="screenshot" width="500" height="auto"/>
+</p>
+<p align="center">
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/mode_1.png" alt="screenshot" width="500" height="auto"/>
+</p>
+<p align="center">
+  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/mode_2.png" alt="screenshot" width="500" height="auto"/>
 </p>
 
 ## Description
@@ -58,11 +64,6 @@ NOTE: this project will only run on graphics cards that support OpenGL [Direct S
 3. Inside the repo, run: `cargo build --release`.
 
 ## To Use
-
-<p align="center">
-  <img src="https://github.com/mwalczyk/four/blob/master/screenshots/wireframes.png" alt="screenshot" width="300" height="auto"/>
-</p>
-
 To rotate the camera around the object in 3-dimensions, press + drag the left mouse button (this part definitely needs some refinement!).
 
 There are 6 possible plane rotations in a 4-dimensional space, and I haven't found a great way to expose this to the user (yet). For now, you can hold `shift` while pressing + dragging the left mouse button to rotate in the `XW` or `YW` planes. Alternatively, you can hold `ctrl` while pressing + dragging the left mouse button to rotate in the `XY` or `ZX` planes. You can change the "height" of the slicing hyperplane (effectively adjusting the `w`-coordinate of its "normal" vector) by pressing + dragging the right mouse button (without any modifiers).
