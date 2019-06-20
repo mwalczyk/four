@@ -83,8 +83,8 @@ Finally, you can toggle between 3 different projections / draw "modes" by repeat
 All of the draw modes listed above will be affected by the 4-dimensional rotations mentioned prior.
 
 ## To Do
-- [ x ] Implement a more generic approach to deriving a polytope's H-representation based on its dual
-- [ x ] Finish additional polytopes (600-cell, etc.)
+- [x] Implement a more generic approach to deriving a polytope's H-representation based on its dual
+- [x] Finish additional polytopes (600-cell, etc.)
 - [ ] Add 4-dimensional "extrusions" (i.e. things like spherinders)
 - [ ] Add "hollow"-cell variants of each polytope (see Miegakure)
 - [ ] Add simple lighting (calculate 3D normals after slicing procedure)
