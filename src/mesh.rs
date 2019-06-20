@@ -84,7 +84,7 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(polychoron: Polychoron) -> Mesh {
         match polychoron {
-            Polychoron::Cell24Rectified | Polychoron::Cell600 => eprintln!(
+            Polychoron::Cell24Rectified => eprintln!(
                 "Drawing of this shape is not yet supported - please try another polychoron"
             ),
             _ => (),

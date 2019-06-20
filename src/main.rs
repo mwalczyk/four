@@ -88,14 +88,16 @@ fn main() {
         Mesh::new(Polychoron::Cell16),
         Mesh::new(Polychoron::Cell24),
         Mesh::new(Polychoron::Cell120),
+        Mesh::new(Polychoron::Cell600),
     ];
 
     // Set up the model matrices, in 3-space.
     let mut model_matrices = vec![
-        Matrix4::from_translation(Vector3::unit_x() * -3.5),
-        Matrix4::from_translation(Vector3::unit_x() * -1.0),
-        Matrix4::from_translation(Vector3::unit_x() * 1.0),
-        Matrix4::from_translation(Vector3::unit_x() * 3.5),
+        Matrix4::from_translation(Vector3::unit_x() * -4.5),
+        Matrix4::from_translation(Vector3::unit_x() * -2.0),
+        Matrix4::from_translation(Vector3::unit_x() * 0.0),
+        Matrix4::from_translation(Vector3::unit_x() * 2.0),
+        Matrix4::from_translation(Vector3::unit_x() * 4.5),
     ];
 
     // Set up the "model" matrix, in 4-space.

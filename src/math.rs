@@ -156,7 +156,8 @@ pub fn get_double_rotation_matrix(first_plane: Plane, alpha: f32, beta: f32) -> 
     }
 }
 
-/// See the notes above in `get_double_rotation_matrix(...)`.
+/// See the notes above in `get_double_rotation_matrix(...)`. This function is
+/// mostly here for completeness.
 fn get_isoclinic_rotation_matrix(first_plane: Plane, alpha_beta: f32) -> Matrix4<f32> {
     get_double_rotation_matrix(first_plane, alpha_beta, alpha_beta)
 }

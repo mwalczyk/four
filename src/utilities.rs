@@ -96,6 +96,7 @@ where
     values.iter().fold(*init, |acc, &item| acc + item) / (values.len() as f32)
 }
 
+/// Returns the string contents of the file at `path`.
 pub fn load_file_as_string(path: &Path) -> String {
     let mut file = File::open(path).expect("File not found");
     let mut contents = String::new();
