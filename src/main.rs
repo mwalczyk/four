@@ -68,10 +68,12 @@ fn set_draw_state() {
 }
 
 fn main() {
+    // Set up windowing and event loop.
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new()
         .with_dimensions(constants::WIDTH, constants::HEIGHT)
-        .with_title("four");
+        .with_title("four")
+        .with_decorations(true);
     let context = glutin::ContextBuilder::new().with_multisampling(8);
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
     unsafe { gl_window.make_current() }.unwrap();
