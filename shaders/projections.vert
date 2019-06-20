@@ -25,7 +25,7 @@ layout(location = 1) in vec4 color;
 out VS_OUT
 {
     // A per-cell color
-    vec3 color;
+    vec4 color;
 
     // Model-space position, after projection from 4D -> 3D
     vec3 position;
@@ -33,6 +33,14 @@ out VS_OUT
     // Depth in the 4-th dimension
     float depth_cue;
 } vs_out;
+
+// https://github.com/hughsk/glsl-hsv2rgb/blob/master/index.glsl
+vec3 hsv2rgb(vec3 c)
+{
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
 
 void main()
 {
@@ -86,10 +94,16 @@ void main()
     vec3 cell_centroid = color.rgb;
     vec3 centroid_color = normalize(cell_centroid) * 0.5 + 0.5;
     vec3 position_color = normalize(position.xyz) * 0.5 + 0.5;
+
+    // Original shading mode...
     vec3 rgb = max(centroid_color, position_color);
+
+    // New shading mode...
+    rgb = u_perspective_4D ? position_color : centroid_color;
     rgb = max(rgb, vec3(0.15));
+    float alpha = u_perspective_4D ? 0.5 : 1.0;
 
     // Pass values to fragment shader.
-    vs_out.color = rgb;
+    vs_out.color = vec4(rgb, alpha);
     vs_out.position = four.xyz;
 }

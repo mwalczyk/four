@@ -148,24 +148,12 @@ fn main() {
                         if interaction.shift_pressed {
                             let rot = true;
 
-                            let rot_xw = math::get_simple_rotation_matrix(
-                                math::Plane::XW,
-                                delta.x,
-                            );
-                            let rot_yw = math::get_simple_rotation_matrix(
-                                math::Plane::YW,
-                                delta.y,
-                            );
+                            let rot_xw = math::get_simple_rotation_matrix(math::Plane::XW, delta.x);
+                            let rot_yw = math::get_simple_rotation_matrix(math::Plane::YW, delta.y);
                             rotation_in_4d = rot_xw * rot_yw * rotation_in_4d;
                         } else if interaction.ctrl_pressed {
-                            let rot_zw = math::get_simple_rotation_matrix(
-                                math::Plane::ZW,
-                                delta.x,
-                            );
-                            let rot_zx = math::get_simple_rotation_matrix(
-                                math::Plane::ZX,
-                                delta.y,
-                            );
+                            let rot_zw = math::get_simple_rotation_matrix(math::Plane::ZW, delta.x);
+                            let rot_zx = math::get_simple_rotation_matrix(math::Plane::ZX, delta.y);
                             rotation_in_4d = rot_zw * rot_zx * rotation_in_4d;
                         } else {
                             let rot_xz = Matrix4::from_angle_y(cgmath::Rad(delta.x));

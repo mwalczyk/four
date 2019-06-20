@@ -58,6 +58,8 @@ pub enum Polychoron {
     Cell8,
     Cell16,
     Cell24,
+    // The only reason we have this variant is because even though the 24-cell is self-dual,
+    // a rotation needs to happen before its vertices can be used as cell centers (i.e. to find hyperplane boundaries)
     Cell24Rectified, // Another construction of the 24-cell via the rectification of a 16-cell
     Cell120,
     Cell600,
@@ -1645,12 +1647,12 @@ impl Polychoron {
             Polychoron::Cell16 => 0.5,
             Polychoron::Cell24 => FRAC_1_SQRT_2,
             Polychoron::Cell120 => -0.925615, // See email snippet below as to where this comes from.
-            Polychoron::Cell600 => -0.925615,//-1.080363, // TODO: this isn't correct
-            _ => 0.0,                         // We should never get here.
+            Polychoron::Cell600 => -0.925615,
+            _ => {
+                panic!("Unknown displacement");
+                0.0 // We should never get here.
+            }
         };
-
-        // TODO: this ^ doesn't work because even though the 24-cell is self-dual,
-        // TODO: a rotation needs to happen before its vertices can be used as cell centers (i.e. to find hyperplane boundaries)
 
         // Notes from "T", the author of `http://eusebeia.dyndns.org/`:
         //

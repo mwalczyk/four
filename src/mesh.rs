@@ -284,11 +284,11 @@ impl Mesh {
                 }
             }
 
-            println!(
+            dbg!(format!(
                 "{} faces found inside of the hyperplane: {:?}",
                 faces_in_hyperplane.len(),
                 hyperplane
-            );
+            ));
 
             cells.push((*hyperplane, faces_in_hyperplane));
         }
@@ -325,7 +325,10 @@ impl Mesh {
                 &Vector4::zero(),
             );
 
-            println!("Length of cell centroid: {}", cell_centroid.magnitude());
+            dbg!(format!(
+                "Length of cell centroid: {}",
+                cell_centroid.magnitude()
+            ));
 
             // Iterate over each face of the current cell.
             for face_index in face_indices {
@@ -344,8 +347,7 @@ impl Mesh {
                 // vertices. However, this assumes that our vertices are sorted in
                 // some order (clockwise or counter-clockwise). So, the first thing we
                 // do is, collect all of the face vertices and sort them.
-                let face_vertices_sorted =
-                    math::sort_points_on_plane(&face_vertices, &hyperplane);
+                let face_vertices_sorted = math::sort_points_on_plane(&face_vertices, &hyperplane);
 
                 if apex.x == f32::MAX {
                     apex = face_vertices[0];
@@ -372,17 +374,17 @@ impl Mesh {
                 }
             }
 
-            println!(
+            dbg!(format!(
                 "{} tetrahedrons found for cell at index: {}",
                 tetrahedrons.len() - prev_len,
                 cell_index
-            );
+            ));
         }
 
-        println!(
+        dbg!(format!(
             "Mesh tetrahedralization resulted in {} tetrahedrons.",
             tetrahedrons.len()
-        );
+        ));
 
         self.tetrahedra = tetrahedrons;
     }
