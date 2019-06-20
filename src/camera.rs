@@ -115,7 +115,7 @@ impl Camera for ThreeCamera {
     }
 
     fn build_projection(&mut self) {
-        let fov = cgmath::Rad(std::f32::consts::FRAC_PI_2);
+        let fov = cgmath::Rad(std::f32::consts::FRAC_PI_4);
         let aspect = constants::WIDTH as f32 / constants::HEIGHT as f32;
         self.projection = cgmath::perspective(fov, aspect, 0.1, 1000.0);
     }

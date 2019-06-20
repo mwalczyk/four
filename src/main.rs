@@ -113,7 +113,7 @@ fn main() {
 
     // Initialize the camera that will be used to perform the 3D -> 2D projection.
     let mut three_cam = ThreeCamera::new(
-        Point3::new(0.0, 0.5, 4.0),
+        Point3::new(0.0, 0.5, 8.5),
         Point3::from_value(0.0),
         Vector3::unit_y(),
     );
