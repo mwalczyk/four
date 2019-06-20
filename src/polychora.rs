@@ -3,6 +3,7 @@ use std::f32::consts::FRAC_1_SQRT_2;
 use cgmath::{self, Vector4};
 
 use hyperplane::Hyperplane;
+use polychora::Polychoron::Cell24Rectified;
 
 /// A struct that describes a regular polychoron (4-polytope).
 ///
@@ -55,13 +56,25 @@ pub struct Definition {
 /// Reference: `http://paulbourke.net/geometry/hyperspace/`
 #[derive(Copy, Clone)]
 pub enum Polychoron {
+    /// A polytope with 8 cubic cells: the "tesseract"
     Cell8,
+
+    /// A polytope with 16 tetrahedral cells
     Cell16,
+
+    /// A polytope with 24 octahedral cells
     Cell24,
-    // The only reason we have this variant is because even though the 24-cell is self-dual,
-    // a rotation needs to happen before its vertices can be used as cell centers (i.e. to find hyperplane boundaries)
-    Cell24Rectified, // Another construction of the 24-cell via the rectification of a 16-cell
+
+    /// Another construction of the `Cell24` via the rectification of the `Cell16`: this is only
+    /// used to calculate the H-representation of the "regular" `Cell24` (even though the 24-cell
+    /// is self-dual, a rotation needs to happen before its vertices can be used as cell centers
+    /// to find hyperplane boundaries)
+    Cell24Rectified,
+
+    /// A polytope with 120 dodecahedral cells
     Cell120,
+
+    /// A polytope with 600 tetrahedral cells
     Cell600,
 }
 
@@ -85,15 +98,7 @@ impl Polychoron {
                 faces_per_cell: 4,
                 cells: 16,
             },
-            Polychoron::Cell24 => Definition {
-                components_per_vertex: 4,
-                vertices_per_edge: 2,
-                vertices_per_face: 3,
-                vertices_per_cell: 6,
-                faces_per_cell: 8,
-                cells: 24,
-            },
-            Polychoron::Cell24Rectified => Definition {
+            Polychoron::Cell24 | Polychoron::Cell24Rectified => Definition {
                 components_per_vertex: 4,
                 vertices_per_edge: 2,
                 vertices_per_face: 3,
@@ -116,14 +121,6 @@ impl Polychoron {
                 vertices_per_cell: 4,
                 faces_per_cell: 4,
                 cells: 600,
-            },
-            _ => Definition {
-                components_per_vertex: 0,
-                vertices_per_edge: 0,
-                vertices_per_face: 0,
-                vertices_per_cell: 0,
-                faces_per_cell: 0,
-                cells: 0,
             },
         }
     }
@@ -941,7 +938,6 @@ impl Polychoron {
                 Vector4::new(0.5, -0.5, -0.5, -0.5),
                 Vector4::new(-0.5, -0.5, -0.5, -0.5),
             ],
-            _ => vec![],
         }
     }
 
@@ -971,9 +967,7 @@ impl Polychoron {
                 22, 22, 4, 20, 5, 21, 5, 14, 22, 22, 5, 22, 6, 22, 23, 23, 4, 21, 23, 23, 5, 19,
                 23, 23, 6, 23, 7, 15, 23,
             ],
-            Polychoron::Cell24Rectified => vec![
-                // TODO
-            ],
+            Polychoron::Cell24Rectified => vec![unimplemented!()],
             Polychoron::Cell120 => vec![
                 305, 401, 25, 585, 401, 585, 25, 153, 153, 305, 307, 403, 27, 587, 403, 587, 27,
                 155, 155, 307, 17, 401, 17, 403, 305, 307, 137, 425, 139, 427, 137, 139, 321, 427,
@@ -1191,7 +1185,6 @@ impl Polychoron {
                 70, 90, 70, 94, 63, 71, 71, 92, 71, 95, 80, 88, 83, 91, 81, 89, 85, 93, 82, 90, 86,
                 94, 84, 92, 87, 95,
             ],
-            _ => vec![],
         }
     }
 
@@ -1230,9 +1223,7 @@ impl Polychoron {
                 21, 23, 5, 22, 23, 5, 21, 23, 4, 19, 23, 6, 22, 23, 6, 19, 23, 7, 21, 23, 7, 19,
                 23, 5, 15, 23, 6, 15, 23, 7, 15, 23,
             ],
-            Polychoron::Cell24Rectified => vec![
-                // TODO
-            ],
+            Polychoron::Cell24Rectified => vec![unimplemented!()],
             Polychoron::Cell120 => vec![
                 25, 153, 305, 401, 585, 27, 155, 307, 403, 587, 17, 305, 307, 401, 403, 137, 139,
                 321, 425, 427, 25, 137, 425, 553, 585, 27, 139, 427, 555, 587, 17, 385, 401, 553,
@@ -1627,7 +1618,6 @@ impl Polychoron {
                 90, 113, 86, 94, 118, 84, 92, 116, 87, 95, 119, 80, 88, 96, 81, 89, 97, 82, 90, 98,
                 83, 91, 99, 84, 92, 100, 85, 93, 101, 86, 94, 102, 87, 95, 103,
             ],
-            _ => vec![],
         }
     }
 
@@ -1646,12 +1636,9 @@ impl Polychoron {
             Polychoron::Cell8 => 0.5,
             Polychoron::Cell16 => 0.5,
             Polychoron::Cell24 => FRAC_1_SQRT_2,
+            Polychoron::Cell24Rectified => FRAC_1_SQRT_2,
             Polychoron::Cell120 => -0.925615, // See email snippet below as to where this comes from.
             Polychoron::Cell600 => -0.925615,
-            _ => {
-                panic!("Unknown displacement");
-                0.0 // We should never get here.
-            }
         };
 
         // Notes from "T", the author of `http://eusebeia.dyndns.org/`:
