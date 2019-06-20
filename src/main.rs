@@ -131,8 +131,11 @@ fn main() {
 
     // Set up timing information (can be used inside of the shaders to animate objects).
     let start = SystemTime::now();
+    let mut frame_count = 0;
 
     loop {
+        frame_count += 1;
+
         events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::Closed => (),
@@ -188,7 +191,8 @@ fn main() {
                         match input.state {
                             glutin::ElementState::Pressed => match key {
                                 glutin::VirtualKeyCode::S => {
-                                    let path = Path::new("frame.png");
+                                    let file_name = format!("frame_{}.png", frame_count);
+                                    let path = Path::new(&file_name);
                                     utilities::save_frame(
                                         path,
                                         constants::WIDTH,
@@ -266,7 +270,7 @@ fn main() {
 
         match mode {
             0 => {
-                // (0) Draw the results of the slicing operations.
+                // First, slice each mesh.
                 for mesh in meshes.iter_mut() {
                     mesh.set_transform(&rotation_in_4d);
                     mesh.slice(&hyperplane);
@@ -274,6 +278,7 @@ fn main() {
 
                 projections_program.bind();
                 projections_program.uniform_bool("u_perspective_4D", false);
+                // (0) Draw the results of the slicing operations.
                 for (i, mesh) in meshes.iter().enumerate() {
                     projections_program.uniform_matrix_4f("u_three_model", &model_matrices[i]);
                     mesh.draw_slice();

@@ -5,6 +5,8 @@ use std::f32;
 use constants;
 use math::cross;
 
+/// A trait representing a camera object in 3 or 4-space that has a look-at ("view")
+/// and projection matrix.
 pub trait Camera {
     fn get_look_at(&self) -> &Matrix4<f32>;
     fn get_projection(&self) -> &Matrix4<f32>;
@@ -12,6 +14,7 @@ pub trait Camera {
     fn build_projection(&mut self);
 }
 
+/// A camera that projects objects from 4-space to 3-space.
 pub struct FourCamera {
     pub from: Vector4<f32>,
     pub to: Vector4<f32>,
@@ -68,6 +71,7 @@ impl Camera for FourCamera {
     }
 }
 
+/// A camera that projects objects from 3-space to 2-space (the screen).
 pub struct ThreeCamera {
     from: Point3<f32>,
     to: Point3<f32>,

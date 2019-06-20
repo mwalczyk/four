@@ -1,5 +1,6 @@
 use cgmath::{self, Vector2, Zero};
 
+/// A simple struct for managing interaction state.
 pub struct InteractionState {
     /// The previous position of the user's cursor (last frame)
     pub cursor_prev: Vector2<f32>,
