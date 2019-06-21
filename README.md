@@ -87,6 +87,7 @@ All of the draw modes listed above will be affected by the 4-dimensional rotatio
 - [x] Finish additional polytopes (600-cell, etc.)
 - [ ] Add 4-dimensional "extrusions" (i.e. things like spherinders)
 - [ ] Add "hollow"-cell variants of each polytope (see Miegakure)
+- [ ] Research 4-dimensional knots, un-tying, un-boxing, etc.
 - [ ] Add simple lighting (calculate 3D normals after slicing procedure)
 - [ ] Research Munsell color solids
 
