@@ -5,8 +5,9 @@
 #![allow(unused_assignments)]
 #![allow(unreachable_code)]
 #![allow(unreachable_patterns)]
+mod gl { include!("../target/debug/build/gl-aa90ab3ecc411c34/out/bindings.rs"); }
+
 extern crate cgmath;
-extern crate gl;
 extern crate glutin;
 extern crate image;
 
