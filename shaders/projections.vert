@@ -101,6 +101,10 @@ void main()
     // New shading mode (shade wireframes and slices differently)...
     rgb = u_perspective_4D ? position_color : centroid_color;
     rgb = max(rgb, vec3(0.15));
+
+    float pct = color.x / 120.0;
+   // rgb = hsv2rgb(vec3(pct * 0.5, 1.0, 1.0));
+
     float alpha = u_perspective_4D ? 0.5 : 1.0;
 
     // Pass values to fragment shader.

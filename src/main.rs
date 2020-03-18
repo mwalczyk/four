@@ -5,12 +5,12 @@
 #![allow(unused_assignments)]
 #![allow(unreachable_code)]
 #![allow(unreachable_patterns)]
-mod gl { include!("../target/debug/build/gl-aa90ab3ecc411c34/out/bindings.rs"); }
+//mod gl { include!("../target/debug/build/gl-aa90ab3ecc411c34/out/bindings.rs"); }
 
 extern crate cgmath;
 extern crate glutin;
 extern crate image;
-
+extern crate  gl;
 // Module imports.
 mod camera;
 mod constants;
@@ -87,20 +87,20 @@ fn main() {
 
     // Load several polychora and compute their tetrahedral decompositions.
     let mut meshes = vec![
-        Mesh::new(Polychoron::Cell8),
-        Mesh::new(Polychoron::Cell16),
-        Mesh::new(Polychoron::Cell24),
+       // Mesh::new(Polychoron::Cell8),
+       // Mesh::new(Polychoron::Cell16),
+        //Mesh::new(Polychoron::Cell24),
         Mesh::new(Polychoron::Cell120),
-        Mesh::new(Polychoron::Cell600),
+       // Mesh::new(Polychoron::Cell600),
     ];
 
     // Set up the model matrices, in 3-space.
     let mut model_matrices = vec![
-        Matrix4::from_translation(Vector3::unit_x() * -4.5),
-        Matrix4::from_translation(Vector3::unit_x() * -2.0),
+       // Matrix4::from_translation(Vector3::unit_x() * -4.5),
+       // Matrix4::from_translation(Vector3::unit_x() * -2.0),
         Matrix4::from_translation(Vector3::unit_x() * 0.0),
-        Matrix4::from_translation(Vector3::unit_x() * 2.0),
-        Matrix4::from_translation(Vector3::unit_x() * 4.5),
+      //  Matrix4::from_translation(Vector3::unit_x() * 2.0),
+      //  Matrix4::from_translation(Vector3::unit_x() * 4.5),
     ];
 
     // Set up the "model" matrix, in 4-space.
